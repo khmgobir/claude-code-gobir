@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MLS Attendance – UDUS</title>
+  <style>
+    :root {
+      --green: #006400;
+      --green-light: #2d8f2d;
+      --green-pale: #e8f5e9;
+      --gold: #c8990a;
+      --gold-light: #f5e27a;
+      --red: #c0392b;
+      --gray: #555;
+      --bg: #f4f6f8;
+      --card: #fff;
+      --border: #dde3ea;
+      --radius: 10px;
+      --shadow: 0 2px 12px rgba(0,0,0,.09);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: #222; min-height: 100vh; }
+
+    /* ── HEADER ── */
+    header {
+      background: linear-gradient(135deg, var(--green) 0%, #004d00 100%);
+      color: #fff; padding: 14px 24px;
+      display: flex; align-items: center; gap: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.25);
+    }
+    header img { width: 56px; height: 56px; border-radius: 50%; border: 2px solid var(--gold); object-fit: cover; }
+    header .title h1 { font-size: 1.1rem; line-height: 1.3; }
+    header .title p  { font-size: .78rem; opacity: .85; }
+    .badge { margin-left: auto; background: var(--gold); color: #000; font-size: .7rem;
+             font-weight: 700; padding: 3px 10px; border-radius: 20px; white-space: nowrap; }
+
+    /* ── NAV TABS ── */
+    nav { display: flex; background: #004d00; overflow-x: auto; }
+    nav button {
+      flex: 1; min-width: 100px; padding: 13px 10px; border: none; background: transparent;
+      color: rgba(255,255,255,.7); font-size: .85rem; cursor: pointer; transition: .2s;
+      white-space: nowrap;
+    }
+    nav button.active, nav button:hover { background: rgba(255,255,255,.12); color: #fff; }
+    nav button.active { border-bottom: 3px solid var(--gold); }
+
+    /* ── MAIN WRAP ── */
+    main { max-width: 860px; margin: 0 auto; padding: 24px 16px; }
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── CARDS ── */
+    .card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+            padding: 24px; margin-bottom: 20px; }
+    .card h2 { font-size: 1.05rem; color: var(--green); margin-bottom: 18px;
+               border-bottom: 2px solid var(--green-pale); padding-bottom: 8px; }
+
+    /* ── FORMS ── */
+    .form-grid { display: grid; gap: 14px; }
+    .form-grid.two { grid-template-columns: 1fr 1fr; }
+    label { font-size: .82rem; font-weight: 600; color: var(--gray); display: block; margin-bottom: 4px; }
+    input, select, textarea {
+      width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+      border-radius: 6px; font-size: .9rem; outline: none; transition: border .2s;
+    }
+    input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(0,100,0,.1); }
+
+    /* ── BUTTONS ── */
+    .btn {
+      padding: 11px 22px; border: none; border-radius: 6px; font-size: .9rem;
+      font-weight: 600; cursor: pointer; transition: .18s; display: inline-flex;
+      align-items: center; gap: 7px;
+    }
+    .btn-green  { background: var(--green); color: #fff; }
+    .btn-green:hover  { background: var(--green-light); }
+    .btn-gold   { background: var(--gold); color: #000; }
+    .btn-gold:hover   { background: #b8860b; }
+    .btn-outline { background: transparent; border: 2px solid var(--green); color: var(--green); }
+    .btn-outline:hover { background: var(--green-pale); }
+    .btn-red    { background: var(--red); color: #fff; }
+    .btn-sm { padding: 6px 14px; font-size: .8rem; }
+    .btn-full { width: 100%; justify-content: center; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* ── ALERTS ── */
+    .alert { padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: .87rem; }
+    .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .alert-error   { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .alert-info    { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    .alert-warn    { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+
+    /* ── LOCATION STRIP ── */
+    .loc-box {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--green-pale); border: 1px solid #b2dfdb;
+      border-radius: 6px; padding: 12px 14px; margin-top: 14px; font-size: .85rem;
+    }
+    .loc-box .icon { font-size: 1.4rem; }
+    .loc-box .coords { font-family: monospace; font-size: .78rem; color: var(--gray); }
+    .loc-pulse { width: 12px; height: 12px; border-radius: 50%; background: #43a047; flex-shrink: 0;
+                 box-shadow: 0 0 0 0 rgba(67,160,71,.4); animation: pulse 1.4s infinite; }
+    @keyframes pulse {
+      0%   { box-shadow: 0 0 0 0   rgba(67,160,71,.6); }
+      70%  { box-shadow: 0 0 0 10px rgba(67,160,71,0);  }
+      100% { box-shadow: 0 0 0 0   rgba(67,160,71,0);   }
+    }
+
+    /* ── TABLE ── */
+    .tbl-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+    th { background: var(--green); color: #fff; padding: 10px 12px; text-align: left; }
+    td { padding: 9px 12px; border-bottom: 1px solid var(--border); }
+    tr:hover td { background: var(--green-pale); }
+    .pill { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: .75rem; font-weight: 700; }
+    .pill-green  { background: #d4edda; color: #155724; }
+    .pill-red    { background: #f8d7da; color: #721c24; }
+    .pill-yellow { background: #fff3cd; color: #856404; }
+
+    /* ── STATS ROW ── */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 14px; margin-bottom: 20px; }
+    .stat { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+            padding: 18px 16px; text-align: center; border-top: 4px solid var(--green); }
+    .stat .num { font-size: 2rem; font-weight: 700; color: var(--green); }
+    .stat .lbl { font-size: .75rem; color: var(--gray); margin-top: 4px; }
+
+    /* ── MAP PLACEHOLDER ── */
+    #map-container { border-radius: 8px; overflow: hidden; border: 1px solid var(--border); margin-top: 12px; }
+
+    /* ── MISC ── */
+    .row  { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+    .mt   { margin-top: 14px; }
+    .text-center { text-align: center; }
+    .text-sm { font-size: .8rem; color: var(--gray); }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
+    .logo-placeholder {
+      width: 56px; height: 56px; border-radius: 50%;
+      background: linear-gradient(135deg, #c8990a, #f5e27a);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; border: 2px solid var(--gold); flex-shrink: 0;
+    }
+    .spinner { border: 3px solid #e0e0e0; border-top-color: var(--green);
+               border-radius: 50%; width: 22px; height: 22px; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media(max-width:540px){
+      .form-grid.two { grid-template-columns: 1fr; }
+      header .title h1 { font-size: .95rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header>
+  <div class="logo-placeholder">🔬</div>
+  <div class="title">
+    <h1>School of Medical Laboratory Science</h1>
+    <p>Usmanu Danfodiyo University, Sokoto — Attendance Portal</p>
+  </div>
+  <span class="badge" id="session-badge">Not Logged In</span>
+</header>
+
+<!-- ═══════════════ NAV ═══════════════ -->
+<nav id="main-nav">
+  <button class="active" onclick="showPage('login')">🔑 Login</button>
+  <button onclick="showPage('mark')">📍 Mark Attendance</button>
+  <button onclick="showPage('history')">📋 My Records</button>
+  <button onclick="showPage('admin')">🛡 Admin</button>
+</nav>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<main>
+
+  <!-- ── LOGIN PAGE ── -->
+  <div class="page active" id="page-login">
+    <div class="card" style="max-width:460px;margin:0 auto;">
+      <h2>🔐 Student Login</h2>
+      <div id="login-alert"></div>
+      <div class="form-grid">
+        <div>
+          <label>Matric Number</label>
+          <input id="matric" type="text" placeholder="e.g. MLS/UG/21/001" autocomplete="off" />
+        </div>
+        <div>
+          <label>Full Name</label>
+          <input id="fullname" type="text" placeholder="Surname Firstname Other" />
+        </div>
+        <div>
+          <label>Level</label>
+          <select id="level">
+            <option value="">-- Select Level --</option>
+            <option>100 Level</option>
+            <option>200 Level</option>
+            <option>300 Level</option>
+            <option>400 Level</option>
+            <option>500 Level</option>
+          </select>
+        </div>
+        <div>
+          <label>Semester</label>
+          <select id="semester">
+            <option value="">-- Select Semester --</option>
+            <option>First Semester</option>
+            <option>Second Semester</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-green btn-full mt" onclick="login()">Login →</button>
+      <hr class="divider"/>
+      <p class="text-sm text-center">Admin? <a href="#" onclick="showPage('admin')" style="color:var(--green)">Go to Admin Panel</a></p>
+    </div>
+  </div>
+
+  <!-- ── MARK ATTENDANCE PAGE ── -->
+  <div class="page" id="page-mark">
+    <div class="card">
+      <h2>📍 Mark Attendance</h2>
+      <div id="mark-alert"></div>
+
+      <div class="form-grid two">
+        <div>
+          <label>Course Code</label>
+          <select id="course-code">
+            <option value="">-- Select Course --</option>
+            <optgroup label="100 Level">
+              <option value="MLS101">MLS101 – Introduction to MLS</option>
+              <option value="MLS102">MLS102 – Basic Biochemistry</option>
+              <option value="MLS103">MLS103 – Human Anatomy I</option>
+              <option value="MLS104">MLS104 – General Microbiology I</option>
+            </optgroup>
+            <optgroup label="200 Level">
+              <option value="MLS201">MLS201 – Haematology I</option>
+              <option value="MLS202">MLS202 – Medical Biochemistry I</option>
+              <option value="MLS203">MLS203 – Bacteriology I</option>
+              <option value="MLS204">MLS204 – Parasitology I</option>
+            </optgroup>
+            <optgroup label="300 Level">
+              <option value="MLS301">MLS301 – Clinical Chemistry I</option>
+              <option value="MLS302">MLS302 – Haematology II</option>
+              <option value="MLS303">MLS303 – Medical Microbiology I</option>
+              <option value="MLS304">MLS304 – Histopathology I</option>
+              <option value="MLS305">MLS305 – Immunology</option>
+            </optgroup>
+            <optgroup label="400 Level">
+              <option value="MLS401">MLS401 – Clinical Chemistry II</option>
+              <option value="MLS402">MLS402 – Blood Banking</option>
+              <option value="MLS403">MLS403 – Medical Virology</option>
+              <option value="MLS404">MLS404 – Haematology III</option>
+              <option value="MLS405">MLS405 – Research Methods</option>
+            </optgroup>
+            <optgroup label="500 Level">
+              <option value="MLS501">MLS501 – Advanced Haematology</option>
+              <option value="MLS502">MLS502 – Advanced Clinical Chemistry</option>
+              <option value="MLS503">MLS503 – Lab Management</option>
+              <option value="MLS504">MLS504 – Medical Lab Ethics</option>
+              <option value="MLS505">MLS505 – Project</option>
+            </optgroup>
+          </select>
+        </div>
+        <div>
+          <label>Lecturer / Facilitator</label>
+          <input id="lecturer" type="text" placeholder="e.g. Dr. A. Muhammad" />
+        </div>
+        <div>
+          <label>Lecture Date</label>
+          <input id="lec-date" type="date" />
+        </div>
+        <div>
+          <label>Lecture Time</label>
+          <input id="lec-time" type="time" />
+        </div>
+        <div style="grid-column:1/-1">
+          <label>Venue / Hall</label>
+          <input id="venue" type="text" placeholder="e.g. MLS Lecture Theatre 1" />
+        </div>
+      </div>
+
+      <!-- Location strip -->
+      <div id="loc-strip" class="loc-box" style="display:none">
+        <div class="loc-pulse"></div>
+        <div class="icon">📡</div>
+        <div>
+          <strong>Location Captured</strong>
+          <div class="coords" id="loc-text">--</div>
+        </div>
+        <div style="margin-left:auto">
+          <span id="loc-accuracy" class="pill pill-green"></span>
+        </div>
+      </div>
+
+      <div id="loc-waiting" class="alert alert-info mt" style="display:none">
+        ⏳ Acquiring your GPS location — please allow access when prompted…
+      </div>
+
+      <div class="row mt">
+        <button class="btn btn-outline" onclick="captureLocation()" id="btn-loc">
+          📍 Capture My Location
+        </button>
+        <button class="btn btn-green" onclick="submitAttendance()" id="btn-submit">
+          ✅ Submit Attendance
+        </button>
+      </div>
+
+      <div id="map-container" style="display:none">
+        <iframe id="map-frame" width="100%" height="220" frameborder="0" style="border:0" allowfullscreen loading="lazy"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── HISTORY PAGE ── -->
+  <div class="page" id="page-history">
+    <div class="stats" id="stats-row">
+      <div class="stat"><div class="num" id="s-total">0</div><div class="lbl">Total Classes</div></div>
+      <div class="stat"><div class="num" id="s-present">0</div><div class="lbl">Present</div></div>
+      <div class="stat"><div class="num" id="s-percent" style="color:var(--gold)">0%</div><div class="lbl">Attendance Rate</div></div>
+    </div>
+
+    <div class="card">
+      <h2>📋 My Attendance Records</h2>
+      <div class="row" style="margin-bottom:14px">
+        <div>
+          <label>Filter by Course</label>
+          <select id="filter-course" onchange="renderHistory()">
+            <option value="">All Courses</option>
+          </select>
+        </div>
+        <button class="btn btn-gold btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+        <button class="btn btn-outline btn-sm" onclick="clearMyRecords()">🗑 Clear My Records</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Date</th><th>Time</th><th>Course</th>
+              <th>Lecturer</th><th>Venue</th><th>Location</th><th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="history-body"></tbody>
+        </table>
+      </div>
+      <p id="history-empty" class="text-sm text-center mt" style="display:none">No records found.</p>
+    </div>
+  </div>
+
+  <!-- ── ADMIN PAGE ── -->
+  <div class="page" id="page-admin">
+    <div class="card" id="admin-login-card" style="max-width:380px;margin:0 auto;">
+      <h2>🛡 Admin Login</h2>
+      <div id="admin-alert"></div>
+      <div class="form-grid">
+        <div>
+          <label>Admin Password</label>
+          <input id="admin-pass" type="password" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')adminLogin()" />
+        </div>
+      </div>
+      <button class="btn btn-green btn-full mt" onclick="adminLogin()">Access Dashboard</button>
+      <p class="text-sm text-center mt" style="color:var(--gray)">Default password: <code>mls@udus2025</code></p>
+    </div>
+
+    <div id="admin-dashboard" style="display:none">
+      <div class="stats" id="admin-stats">
+        <div class="stat"><div class="num" id="a-students">0</div><div class="lbl">Students Registered</div></div>
+        <div class="stat"><div class="num" id="a-records">0</div><div class="lbl">Attendance Records</div></div>
+        <div class="stat"><div class="num" id="a-courses">0</div><div class="lbl">Courses Active</div></div>
+        <div class="stat"><div class="num" id="a-today">0</div><div class="lbl">Today's Records</div></div>
+      </div>
+
+      <div class="card">
+        <h2>📊 All Attendance Records</h2>
+        <div class="row" style="margin-bottom:14px;flex-wrap:wrap;gap:10px">
+          <div>
+            <label>Filter: Course</label>
+            <select id="af-course" onchange="renderAdminTable()"><option value="">All</option></select>
+          </div>
+          <div>
+            <label>Filter: Level</label>
+            <select id="af-level" onchange="renderAdminTable()">
+              <option value="">All Levels</option>
+              <option>100 Level</option><option>200 Level</option>
+              <option>300 Level</option><option>400 Level</option>
+              <option>500 Level</option>
+            </select>
+          </div>
+          <div>
+            <label>Filter: Date</label>
+            <input id="af-date" type="date" onchange="renderAdminTable()" style="width:160px"/>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:8px;align-items:flex-end">
+            <button class="btn btn-gold btn-sm" onclick="adminExportCSV()">⬇ Export All CSV</button>
+            <button class="btn btn-red btn-sm" onclick="clearAllRecords()">🗑 Clear All</button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Matric No.</th><th>Student</th><th>Level</th>
+                <th>Course</th><th>Date</th><th>Time</th><th>Lecturer</th>
+                <th>Venue</th><th>Lat</th><th>Lng</th><th>Accuracy</th>
+              </tr>
+            </thead>
+            <tbody id="admin-body"></tbody>
+          </table>
+        </div>
+        <p id="admin-empty" class="text-sm text-center mt" style="display:none">No records yet.</p>
+      </div>
+
+      <!-- Manage Sessions -->
+      <div class="card">
+        <h2>📅 Create Attendance Session</h2>
+        <p class="text-sm" style="margin-bottom:14px">Generate a QR / session code students can use to auto-fill course details.</p>
+        <div class="form-grid two">
+          <div>
+            <label>Course</label>
+            <select id="sess-course">
+              <option value="">-- Course --</option>
+              <option value="MLS101">MLS101</option><option value="MLS201">MLS201</option>
+              <option value="MLS301">MLS301</option><option value="MLS401">MLS401</option>
+              <option value="MLS501">MLS501</option>
+            </select>
+          </div>
+          <div>
+            <label>Lecturer</label>
+            <input id="sess-lecturer" type="text" placeholder="Dr. …" />
+          </div>
+          <div>
+            <label>Date</label>
+            <input id="sess-date" type="date" />
+          </div>
+          <div>
+            <label>Venue</label>
+            <input id="sess-venue" type="text" placeholder="Lecture Theatre" />
+          </div>
+        </div>
+        <button class="btn btn-green mt" onclick="createSession()">📌 Create Session</button>
+        <div id="session-result" class="mt"></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ─────────────────────────── SCRIPT ─────────────────────────── -->
+<script>
+/* ════ STATE ════ */
+let currentUser = null;
+let capturedLoc  = null;
+const ADMIN_PASS = 'mls@udus2025';
+const DB_KEY     = 'mls_attendance_db';
+const USER_KEY   = 'mls_current_user';
+
+/* ════ INIT ════ */
+window.addEventListener('DOMContentLoaded', () => {
+  setDefaultDateTime();
+  const saved = localStorage.getItem(USER_KEY);
+  if (saved) { currentUser = JSON.parse(saved); updateSessionBadge(); }
+});
+
+function setDefaultDateTime() {
+  const now = new Date();
+  const pad  = n => String(n).padStart(2,'0');
+  document.getElementById('lec-date').value = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+  document.getElementById('lec-time').value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  document.getElementById('sess-date').value = document.getElementById('lec-date').value;
+}
+
+/* ════ NAVIGATION ════ */
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  const idx = {login:0, mark:1, history:2, admin:3};
+  document.querySelectorAll('nav button')[idx[name]]?.classList.add('active');
+  if (name === 'history') renderHistory();
+  if (name === 'mark' && !currentUser) { alert('Please login first.'); showPage('login'); }
+}
+
+/* ════ AUTH ════ */
+function login() {
+  const matric   = v('matric').trim();
+  const fullname = v('fullname').trim();
+  const level    = v('level');
+  const semester = v('semester');
+  const el       = document.getElementById('login-alert');
+
+  if (!matric || !fullname || !level || !semester) {
+    return showAlert(el, 'Please fill all fields.', 'error');
+  }
+  currentUser = { matric, fullname, level, semester };
+  localStorage.setItem(USER_KEY, JSON.stringify(currentUser));
+  updateSessionBadge();
+  showAlert(el, `Welcome, ${fullname}! You are now logged in.`, 'success');
+  setTimeout(() => showPage('mark'), 1200);
+}
+
+function updateSessionBadge() {
+  const b = document.getElementById('session-badge');
+  b.textContent = currentUser ? `${currentUser.matric} | ${currentUser.level}` : 'Not Logged In';
+}
+
+/* ════ LOCATION ════ */
+function captureLocation() {
+  const strip   = document.getElementById('loc-strip');
+  const waiting = document.getElementById('loc-waiting');
+  const btn     = document.getElementById('btn-loc');
+
+  if (!navigator.geolocation) {
+    return showAlert(document.getElementById('mark-alert'), 'Geolocation is not supported by your browser.', 'error');
+  }
+
+  strip.style.display   = 'none';
+  waiting.style.display = 'flex';
+  btn.disabled = true;
+
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      capturedLoc = {
+        lat: pos.coords.latitude.toFixed(6),
+        lng: pos.coords.longitude.toFixed(6),
+        accuracy: Math.round(pos.coords.accuracy)
+      };
+      document.getElementById('loc-text').textContent =
+        `Lat: ${capturedLoc.lat}  |  Lng: ${capturedLoc.lng}`;
+      document.getElementById('loc-accuracy').textContent = `±${capturedLoc.accuracy}m`;
+      document.getElementById('loc-accuracy').className =
+        'pill ' + (capturedLoc.accuracy < 50 ? 'pill-green' : capturedLoc.accuracy < 150 ? 'pill-yellow' : 'pill-red');
+
+      strip.style.display   = 'flex';
+      waiting.style.display = 'none';
+      btn.disabled = false;
+      btn.textContent = '🔄 Re-capture Location';
+
+      // Show mini map
+      const mapFrame = document.getElementById('map-frame');
+      mapFrame.src = `https://maps.google.com/maps?q=${capturedLoc.lat},${capturedLoc.lng}&z=17&output=embed`;
+      document.getElementById('map-container').style.display = 'block';
+    },
+    err => {
+      waiting.style.display = 'none';
+      btn.disabled = false;
+      const msgs = {
+        1: 'Location permission denied. Please allow location access in your browser settings.',
+        2: 'Unable to determine your location. Ensure GPS is enabled.',
+        3: 'Location request timed out. Please try again.'
+      };
+      showAlert(document.getElementById('mark-alert'), msgs[err.code] || 'Location error.', 'error');
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+  );
+}
+
+/* ════ SUBMIT ATTENDANCE ════ */
+function submitAttendance() {
+  if (!currentUser) return alert('Please login first.');
+
+  const course   = v('course-code');
+  const lecturer = v('lecturer').trim();
+  const date     = v('lec-date');
+  const time     = v('lec-time');
+  const venue    = v('venue').trim();
+  const alertEl  = document.getElementById('mark-alert');
+
+  if (!course)   return showAlert(alertEl, 'Please select a course.', 'error');
+  if (!lecturer) return showAlert(alertEl, 'Please enter lecturer name.', 'error');
+  if (!date)     return showAlert(alertEl, 'Please select lecture date.', 'error');
+  if (!venue)    return showAlert(alertEl, 'Please enter venue.', 'error');
+  if (!capturedLoc) return showAlert(alertEl, 'Please capture your location first.', 'warn');
+
+  // Duplicate check
+  const db = getDB();
+  const dup = db.find(r =>
+    r.matric === currentUser.matric && r.course === course && r.date === date
+  );
+  if (dup) return showAlert(alertEl, `You already marked attendance for ${course} on ${date}.`, 'warn');
+
+  const record = {
+    id: Date.now(),
+    matric:   currentUser.matric,
+    fullname: currentUser.fullname,
+    level:    currentUser.level,
+    semester: currentUser.semester,
+    course, lecturer, date, time, venue,
+    lat:      capturedLoc.lat,
+    lng:      capturedLoc.lng,
+    accuracy: capturedLoc.accuracy,
+    timestamp: new Date().toISOString()
+  };
+
+  db.push(record);
+  saveDB(db);
+
+  showAlert(alertEl,
+    `✅ Attendance recorded for <strong>${course}</strong> on <strong>${date}</strong> at <strong>${time}</strong>.<br>
+     📍 Location: ${capturedLoc.lat}, ${capturedLoc.lng} (±${capturedLoc.accuracy}m)`,
+    'success'
+  );
+
+  // Reset location
+  capturedLoc = null;
+  document.getElementById('loc-strip').style.display = 'none';
+  document.getElementById('map-container').style.display = 'none';
+  document.getElementById('btn-loc').textContent = '📍 Capture My Location';
+}
+
+/* ════ HISTORY ════ */
+function renderHistory() {
+  if (!currentUser) { showPage('login'); return; }
+  const db      = getDB().filter(r => r.matric === currentUser.matric);
+  const filter  = v('filter-course');
+
+  // Populate filter
+  const fc = document.getElementById('filter-course');
+  const courses = [...new Set(db.map(r => r.course))];
+  fc.innerHTML = '<option value="">All Courses</option>' +
+    courses.map(c => `<option ${c===filter?'selected':''}>${c}</option>`).join('');
+
+  const filtered = filter ? db.filter(r => r.course === filter) : db;
+
+  document.getElementById('s-total').textContent   = db.length;
+  document.getElementById('s-present').textContent = db.length;
+  const pct = db.length ? '100%' : '0%';
+  document.getElementById('s-percent').textContent = pct;
+
+  const body  = document.getElementById('history-body');
+  const empty = document.getElementById('history-empty');
+
+  if (!filtered.length) { body.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+
+  body.innerHTML = filtered.map((r,i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td>${r.date}</td>
+      <td>${r.time}</td>
+      <td><strong>${r.course}</strong></td>
+      <td>${r.lecturer}</td>
+      <td>${r.venue}</td>
+      <td style="font-family:monospace;font-size:.75rem">
+        <a href="https://maps.google.com/?q=${r.lat},${r.lng}" target="_blank" style="color:var(--green)">
+          ${r.lat}, ${r.lng}<br><small>±${r.accuracy}m</small>
+        </a>
+      </td>
+      <td><span class="pill pill-green">Present</span></td>
+    </tr>
+  `).join('');
+}
+
+function clearMyRecords() {
+  if (!currentUser) return;
+  if (!confirm('Delete all YOUR attendance records?')) return;
+  const db = getDB().filter(r => r.matric !== currentUser.matric);
+  saveDB(db);
+  renderHistory();
+}
+
+function exportCSV() {
+  if (!currentUser) return;
+  const db = getDB().filter(r => r.matric === currentUser.matric);
+  downloadCSV(db, `attendance_${currentUser.matric}.csv`);
+}
+
+/* ════ ADMIN ════ */
+function adminLogin() {
+  const pass = document.getElementById('admin-pass').value;
+  const el   = document.getElementById('admin-alert');
+  if (pass !== ADMIN_PASS) return showAlert(el, 'Incorrect password.', 'error');
+  document.getElementById('admin-login-card').style.display = 'none';
+  document.getElementById('admin-dashboard').style.display  = 'block';
+  renderAdminTable();
+}
+
+function renderAdminTable() {
+  const db       = getDB();
+  const afCourse = v('af-course');
+  const afLevel  = v('af-level');
+  const afDate   = v('af-date');
+  const today    = new Date().toISOString().slice(0,10);
+
+  // Populate course filter
+  const fc = document.getElementById('af-course');
+  const courses = [...new Set(db.map(r => r.course))];
+  fc.innerHTML = '<option value="">All</option>' +
+    courses.map(c => `<option ${c===afCourse?'selected':''}>${c}</option>`).join('');
+
+  let rows = db;
+  if (afCourse) rows = rows.filter(r => r.course === afCourse);
+  if (afLevel)  rows = rows.filter(r => r.level  === afLevel);
+  if (afDate)   rows = rows.filter(r => r.date   === afDate);
+
+  const students = [...new Set(db.map(r => r.matric))].length;
+  document.getElementById('a-students').textContent = students;
+  document.getElementById('a-records').textContent  = db.length;
+  document.getElementById('a-courses').textContent  = courses.length;
+  document.getElementById('a-today').textContent    = db.filter(r=>r.date===today).length;
+
+  const body  = document.getElementById('admin-body');
+  const empty = document.getElementById('admin-empty');
+
+  if (!rows.length) { body.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+
+  body.innerHTML = rows.map((r,i) => `
+    <tr>
+      <td>${i+1}</td>
+      <td><strong>${r.matric}</strong></td>
+      <td>${r.fullname}</td>
+      <td>${r.level}</td>
+      <td>${r.course}</td>
+      <td>${r.date}</td>
+      <td>${r.time}</td>
+      <td>${r.lecturer}</td>
+      <td>${r.venue}</td>
+      <td style="font-size:.75rem">${r.lat}</td>
+      <td style="font-size:.75rem">${r.lng}</td>
+      <td><span class="pill ${r.accuracy<50?'pill-green':r.accuracy<150?'pill-yellow':'pill-red'}">±${r.accuracy}m</span></td>
+    </tr>
+  `).join('');
+}
+
+function adminExportCSV() {
+  downloadCSV(getDB(), 'mls_all_attendance.csv');
+}
+
+function clearAllRecords() {
+  if (!confirm('⚠️ This will permanently delete ALL attendance records. Continue?')) return;
+  saveDB([]);
+  renderAdminTable();
+}
+
+function createSession() {
+  const course   = document.getElementById('sess-course').value;
+  const lecturer = document.getElementById('sess-lecturer').value.trim();
+  const date     = document.getElementById('sess-date').value;
+  const venue    = document.getElementById('sess-venue').value.trim();
+  const el       = document.getElementById('session-result');
+
+  if (!course || !lecturer || !date || !venue) {
+    return el.innerHTML = '<div class="alert alert-error">Fill all session fields.</div>';
+  }
+  const code = `${course}-${date.replace(/-/g,'')}-${Math.random().toString(36).slice(2,6).toUpperCase()}`;
+  el.innerHTML = `
+    <div class="alert alert-success">
+      ✅ Session created!<br>
+      <strong>Session Code:</strong> <code style="font-size:1.1rem;letter-spacing:2px">${code}</code><br>
+      <strong>Course:</strong> ${course} | <strong>Date:</strong> ${date} | <strong>Lecturer:</strong> ${lecturer}
+    </div>`;
+  // Pre-fill mark page
+  document.getElementById('course-code').value = course;
+  document.getElementById('lecturer').value    = lecturer;
+  document.getElementById('lec-date').value    = date;
+  document.getElementById('venue').value       = venue;
+}
+
+/* ════ HELPERS ════ */
+function v(id) { return document.getElementById(id)?.value || ''; }
+
+function showAlert(el, msg, type) {
+  el.innerHTML = `<div class="alert alert-${type}">${msg}</div>`;
+  setTimeout(() => { if(el) el.innerHTML=''; }, 6000);
+}
+
+function getDB() {
+  try { return JSON.parse(localStorage.getItem(DB_KEY) || '[]'); } catch { return []; }
+}
+function saveDB(db) { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+
+function downloadCSV(rows, filename) {
+  if (!rows.length) return alert('No records to export.');
+  const headers = ['Matric','Full Name','Level','Semester','Course','Date','Time','Lecturer','Venue','Latitude','Longitude','Accuracy(m)','Timestamp'];
+  const lines = [headers.join(','),
+    ...rows.map(r => [
+      r.matric, `"${r.fullname}"`, r.level, r.semester, r.course,
+      r.date, r.time, `"${r.lecturer}"`, `"${r.venue}"`,
+      r.lat, r.lng, r.accuracy, r.timestamp
+    ].join(','))
+  ];
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+  const a    = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: filename });
+  a.click(); URL.revokeObjectURL(a.href);
+}
+</script>
+</body>
+</html>
