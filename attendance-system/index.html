@@ -931,7 +931,10 @@
                 <option value="">All Courses</option>
               </select>
               <button class="btn btn-outline btn-sm" onclick="exportCSV()">
-                <i class="bi bi-download"></i> Export
+                <i class="bi bi-download"></i> CSV
+              </button>
+              <button class="btn btn-green btn-sm" onclick="printRecord()">
+                <i class="bi bi-printer-fill"></i> Print / PDF
               </button>
             </div>
           </div>
@@ -1838,6 +1841,251 @@ function populateCoursesDropdown(selId, level) {
     o.textContent = `${c.code} – ${c.title}`;
     sel.appendChild(o);
   });
+}
+
+/* ════════════════════════════ PRINT / PDF REPORT ════════════════════════════ */
+function printRecord() {
+  if (!currentUser) return;
+  const all = getRecords().filter(r => r.matric === currentUser.matric);
+  if (!all.length) { toast('No records to print.', 'info'); return; }
+
+  const filterCourse = document.getElementById('filter-course')?.value || '';
+  const records = filterCourse ? all.filter(r => r.courseCode === filterCourse) : all;
+
+  /* Per-course summary */
+  const courseMap = {};
+  records.forEach(r => {
+    if (!courseMap[r.courseCode]) {
+      courseMap[r.courseCode] = { code: r.courseCode, title: r.courseTitle || r.courseCode, sessions: [] };
+    }
+    courseMap[r.courseCode].sessions.push(r);
+  });
+
+  const courses = getCourses();
+  const semesterCourses = courses.filter(c => c.level === currentUser.level);
+  const totalRegistered = semesterCourses.length || Object.keys(courseMap).length;
+
+  /* Attendance rate: sessions attended / total sessions across all courses */
+  const totalSessions = records.length;
+  const coursesSeen = Object.keys(courseMap).length;
+
+  const printedOn = new Date().toLocaleDateString('en-GB', {
+    day: '2-digit', month: 'long', year: 'numeric'
+  });
+  const printedTime = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
+  const courseRows = Object.values(courseMap).sort((a,b) => a.code.localeCompare(b.code)).map(c => {
+    const sessRows = c.sessions.slice().sort((a,b) => a.date.localeCompare(b.date)).map(s => `
+      <tr>
+        <td>${fmtDate(s.date)}</td>
+        <td>${s.time || '—'}</td>
+        <td>${s.lecturer || '—'}</td>
+        <td>${s.venue || '—'}</td>
+        <td>Present</td>
+        <td>${s.lat ? s.lat.toFixed(4)+', '+s.lng.toFixed(4) : '—'}</td>
+      </tr>`).join('');
+    return `
+      <div class="course-section">
+        <div class="course-heading">
+          <span class="course-code">${c.code}</span>
+          <span class="course-title">${c.title}</span>
+          <span class="course-count">${c.sessions.length} session${c.sessions.length !== 1 ? 's' : ''}</span>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Time</th><th>Lecturer</th><th>Venue</th><th>Status</th><th>GPS Coords</th></tr>
+          </thead>
+          <tbody>${sessRows}</tbody>
+        </table>
+      </div>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>Attendance Report – ${currentUser.matric}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', Arial, sans-serif; font-size: 11pt; color: #0f1f16; background: #fff; }
+  @page { size: A4; margin: 18mm 16mm 20mm; }
+
+  /* ── HEADER ── */
+  .doc-header {
+    border-bottom: 3px solid #003D24; padding-bottom: 14px; margin-bottom: 20px;
+    display: flex; align-items: flex-start; gap: 16px;
+  }
+  .logo-circle {
+    width: 60px; height: 60px; border-radius: 50%;
+    background: #003D24; color: #c8960c;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; flex-shrink: 0;
+  }
+  .doc-header-text h1 { font-size: 14pt; font-weight: 700; color: #003D24; line-height: 1.2; }
+  .doc-header-text p  { font-size: 9pt; color: #5c7a6a; margin-top: 3px; }
+  .doc-header-text .report-label {
+    display: inline-block; margin-top: 6px;
+    background: #003D24; color: #fff;
+    font-size: 8pt; font-weight: 600; padding: 3px 10px; border-radius: 4px;
+    text-transform: uppercase; letter-spacing: .06em;
+  }
+
+  /* ── STUDENT INFO BOX ── */
+  .info-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 0; border: 1.5px solid #003D24; border-radius: 6px;
+    overflow: hidden; margin-bottom: 20px;
+  }
+  .info-cell {
+    padding: 10px 14px; border-right: 1px solid #dde8e2;
+  }
+  .info-cell:last-child { border-right: none; }
+  .info-cell:nth-child(n+4) { border-top: 1px solid #dde8e2; }
+  .info-cell .lbl { font-size: 7.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #5c7a6a; margin-bottom: 3px; }
+  .info-cell .val { font-size: 10.5pt; font-weight: 600; color: #003D24; }
+
+  /* ── SUMMARY ROW ── */
+  .summary-bar {
+    display: flex; gap: 0; border: 1.5px solid #c8960c;
+    border-radius: 6px; overflow: hidden; margin-bottom: 24px;
+    background: #fff8e1;
+  }
+  .sum-cell {
+    flex: 1; padding: 12px 16px; text-align: center;
+    border-right: 1px solid rgba(200,150,12,.3);
+  }
+  .sum-cell:last-child { border-right: none; }
+  .sum-cell .sv { font-size: 20pt; font-weight: 700; color: #003D24; line-height: 1; }
+  .sum-cell .sl { font-size: 7.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #5c7a6a; margin-top: 4px; }
+  .sum-cell.highlight .sv { color: #c8960c; }
+
+  /* ── SECTION HEADING ── */
+  .section-title {
+    font-size: 10pt; font-weight: 700; color: #003D24;
+    text-transform: uppercase; letter-spacing: .06em;
+    margin-bottom: 10px; padding-bottom: 5px;
+    border-bottom: 2px solid #e8f5ee;
+  }
+
+  /* ── COURSE SECTIONS ── */
+  .course-section { margin-bottom: 22px; break-inside: avoid; }
+  .course-heading {
+    background: #003D24; color: #fff;
+    padding: 8px 12px; border-radius: 5px 5px 0 0;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .course-heading .course-code {
+    font-size: 9pt; font-weight: 700; background: #c8960c; color: #003D24;
+    padding: 2px 8px; border-radius: 3px;
+  }
+  .course-heading .course-title { font-size: 9pt; font-weight: 600; flex: 1; }
+  .course-heading .course-count {
+    font-size: 8pt; background: rgba(255,255,255,.15);
+    padding: 2px 8px; border-radius: 10px;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  table th {
+    background: #e8f5ee; color: #003D24;
+    font-size: 7.5pt; font-weight: 700; text-transform: uppercase; letter-spacing: .05em;
+    padding: 7px 10px; text-align: left; border-bottom: 1.5px solid #dde8e2;
+  }
+  table td { padding: 7px 10px; font-size: 8.5pt; border-bottom: 1px solid #f0f4f2; }
+  table tr:last-child td { border-bottom: none; }
+  table tr:nth-child(even) td { background: #fafaf8; }
+  .course-section table { border: 1px solid #dde8e2; border-top: none; border-radius: 0 0 5px 5px; overflow: hidden; }
+
+  /* ── FOOTER ── */
+  .doc-footer {
+    margin-top: 28px; border-top: 1.5px solid #dde8e2;
+    padding-top: 10px; display: flex; justify-content: space-between;
+    font-size: 8pt; color: #5c7a6a;
+  }
+  .doc-footer strong { color: #003D24; }
+  .signature-block { margin-top: 32px; display: flex; justify-content: flex-end; }
+  .sig-line { width: 200px; text-align: center; }
+  .sig-line .line { border-top: 1.5px solid #003D24; margin-bottom: 5px; }
+  .sig-line .lbl { font-size: 7.5pt; color: #5c7a6a; }
+
+  /* ── WATERMARK ── */
+  .watermark {
+    position: fixed; bottom: 60px; right: 30px;
+    font-size: 48pt; font-weight: 900; color: rgba(0,61,36,.04);
+    transform: rotate(-25deg); user-select: none; pointer-events: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="watermark">UDUS MLS</div>
+
+<!-- HEADER -->
+<div class="doc-header">
+  <div class="logo-circle">🔬</div>
+  <div class="doc-header-text">
+    <h1>Usmanu Danfodiyo University Sokoto</h1>
+    <p>School of Medical Laboratory Science &mdash; Student Attendance Record</p>
+    <span class="report-label">Official Attendance Report</span>
+  </div>
+</div>
+
+<!-- STUDENT INFO -->
+<div class="section-title">Student Information</div>
+<div class="info-grid">
+  <div class="info-cell"><div class="lbl">Full Name</div><div class="val">${currentUser.fullname}</div></div>
+  <div class="info-cell"><div class="lbl">Matriculation No.</div><div class="val">${currentUser.matric}</div></div>
+  <div class="info-cell"><div class="lbl">Level</div><div class="val">${currentUser.level}</div></div>
+  <div class="info-cell"><div class="lbl">Semester</div><div class="val">${currentUser.semester}</div></div>
+  <div class="info-cell"><div class="lbl">Report Period</div><div class="val">${filterCourse ? filterCourse + ' only' : 'All Courses'}</div></div>
+  <div class="info-cell"><div class="lbl">Printed</div><div class="val">${printedOn}, ${printedTime}</div></div>
+</div>
+
+<!-- SUMMARY -->
+<div class="section-title">Attendance Summary</div>
+<div class="summary-bar">
+  <div class="sum-cell">
+    <div class="sv">${totalSessions}</div>
+    <div class="sl">Total Sessions Attended</div>
+  </div>
+  <div class="sum-cell">
+    <div class="sv">${coursesSeen}</div>
+    <div class="sl">Courses Attended</div>
+  </div>
+  <div class="sum-cell highlight">
+    <div class="sv">${totalRegistered > 0 ? Math.round((coursesSeen / totalRegistered) * 100) : 0}%</div>
+    <div class="sl">Course Coverage</div>
+  </div>
+  <div class="sum-cell">
+    <div class="sv">${totalRegistered}</div>
+    <div class="sl">Registered Courses</div>
+  </div>
+</div>
+
+<!-- DETAILED RECORDS -->
+<div class="section-title">Detailed Attendance Records</div>
+${courseRows}
+
+<!-- FOOTER -->
+<div class="doc-footer">
+  <span><strong>MLS Attendance Portal</strong> &mdash; School of Medical Laboratory Science, UDUS Sokoto</span>
+  <span>Printed: ${printedOn} at ${printedTime}</span>
+</div>
+
+<div class="signature-block">
+  <div class="sig-line">
+    <div class="line"></div>
+    <div class="lbl">Authorized Signature &amp; Stamp</div>
+  </div>
+</div>
+
+<script>window.onload = function(){ window.print(); }<\/script>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank', 'width=900,height=700');
+  if (!win) { toast('Pop-up blocked. Please allow pop-ups and try again.', 'error'); return; }
+  win.document.write(html);
+  win.document.close();
 }
 
 /* ════════════════════════════ INIT ════════════════════════════ */
