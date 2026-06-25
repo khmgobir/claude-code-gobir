@@ -124,11 +124,10 @@
       animation: fadeUp .7s var(--ease-out) .1s both;
     }
     .login-brand .school-badge {
-      width: 64px; height: 64px; border-radius: 50%;
-      background: var(--gold); display: inline-flex;
-      align-items: center; justify-content: center;
-      font-size: 1.8rem; margin-bottom: 16px;
-      box-shadow: 0 0 0 6px rgba(200,150,12,.2), 0 0 0 12px rgba(200,150,12,.08);
+      width: 84px; height: 84px;
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-bottom: 16px;
+      filter: drop-shadow(0 0 12px rgba(200,150,12,.35));
     }
     .login-brand h1 { font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
     .login-brand p  { font-size: .85rem; opacity: .65; margin-top: 6px; letter-spacing: .03em; }
@@ -271,11 +270,10 @@
       box-shadow: 0 2px 16px rgba(0,40,20,.4);
     }
     .app-crest {
-      width: 40px; height: 40px; border-radius: 50%;
-      background: var(--gold); display: flex; align-items: center;
-      justify-content: center; font-size: 1.15rem; flex-shrink: 0;
-      box-shadow: 0 0 0 3px rgba(200,150,12,.3);
+      width: 40px; height: 40px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
     }
+    .app-crest svg { width: 38px; height: 38px; }
     .app-title h1 { font-size: .9rem; font-weight: 700; line-height: 1.2; }
     .app-title p  { font-size: .68rem; opacity: .65; margin-top: 1px; }
     .app-badge {
@@ -718,6 +716,66 @@
     .rec-table tr:last-child td { border-bottom: none; }
     .rec-table tr:hover td { background: var(--mint); }
 
+    /* ═══════════════════════ TOKEN UI ═══════════════════════ */
+    .method-toggle {
+      display: flex; gap: 0; border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 20px;
+    }
+    .method-toggle button {
+      flex: 1; padding: 11px 8px; border: none; background: var(--surface);
+      color: var(--muted); font-size: .82rem; font-weight: 600;
+      cursor: pointer; transition: all var(--t);
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .method-toggle button + button { border-left: 1.5px solid var(--border); }
+    .method-toggle button.active { background: var(--pine); color: #fff; }
+
+    .token-display {
+      background: var(--pine); border-radius: var(--radius);
+      padding: 24px 20px; text-align: center;
+      color: #fff; margin-top: 16px;
+    }
+    .token-display .token-lbl { font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; opacity: .65; margin-bottom: 8px; }
+    .token-display .token-code {
+      font-family: 'Space Grotesk', monospace;
+      font-size: 2.8rem; font-weight: 700; letter-spacing: .18em;
+      color: var(--gold); line-height: 1;
+    }
+    .token-display .token-meta { font-size: .78rem; opacity: .65; margin-top: 10px; }
+    .token-display .token-expiry { font-size: .75rem; color: #fca5a5; margin-top: 4px; }
+
+    .token-entry {
+      display: flex; gap: 10px; margin-top: 12px;
+    }
+    .token-entry input {
+      flex: 1; padding: 14px; font-size: 1.4rem; font-family: 'Space Grotesk', monospace;
+      font-weight: 700; letter-spacing: .2em; text-align: center; text-transform: uppercase;
+      border: 2px solid var(--border); border-radius: var(--radius-sm);
+      background: var(--surface); outline: none;
+      transition: border-color var(--t), box-shadow var(--t);
+    }
+    .token-entry input:focus {
+      border-color: var(--forest);
+      box-shadow: 0 0 0 3px rgba(0,95,60,.12);
+    }
+
+    .active-sessions-list { margin-top: 16px; }
+    .sess-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); margin-bottom: 8px;
+      background: var(--surface);
+    }
+    .sess-item-token {
+      font-family: 'Space Grotesk', monospace; font-size: 1.3rem;
+      font-weight: 700; color: var(--gold); background: var(--pine);
+      padding: 4px 10px; border-radius: 6px; letter-spacing: .1em;
+    }
+    .sess-item-info { flex: 1; min-width: 0; }
+    .sess-item-info strong { display: block; font-size: .9rem; color: var(--pine); }
+    .sess-item-info small { font-size: .74rem; color: var(--muted); }
+    .sess-item-del { background: none; border: none; color: var(--red); cursor: pointer; font-size: 1rem; padding: 4px; }
+
     /* ═══════════════════════ RESPONSIVE TWEAKS ═══════════════════════ */
     @media (max-width: 380px) {
       .stats-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -727,6 +785,46 @@
   </style>
 </head>
 <body>
+
+<!-- ═══════ UDUS LOGO SVG (referenced by id) ═══════ -->
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <symbol id="udus-logo" viewBox="0 0 100 120">
+    <!-- Shield outline -->
+    <path d="M50 4 L92 18 L92 62 Q92 95 50 116 Q8 95 8 62 L8 18 Z"
+          fill="#003D24" stroke="#c8960c" stroke-width="2.5"/>
+    <!-- Inner shield border -->
+    <path d="M50 12 L85 24 L85 62 Q85 90 50 108 Q15 90 15 62 L15 24 Z"
+          fill="none" stroke="#c8960c" stroke-width="1" stroke-opacity=".5"/>
+    <!-- Crescent moon (Islamic heritage) -->
+    <path d="M50 26 A14 14 0 1 1 36 40 A10 10 0 1 0 50 26Z"
+          fill="#c8960c"/>
+    <!-- Open book -->
+    <rect x="30" y="58" width="18" height="13" rx="1" fill="#c8960c" opacity=".9"/>
+    <rect x="52" y="58" width="18" height="13" rx="1" fill="#c8960c" opacity=".9"/>
+    <rect x="48" y="57" width="4" height="15" rx="1" fill="#003D24"/>
+    <!-- Lines on book pages -->
+    <line x1="33" y1="63" x2="45" y2="63" stroke="#003D24" stroke-width="1"/>
+    <line x1="33" y1="66" x2="45" y2="66" stroke="#003D24" stroke-width="1"/>
+    <line x1="33" y1="69" x2="45" y2="69" stroke="#003D24" stroke-width="1"/>
+    <line x1="55" y1="63" x2="67" y2="63" stroke="#003D24" stroke-width="1"/>
+    <line x1="55" y1="66" x2="67" y2="66" stroke="#003D24" stroke-width="1"/>
+    <line x1="55" y1="69" x2="67" y2="69" stroke="#003D24" stroke-width="1"/>
+    <!-- Torch flame above book -->
+    <ellipse cx="50" cy="50" rx="3" ry="5" fill="#c8960c"/>
+    <path d="M47 50 Q50 42 53 50 Q50 54 47 50Z" fill="#ffd54f"/>
+    <!-- Torch handle -->
+    <rect x="48.5" y="55" width="3" height="4" rx="1" fill="#c8960c"/>
+    <!-- Stars (2 small) -->
+    <polygon points="23,46 24,49 27,49 24.5,51 25.5,54 23,52 20.5,54 21.5,51 19,49 22,49"
+             fill="#c8960c" transform="scale(0.55) translate(20,36)"/>
+    <polygon points="23,46 24,49 27,49 24.5,51 25.5,54 23,52 20.5,54 21.5,51 19,49 22,49"
+             fill="#c8960c" transform="scale(0.55) translate(105,36)"/>
+    <!-- Bottom banner -->
+    <rect x="14" y="103" width="72" height="13" rx="2" fill="#c8960c"/>
+    <text x="50" y="113" text-anchor="middle" font-family="serif" font-size="5.5"
+          font-weight="700" fill="#003D24" letter-spacing=".5">UDUS · SOKOTO</text>
+  </symbol>
+</svg>
 
 <!-- ═══════ LOGIN SPLASH ═══════ -->
 <div id="page-login">
@@ -744,7 +842,9 @@
   </div>
 
   <div class="login-brand">
-    <div class="school-badge">🔬</div>
+    <div class="school-badge">
+      <svg width="84" height="100" viewBox="0 0 100 120"><use href="#udus-logo"/></svg>
+    </div>
     <h1>MLS Attendance Portal</h1>
     <p>School of Medical Laboratory Science · UDUS Sokoto</p>
   </div>
@@ -792,7 +892,9 @@
 
   <!-- Header -->
   <header class="app-header">
-    <div class="app-crest">🔬</div>
+    <div class="app-crest">
+      <svg viewBox="0 0 100 120"><use href="#udus-logo"/></svg>
+    </div>
     <div class="app-title">
       <h1>MLS Attendance</h1>
       <p>Usmanu Danfodiyo University Sokoto</p>
@@ -862,26 +964,64 @@
 
         <div class="card">
           <div class="card-head">
-            <div class="card-icon"><i class="bi bi-geo-alt-fill"></i></div>
-            <h2>Location Capture</h2>
+            <div class="card-icon"><i class="bi bi-shield-check-fill"></i></div>
+            <h2>Verify Presence</h2>
           </div>
           <div class="card-body">
-            <button class="btn-gps" id="btn-loc" onclick="captureLocation()">
-              <i class="bi bi-geo-alt-fill"></i>
-              <span id="loc-waiting">Tap to capture your GPS location</span>
-            </button>
 
-            <div class="loc-strip" id="loc-strip" style="display:none">
-              <i class="bi bi-geo-fill"></i>
-              <div>
-                <div id="loc-text" class="fw-600"></div>
-                <div id="loc-accuracy" class="text-muted text-sm"></div>
+            <!-- Method toggle -->
+            <div class="method-toggle">
+              <button class="active" id="method-gps-btn" onclick="switchMethod('gps')">
+                <i class="bi bi-geo-alt-fill"></i> GPS Location
+              </button>
+              <button id="method-token-btn" onclick="switchMethod('token')">
+                <i class="bi bi-key-fill"></i> Session Token
+              </button>
+            </div>
+
+            <!-- GPS method -->
+            <div id="method-gps">
+              <button class="btn-gps" id="btn-loc" onclick="captureLocation()">
+                <i class="bi bi-geo-alt-fill"></i>
+                <span id="loc-waiting">Tap to capture your GPS location</span>
+              </button>
+              <div class="loc-strip" id="loc-strip" style="display:none">
+                <i class="bi bi-geo-fill"></i>
+                <div>
+                  <div id="loc-text" class="fw-600"></div>
+                  <div id="loc-accuracy" class="text-muted text-sm"></div>
+                </div>
+              </div>
+              <div class="map-container" id="map-container">
+                <iframe id="map-frame" src="" loading="lazy" allowfullscreen></iframe>
               </div>
             </div>
 
-            <div class="map-container" id="map-container">
-              <iframe id="map-frame" src="" loading="lazy" allowfullscreen></iframe>
+            <!-- Token method -->
+            <div id="method-token" style="display:none">
+              <p class="text-muted text-sm mb-12">
+                <i class="bi bi-info-circle"></i>
+                Enter the 6-character session token shown by your lecturer or on the board.
+              </p>
+              <div class="token-entry">
+                <input type="text" id="token-input" maxlength="6"
+                  placeholder="A1B2C3"
+                  oninput="this.value=this.value.toUpperCase()"
+                  onkeydown="if(event.key==='Enter')verifyToken()" />
+              </div>
+              <div id="token-alert" style="margin-top:10px"></div>
+              <div id="token-session-preview" style="display:none; margin-top:12px" class="loc-strip">
+                <i class="bi bi-check-circle-fill" style="color:var(--leaf)"></i>
+                <div>
+                  <div id="token-preview-text" class="fw-600"></div>
+                  <div class="text-muted text-sm">Token verified — ready to submit</div>
+                </div>
+              </div>
+              <button class="btn btn-outline btn-full mt-12" onclick="verifyToken()">
+                <i class="bi bi-key-fill"></i> Verify Token
+              </button>
             </div>
+
           </div>
         </div>
 
@@ -1118,14 +1258,48 @@
                     <input type="text" id="sess-venue" placeholder="Hall / Lab" />
                   </div>
                 </div>
+                <div class="field">
+                  <label for="sess-expiry">Token Valid For</label>
+                  <select id="sess-expiry">
+                    <option value="60">1 hour</option>
+                    <option value="120" selected>2 hours</option>
+                    <option value="180">3 hours</option>
+                    <option value="480">8 hours (full day)</option>
+                    <option value="0">No expiry</option>
+                  </select>
+                </div>
                 <button class="btn btn-green btn-full" onclick="createSession()">
-                  <i class="bi bi-broadcast-pin"></i> Open Session
+                  <i class="bi bi-broadcast-pin"></i> Generate Token &amp; Open Session
                 </button>
               </div>
             </div>
-            <div class="sess-result" id="session-result">
-              <h3 id="sess-res-code"></h3>
-              <p id="sess-res-detail"></p>
+
+            <!-- Token display card -->
+            <div id="session-result" style="display:none; margin-top:16px">
+              <div class="token-display">
+                <div class="token-lbl">Session Token — show to students or write on board</div>
+                <div class="token-code" id="sess-res-code"></div>
+                <div class="token-meta" id="sess-res-detail"></div>
+                <div class="token-expiry" id="sess-res-expiry"></div>
+              </div>
+              <div style="display:flex;gap:10px;margin-top:10px">
+                <button class="btn btn-outline btn-sm" style="flex:1" onclick="copyToken()">
+                  <i class="bi bi-clipboard-fill"></i> Copy Token
+                </button>
+                <button class="btn btn-danger btn-sm" onclick="revokeCurrentToken()">
+                  <i class="bi bi-x-circle-fill"></i> Revoke
+                </button>
+              </div>
+            </div>
+
+            <!-- Active sessions list -->
+            <div style="margin-top:20px">
+              <div class="section-title" style="font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px">
+                <i class="bi bi-broadcast"></i> Active Sessions
+              </div>
+              <div id="active-sessions-list">
+                <p class="text-muted text-sm" style="text-align:center;padding:12px">No active sessions.</p>
+              </div>
             </div>
           </div>
 
@@ -1347,7 +1521,7 @@ function showPage(name) {
   });
 
   if (name === 'history') renderHistory();
-  if (name === 'admin') initAdmin();
+  if (name === 'admin') { initAdmin(); renderActiveSessions(); }
 }
 
 /* ════════════════════════════ AUTH ════════════════════════════ */
@@ -1401,15 +1575,32 @@ function prefillMarkForm() {
 
 function resetMarkForm() {
   gpsCoords = null;
+  currentTokenSession = null;
+  attendanceMethod = 'gps';
   const btn = document.getElementById('btn-loc');
-  if (btn) { btn.className = 'btn-gps'; }
+  if (btn) { btn.className = 'btn-gps'; btn.querySelector('i').className = 'bi bi-geo-alt-fill'; }
   const ls = document.getElementById('loc-strip');
   const mc = document.getElementById('map-container');
   if (ls) ls.style.display = 'none';
   if (mc) mc.style.display = 'none';
-  document.getElementById('loc-waiting').textContent = 'Tap to capture your GPS location';
+  const lw = document.getElementById('loc-waiting');
+  if (lw) lw.textContent = 'Tap to capture your GPS location';
   const pill = document.getElementById('mark-student-pill');
   if (pill) pill.style.display = 'none';
+  /* Reset toggle */
+  const mg = document.getElementById('method-gps');
+  const mt = document.getElementById('method-token');
+  if (mg) mg.style.display = 'block';
+  if (mt) mt.style.display = 'none';
+  const gb = document.getElementById('method-gps-btn');
+  const tb = document.getElementById('method-token-btn');
+  if (gb) gb.classList.add('active');
+  if (tb) tb.classList.remove('active');
+  const ti = document.getElementById('token-input');
+  if (ti) ti.value = '';
+  const tp = document.getElementById('token-session-preview');
+  if (tp) tp.style.display = 'none';
+  clearAlert('token-alert');
 }
 
 function captureLocation() {
@@ -1458,9 +1649,29 @@ function submitAttendance() {
   const lecturer= document.getElementById('lecturer').value.trim();
   const venue   = document.getElementById('venue').value.trim();
 
-  if (!code)     { showAlert('mark-alert','Please select a course.','danger'); return; }
-  if (!date)     { showAlert('mark-alert','Please set the lecture date.','danger'); return; }
-  if (!gpsCoords){ showAlert('mark-alert','Please capture your GPS location first.','danger'); return; }
+  if (!code) { showAlert('mark-alert','Please select a course.','danger'); return; }
+  if (!date) { showAlert('mark-alert','Please set the lecture date.','danger'); return; }
+
+  /* Verify presence method */
+  if (attendanceMethod === 'gps') {
+    if (!gpsCoords) { showAlert('mark-alert','Please capture your GPS location first.','danger'); return; }
+  } else {
+    if (!currentTokenSession) {
+      showAlert('mark-alert','Please verify your session token first.','danger'); return;
+    }
+    /* Re-validate token hasn't expired or been revoked since verify */
+    const now = Date.now();
+    const live = getSessions().find(s =>
+      s.token === currentTokenSession.token && !s.revoked &&
+      (s.expiresAt === 0 || s.expiresAt > now)
+    );
+    if (!live) {
+      showAlert('mark-alert','Your session token is no longer valid. Ask your lecturer for assistance.','danger');
+      currentTokenSession = null;
+      document.getElementById('token-session-preview').style.display = 'none';
+      return;
+    }
+  }
 
   /* Prevent duplicate same-day same-course */
   const records = getRecords();
@@ -1470,7 +1681,7 @@ function submitAttendance() {
   const courses = getCourses();
   const course = courses.find(c => c.code === code) || {};
 
-  records.push({
+  const record = {
     id: uid(),
     matric:     currentUser.matric,
     fullname:   currentUser.fullname,
@@ -1479,14 +1690,24 @@ function submitAttendance() {
     courseCode: code,
     courseTitle:course.title || '',
     date, time, lecturer, venue,
-    lat: gpsCoords.lat,
-    lng: gpsCoords.lng,
-    accuracy: gpsCoords.acc,
+    method: attendanceMethod,
     timestamp: new Date().toISOString()
-  });
+  };
+
+  if (attendanceMethod === 'gps') {
+    record.lat = gpsCoords.lat;
+    record.lng = gpsCoords.lng;
+    record.accuracy = gpsCoords.acc;
+  } else {
+    record.token = currentTokenSession.token;
+    record.lat = null; record.lng = null; record.accuracy = null;
+  }
+
+  records.push(record);
   saveRecords(records);
   toast('Attendance marked successfully! ✓', 'success');
   showAlert('mark-alert','Attendance recorded. Well done!','success');
+  currentTokenSession = null;
   resetMarkForm();
   prefillMarkForm();
   gpsCoords = null;
@@ -1536,7 +1757,7 @@ function renderHistory() {
         <td>${fmtDate(r.date)}</td>
         <td>${r.time||''}</td>
         <td>${r.venue||'—'}</td>
-        <td><span style="font-size:.72rem;color:var(--muted)">±${(r.accuracy||0).toFixed(0)}m</span></td>
+        <td><span style="font-size:.72rem;color:var(--muted)">${r.method==='token'?`<i class="bi bi-key-fill"></i> Token`:`±${(r.accuracy||0).toFixed(0)}m`}</span></td>
         <td><span class="pill-present">Present</span></td>
       </tr>`).join('');
   }
@@ -1555,7 +1776,9 @@ function renderHistory() {
           <span><i class="bi bi-book"></i> ${r.courseTitle||r.courseCode}</span>
           <span><i class="bi bi-calendar3"></i> ${fmtDate(r.date)} &bull; ${r.time||''}</span>
           ${r.venue ? `<span><i class="bi bi-geo-alt"></i> ${r.venue}</span>` : ''}
-          <span><i class="bi bi-crosshair"></i> ±${(r.accuracy||0).toFixed(0)}m accuracy</span>
+          ${r.method==='token'
+            ? `<span><i class="bi bi-key-fill"></i> Verified by session token ${r.token||''}</span>`
+            : `<span><i class="bi bi-crosshair"></i> ±${(r.accuracy||0).toFixed(0)}m accuracy</span>`}
         </div>
       </div>`).join('');
   }
@@ -1588,6 +1811,7 @@ function adminLogin() {
   renderAdminRecords();
   renderCourses();
   populateSessDropdown();
+  renderActiveSessions();
 }
 
 function adminLogout() {
@@ -1672,7 +1896,7 @@ function renderAdminRecords() {
       <td>${fmtDate(r.date)}</td>
       <td>${r.time||''}</td>
       <td>${r.venue||'—'}</td>
-      <td><span style="font-size:.7rem;color:var(--muted)">±${(r.accuracy||0).toFixed(0)}m</span></td>
+      <td><span style="font-size:.7rem;color:var(--muted)">${r.method==='token'?`Token: ${r.token||''}`:`±${(r.accuracy||0).toFixed(0)}m`}</span></td>
     </tr>`).join('');
 }
 
@@ -1796,7 +2020,20 @@ function deleteCourse(id) {
   toast('Course deleted.', 'info');
 }
 
-/* ════════════════════════════ SESSION CREATOR ════════════════════════════ */
+/* ════════════════════════════ SESSION TOKENS ════════════════════════════ */
+const SESSIONS_KEY = 'mls_sessions_db';
+let currentTokenSession = null; /* set on student side when token is verified */
+
+function getSessions() { return JSON.parse(localStorage.getItem(SESSIONS_KEY) || '[]'); }
+function saveSessions(s) { localStorage.setItem(SESSIONS_KEY, JSON.stringify(s)); }
+
+function genToken() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; /* no 0/O/1/I ambiguity */
+  let t = '';
+  for (let i = 0; i < 6; i++) t += chars[Math.floor(Math.random() * chars.length)];
+  return t;
+}
+
 function populateSessDropdown() {
   const sel = document.getElementById('sess-course');
   if (!sel) return;
@@ -1810,22 +2047,166 @@ function populateSessDropdown() {
   });
   const sd = document.getElementById('sess-date');
   if (sd && !sd.value) sd.value = today();
+  renderActiveSessions();
 }
 
 function createSession() {
-  const course  = document.getElementById('sess-course').value;
-  const lecturer= document.getElementById('sess-lecturer').value.trim();
-  const date    = document.getElementById('sess-date').value;
-  const venue   = document.getElementById('sess-venue').value.trim();
+  const course   = document.getElementById('sess-course').value;
+  const lecturer = document.getElementById('sess-lecturer').value.trim();
+  const date     = document.getElementById('sess-date').value;
+  const venue    = document.getElementById('sess-venue').value.trim();
+  const expiryMins = parseInt(document.getElementById('sess-expiry').value);
 
-  if (!course || !date) { toast('Course and date are required.','error'); return; }
+  if (!course || !date) { toast('Course and date are required.', 'error'); return; }
 
+  const courses = getCourses();
+  const courseObj = courses.find(c => c.code === course) || {};
+
+  /* Check for duplicate open session for same course+date */
+  const existing = getSessions();
+  const dup = existing.find(s => s.courseCode === course && s.date === date && !s.revoked);
+  if (dup) {
+    toast(`Session already open for ${course} on this date. Revoke it first.`, 'error'); return;
+  }
+
+  const token = genToken();
+  const createdAt = Date.now();
+  const expiresAt = expiryMins > 0 ? createdAt + expiryMins * 60000 : 0;
+
+  const session = {
+    id: uid(), token, courseCode: course,
+    courseTitle: courseObj.title || '',
+    lecturer, date, venue,
+    createdAt, expiresAt,
+    revoked: false
+  };
+
+  existing.push(session);
+  saveSessions(existing);
+
+  /* Show token card */
   const res = document.getElementById('session-result');
-  document.getElementById('sess-res-code').textContent = course;
+  res.style.display = 'block';
+  document.getElementById('sess-res-code').textContent = token;
   document.getElementById('sess-res-detail').textContent =
-    `${lecturer ? lecturer + ' · ' : ''}${fmtDate(date)}${venue ? ' · ' + venue : ''}`;
-  res.classList.add('show');
-  toast(`Session opened: ${course}`, 'success');
+    `${course}${lecturer ? ' · ' + lecturer : ''}${venue ? ' · ' + venue : ''} · ${fmtDate(date)}`;
+  document.getElementById('sess-res-expiry').textContent =
+    expiryMins > 0 ? `Expires in ${expiryMins} minutes` : 'No expiry set';
+
+  renderActiveSessions();
+  toast(`Session token generated: ${token}`, 'success');
+}
+
+function copyToken() {
+  const code = document.getElementById('sess-res-code').textContent;
+  if (!code) return;
+  navigator.clipboard?.writeText(code).then(() => toast('Token copied!', 'success'))
+    .catch(() => toast(`Token: ${code}`, 'info'));
+}
+
+function revokeCurrentToken() {
+  const code = document.getElementById('sess-res-code').textContent;
+  if (!code) return;
+  revokeToken(code);
+  document.getElementById('session-result').style.display = 'none';
+}
+
+function revokeToken(token) {
+  const sessions = getSessions().map(s => s.token === token ? {...s, revoked: true} : s);
+  saveSessions(sessions);
+  renderActiveSessions();
+  toast(`Token ${token} revoked.`, 'info');
+}
+
+function renderActiveSessions() {
+  const el = document.getElementById('active-sessions-list');
+  if (!el) return;
+  const now = Date.now();
+  const active = getSessions().filter(s => !s.revoked && (s.expiresAt === 0 || s.expiresAt > now));
+  if (!active.length) {
+    el.innerHTML = '<p class="text-muted text-sm" style="text-align:center;padding:12px">No active sessions.</p>';
+    return;
+  }
+  el.innerHTML = active.map(s => {
+    const expStr = s.expiresAt ? `Expires ${new Date(s.expiresAt).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}` : 'No expiry';
+    return `<div class="sess-item">
+      <div class="sess-item-token">${s.token}</div>
+      <div class="sess-item-info">
+        <strong>${s.courseCode} – ${s.courseTitle||''}</strong>
+        <small>${fmtDate(s.date)}${s.venue?' · '+s.venue:''} &bull; ${expStr}</small>
+      </div>
+      <button class="sess-item-del" onclick="revokeToken('${s.token}')" title="Revoke">
+        <i class="bi bi-x-circle-fill"></i>
+      </button>
+    </div>`;
+  }).join('');
+}
+
+/* ════════════════════════════ TOKEN VERIFICATION (Student side) ════════════════════════════ */
+let attendanceMethod = 'gps'; /* 'gps' | 'token' */
+
+function switchMethod(m) {
+  attendanceMethod = m;
+  document.getElementById('method-gps').style.display = m === 'gps' ? 'block' : 'none';
+  document.getElementById('method-token').style.display = m === 'token' ? 'block' : 'none';
+  document.getElementById('method-gps-btn').classList.toggle('active', m === 'gps');
+  document.getElementById('method-token-btn').classList.toggle('active', m === 'token');
+  /* Reset token state on switch */
+  currentTokenSession = null;
+  document.getElementById('token-input').value = '';
+  document.getElementById('token-alert').innerHTML = '';
+  document.getElementById('token-session-preview').style.display = 'none';
+}
+
+function verifyToken() {
+  const input = document.getElementById('token-input').value.trim().toUpperCase();
+  if (input.length < 6) {
+    showAlert('token-alert', 'Enter the full 6-character token.', 'danger'); return;
+  }
+  const now = Date.now();
+  const sessions = getSessions();
+  const sess = sessions.find(s =>
+    s.token === input && !s.revoked && (s.expiresAt === 0 || s.expiresAt > now)
+  );
+  if (!sess) {
+    const expired = sessions.find(s => s.token === input && s.expiresAt > 0 && s.expiresAt <= now);
+    if (expired) {
+      showAlert('token-alert', 'This token has expired. Ask your lecturer for a new one.', 'warning');
+    } else {
+      showAlert('token-alert', 'Invalid token. Check the code and try again.', 'danger');
+    }
+    currentTokenSession = null;
+    document.getElementById('token-session-preview').style.display = 'none';
+    return;
+  }
+  currentTokenSession = sess;
+  clearAlert('token-alert');
+  document.getElementById('token-preview-text').textContent =
+    `${sess.courseCode} – ${sess.courseTitle||sess.courseCode}${sess.lecturer?' · '+sess.lecturer:''}${sess.venue?' · '+sess.venue:''}`;
+  document.getElementById('token-session-preview').style.display = 'flex';
+
+  /* Auto-fill the course dropdown from the token */
+  const cc = document.getElementById('course-code');
+  if (cc) {
+    for (let i = 0; i < cc.options.length; i++) {
+      if (cc.options[i].value === sess.courseCode) { cc.selectedIndex = i; break; }
+    }
+    if (!cc.value) {
+      /* Course not in student's filtered list — add temporarily */
+      const o = document.createElement('option');
+      o.value = sess.courseCode; o.textContent = `${sess.courseCode} – ${sess.courseTitle||''}`;
+      cc.appendChild(o); cc.value = sess.courseCode;
+    }
+  }
+  if (sess.lecturer) {
+    const lec = document.getElementById('lecturer');
+    if (lec && !lec.value) lec.value = sess.lecturer;
+  }
+  if (sess.venue) {
+    const ven = document.getElementById('venue');
+    if (ven && !ven.value) ven.value = sess.venue;
+  }
+  toast('Token verified! Fill in the form and submit.', 'success');
 }
 
 /* ════════════════════════════ DROPDOWN HELPERS ════════════════════════════ */
@@ -1882,7 +2263,7 @@ function printRecord() {
         <td>${s.lecturer || '—'}</td>
         <td>${s.venue || '—'}</td>
         <td>Present</td>
-        <td>${s.lat ? s.lat.toFixed(4)+', '+s.lng.toFixed(4) : '—'}</td>
+        <td>${s.method==='token'?`Token: ${s.token||''}`:s.lat ? s.lat.toFixed(4)+', '+s.lng.toFixed(4) : '—'}</td>
       </tr>`).join('');
     return `
       <div class="course-section">
