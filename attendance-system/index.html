@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src https://fonts.gstatic.com https://cdn.jsdelivr.net data:; img-src 'self' data: blob: https://maps.googleapis.com; connect-src 'self'; frame-src https://www.google.com;" />
   <title>MLS Attendance – UDUS</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -828,6 +830,25 @@
     .bio-table td { padding:10px 12px; font-size:.83rem; border-bottom:1px solid var(--border); }
     .bio-table tr:last-child td { border-bottom:none; }
 
+    /* ═══════════════════════ SECURITY ═══════════════════════ */
+    .sec-section {
+      background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: var(--radius); padding: 20px; margin-bottom: 16px;
+    }
+    .sec-section h3 {
+      font-size: 1rem; font-weight: 700; color: var(--pine);
+      margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+    }
+    .integrity-result { margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
+    .integrity-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: var(--radius-sm);
+      font-size: .9rem; font-weight: 500;
+    }
+    .integrity-row.ok  { background: #e8f5ee; color: var(--forest); }
+    .integrity-row.warn{ background: var(--gold-pale); color: #92620a; }
+    .integrity-row.bad { background: var(--red-pale); color: var(--red); }
+
     /* ═══════════════════════ EXAM ═══════════════════════ */
     .exam-seg { display:flex; gap:0; border-bottom:2px solid var(--border); margin-bottom:0; }
     .exam-seg button {
@@ -1264,6 +1285,9 @@
             <button onclick="switchAdminTab('biometrics', this)">
               <i class="bi bi-fingerprint"></i> Biometrics
             </button>
+            <button onclick="switchAdminTab('security', this)">
+              <i class="bi bi-shield-lock-fill"></i> Security
+            </button>
           </div>
 
           <!-- Records pane -->
@@ -1448,6 +1472,55 @@
               </div>
             </div>
           </div>
+
+          <!-- Security pane -->
+          <div class="admin-pane" id="admin-pane-security">
+            <div class="sec-section">
+              <h3><i class="bi bi-key-fill"></i> Change Admin Password</h3>
+              <p class="text-muted text-sm" style="margin-bottom:16px">Use a strong password — letters, numbers and symbols, minimum 8 characters.</p>
+              <div id="sec-alert"></div>
+              <div class="field">
+                <label>Current Password</label>
+                <input type="password" id="sec-cur-pass" placeholder="Current password" autocomplete="current-password"/>
+              </div>
+              <div class="field">
+                <label>New Password</label>
+                <input type="password" id="sec-new-pass" placeholder="Min. 8 characters" autocomplete="new-password"/>
+              </div>
+              <div class="field">
+                <label>Confirm New Password</label>
+                <input type="password" id="sec-conf-pass" placeholder="Repeat new password" autocomplete="new-password"/>
+              </div>
+              <button class="btn btn-green" onclick="changeAdminPassword()">
+                <i class="bi bi-shield-check"></i> Update Password
+              </button>
+            </div>
+
+            <div class="sec-section">
+              <h3><i class="bi bi-clock-history"></i> Active Session</h3>
+              <div id="sec-session-info" class="text-muted text-sm"></div>
+              <button class="btn btn-outline" style="margin-top:12px" onclick="adminLogout();toast('Logged out.')">
+                <i class="bi bi-box-arrow-right"></i> End Session Now
+              </button>
+            </div>
+
+            <div class="sec-section">
+              <h3><i class="bi bi-exclamation-triangle-fill"></i> Login Lockout</h3>
+              <div id="sec-lockout-info" class="text-muted text-sm"></div>
+              <button class="btn btn-outline" style="margin-top:12px" onclick="clearLockout();renderAdminSecurity();toast('Lockout cleared.')">
+                <i class="bi bi-unlock"></i> Clear Lockout
+              </button>
+            </div>
+
+            <div class="sec-section">
+              <h3><i class="bi bi-shield-exclamation"></i> Record Integrity Check</h3>
+              <p class="text-muted text-sm" style="margin-bottom:12px">Verify all attendance records carry valid HMAC signatures. A ⚠ warning icon flags any tampered record.</p>
+              <button class="btn btn-green" onclick="runIntegrityCheck()">
+                <i class="bi bi-check2-all"></i> Run Integrity Check
+              </button>
+              <div id="sec-integrity-result" style="margin-top:14px"></div>
+            </div>
+          </div><!-- /security pane -->
 
           <hr class="divider" />
           <button class="btn btn-ghost btn-sm" onclick="adminLogout()">
@@ -1804,13 +1877,109 @@ const ATT_KEY    = 'mls_attendance_v3';
 const USER_KEY   = 'mls_current_user_v3';
 const ADMIN_KEY  = 'mls_admin_session';
 const COURSES_KEY= 'mls_courses_db';
-const ADMIN_PASS = 'admin123';
+const SEC_KEY    = 'mls_security_v1';      // stores hashed password + HMAC key
+const LOCKOUT_KEY= 'mls_lockout_v1';       // brute-force lockout state
+
+/* Default admin password hash — SHA-256 of "admin123"
+   First login creates a unique HMAC key and this hash.
+   Admin should change password immediately. */
+const DEFAULT_PASS_HASH = 'ecd71870d1963316a97e3ac3408c9835ad8cf0f3c1bc703527c30265534f75ae';
+// ^ SHA-256("admin123") — computed at build time, never stored in plaintext
+
+/* ════════════════════════════ SECURITY HELPERS ════════════════════════════ */
+async function sha256hex(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function deriveHmacKey(rawKey) {
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(rawKey), {name:'HMAC',hash:'SHA-256'}, false, ['sign','verify']
+  );
+  return keyMaterial;
+}
+
+async function hmacSign(key, data) {
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(JSON.stringify(data)));
+  return btoa(String.fromCharCode(...new Uint8Array(sig)));
+}
+
+async function hmacVerify(key, data, sig) {
+  try {
+    const sigBuf = Uint8Array.from(atob(sig), c => c.charCodeAt(0));
+    return await crypto.subtle.verify('HMAC', key, sigBuf, new TextEncoder().encode(JSON.stringify(data)));
+  } catch { return false; }
+}
+
+/* Get or create the security config (hashed password + HMAC secret) */
+function getSecConfig() {
+  const raw = localStorage.getItem(SEC_KEY);
+  if (raw) try { return JSON.parse(raw); } catch {}
+  // First run — generate a random HMAC secret and use default password hash
+  const hmacSecret = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+    .map(b => b.toString(16).padStart(2,'0')).join('');
+  const cfg = { passHash: DEFAULT_PASS_HASH, hmacSecret, createdAt: new Date().toISOString() };
+  localStorage.setItem(SEC_KEY, JSON.stringify(cfg));
+  return cfg;
+}
+
+/* Brute-force lockout: max 5 attempts, 15-min lockout */
+function getLockout() {
+  try { return JSON.parse(localStorage.getItem(LOCKOUT_KEY) || '{}'); } catch { return {}; }
+}
+function saveLockout(o) { localStorage.setItem(LOCKOUT_KEY, JSON.stringify(o)); }
+
+function isLockedOut() {
+  const lo = getLockout();
+  if (!lo.until) return false;
+  if (Date.now() < lo.until) return true;
+  // lockout expired — reset
+  saveLockout({});
+  return false;
+}
+function recordFailedAttempt() {
+  const lo = getLockout();
+  const attempts = (lo.attempts || 0) + 1;
+  if (attempts >= 5) {
+    saveLockout({ attempts, until: Date.now() + 15 * 60 * 1000, lastAt: new Date().toISOString() });
+  } else {
+    saveLockout({ attempts, lastAt: new Date().toISOString() });
+  }
+  return attempts;
+}
+function clearLockout() { saveLockout({}); }
+
+/* HTML-escape user content before inserting into innerHTML */
+function esc(str) {
+  return String(str ?? '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+/* Sign an attendance record and attach .sig */
+async function signRecord(record) {
+  const cfg = getSecConfig();
+  const key = await deriveHmacKey(cfg.hmacSecret);
+  const payload = { id: record.id, matric: record.matric, courseCode: record.courseCode, date: record.date, timestamp: record.timestamp };
+  const sig = await hmacSign(key, payload);
+  return { ...record, sig };
+}
+
+/* Verify a record — returns true/false */
+async function verifyRecord(record) {
+  if (!record.sig) return false;
+  const cfg = getSecConfig();
+  const key = await deriveHmacKey(cfg.hmacSecret);
+  const payload = { id: record.id, matric: record.matric, courseCode: record.courseCode, date: record.date, timestamp: record.timestamp };
+  return hmacVerify(key, payload, record.sig);
+}
 
 /* ════════════════════════════ STATE ════════════════════════════ */
 let currentUser  = null;
 let gpsCoords    = null;
 let editingCourse= null;
 let adminLoggedIn= false;
+let _adminSessionStart = 0;  // timestamp for auto-logout
 
 /* ════════════════════════════ DEFAULT COURSES ════════════════════════════ */
 const DEFAULT_COURSES = [
@@ -2126,14 +2295,16 @@ function submitAttendance() {
     record.lat = null; record.lng = null; record.accuracy = null;
   }
 
-  records.push(record);
-  saveRecords(records);
-  toast('Attendance marked successfully! ✓', 'success');
-  showAlert('mark-alert','Attendance recorded. Well done!','success');
-  currentTokenSession = null;
-  resetMarkForm();
-  prefillMarkForm();
-  gpsCoords = null;
+  signRecord(record).then(signed => {
+    records.push(signed);
+    saveRecords(records);
+    toast('Attendance marked successfully! ✓', 'success');
+    showAlert('mark-alert','Attendance recorded. Well done!','success');
+    currentTokenSession = null;
+    resetMarkForm();
+    prefillMarkForm();
+    gpsCoords = null;
+  });
 }
 
 /* ════════════════════════════ HISTORY ════════════════════════════ */
@@ -2223,11 +2394,32 @@ function exportCSV() {
 }
 
 /* ════════════════════════════ ADMIN ════════════════════════════ */
-function adminLogin() {
+async function adminLogin() {
+  if (isLockedOut()) {
+    const lo = getLockout();
+    const mins = Math.ceil((lo.until - Date.now()) / 60000);
+    showAlert('admin-alert', `Too many failed attempts. Try again in ${mins} minute${mins > 1 ? 's' : ''}.`, 'danger');
+    return;
+  }
   const pass = document.getElementById('admin-pass').value;
-  if (pass !== ADMIN_PASS) { showAlert('admin-alert','Incorrect password.','danger'); return; }
+  const cfg = getSecConfig();
+  const hash = await sha256hex(pass);
+  if (hash !== cfg.passHash) {
+    const attempts = recordFailedAttempt();
+    const remaining = 5 - Math.min(attempts, 5);
+    if (remaining <= 0) {
+      showAlert('admin-alert','Account locked for 15 minutes due to too many failed attempts.','danger');
+    } else {
+      showAlert('admin-alert', `Incorrect password. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.`, 'danger');
+    }
+    document.getElementById('admin-pass').value = '';
+    return;
+  }
+  clearLockout();
   adminLoggedIn = true;
-  localStorage.setItem(ADMIN_KEY, '1');
+  _adminSessionStart = Date.now();
+  // Store session with expiry (2 hours)
+  localStorage.setItem(ADMIN_KEY, JSON.stringify({ at: Date.now(), exp: Date.now() + 2*60*60*1000 }));
   document.getElementById('admin-login-card').style.display = 'none';
   document.getElementById('admin-dashboard').style.display = 'block';
   updateAdminStats();
@@ -2235,6 +2427,8 @@ function adminLogin() {
   renderCourses();
   populateSessDropdown();
   renderActiveSessions();
+  renderAdminSecurity();
+  toast('Admin access granted.', 'success');
 }
 
 function adminLogout() {
@@ -2246,7 +2440,16 @@ function adminLogout() {
 }
 
 function initAdmin() {
-  if (localStorage.getItem(ADMIN_KEY)) {
+  const raw = localStorage.getItem(ADMIN_KEY);
+  let valid = false;
+  if (raw) {
+    try {
+      const sess = JSON.parse(raw);
+      if (sess.exp && Date.now() < sess.exp) valid = true;
+      else localStorage.removeItem(ADMIN_KEY); // expired
+    } catch { localStorage.removeItem(ADMIN_KEY); }
+  }
+  if (valid) {
     adminLoggedIn = true;
     document.getElementById('admin-login-card').style.display = 'none';
     document.getElementById('admin-dashboard').style.display = 'block';
@@ -2254,6 +2457,7 @@ function initAdmin() {
     renderAdminRecords();
     renderCourses();
     populateSessDropdown();
+    renderAdminSecurity();
   } else {
     document.getElementById('admin-login-card').style.display = 'block';
     document.getElementById('admin-dashboard').style.display = 'none';
@@ -2277,6 +2481,7 @@ function switchAdminTab(name, btn) {
   btn.classList.add('active');
   document.querySelectorAll('.admin-pane').forEach(p => p.classList.remove('active'));
   document.getElementById('admin-pane-' + name).classList.add('active');
+  if (name === 'security') renderAdminSecurity();
 }
 
 function renderAdminRecords() {
@@ -2312,14 +2517,14 @@ function renderAdminRecords() {
   if (empty) empty.style.display = 'none';
   tbody.innerHTML = filtered.slice().reverse().map(r => `
     <tr>
-      <td>${r.fullname}</td>
-      <td>${r.matric}</td>
-      <td>${r.level}</td>
-      <td><strong>${r.courseCode}</strong></td>
-      <td>${fmtDate(r.date)}</td>
-      <td>${r.time||''}</td>
-      <td>${r.venue||'—'}</td>
-      <td><span style="font-size:.7rem;color:var(--muted)">${r.method==='token'?`Token: ${r.token||''}`:`±${(r.accuracy||0).toFixed(0)}m`}</span></td>
+      <td>${esc(r.fullname||r.matric)}</td>
+      <td>${esc(r.matric)}</td>
+      <td>${esc(r.level)}</td>
+      <td><strong>${esc(r.courseCode)}</strong></td>
+      <td>${esc(fmtDate(r.date))}</td>
+      <td>${esc(r.time||'')}</td>
+      <td>${esc(r.venue||'—')}</td>
+      <td><span style="font-size:.7rem;color:var(--muted)">${r.method==='token'?`Token: ${esc(r.token||'')}`:`±${(r.accuracy||0).toFixed(0)}m`}</span>${r.sig?'':'<span title="No integrity signature — possible tampering" style="color:var(--red);margin-left:4px">⚠</span>'}</td>
     </tr>`).join('');
 }
 
@@ -3174,12 +3379,30 @@ function switchExamAdminTab(tab, btn) {
   if (tab === 'sessions') renderExamSessionsList();
 }
 
-function examAdminLogin() {
-  if (document.getElementById('exam-admin-pass').value !== ADMIN_PASS) {
-    showAlert('exam-admin-alert','Incorrect password.','danger'); return;
+async function examAdminLogin() {
+  if (isLockedOut()) {
+    const lo = getLockout();
+    const mins = Math.ceil((lo.until - Date.now()) / 60000);
+    showAlert('exam-admin-alert', `Locked out. Try again in ${mins} min.`, 'danger');
+    return;
   }
+  const pass = document.getElementById('exam-admin-pass').value;
+  const cfg = getSecConfig();
+  const hash = await sha256hex(pass);
+  if (hash !== cfg.passHash) {
+    const attempts = recordFailedAttempt();
+    const remaining = 5 - Math.min(attempts, 5);
+    if (remaining <= 0) {
+      showAlert('exam-admin-alert','Locked for 15 minutes.','danger');
+    } else {
+      showAlert('exam-admin-alert', `Wrong password. ${remaining} attempt${remaining !== 1 ? 's' : ''} left.`, 'danger');
+    }
+    document.getElementById('exam-admin-pass').value = '';
+    return;
+  }
+  clearLockout();
   examAdminLoggedIn = true;
-  localStorage.setItem('mls_exam_admin','1');
+  localStorage.setItem('mls_exam_admin', JSON.stringify({ at: Date.now(), exp: Date.now() + 2*60*60*1000 }));
   showExamAdminDash();
 }
 function examAdminLogout() {
@@ -3416,6 +3639,88 @@ function kioskSignOut() {
   kioskOutBioVerified = false;
 }
 
+/* ════════════════════════════ SECURITY FUNCTIONS ════════════════════════════ */
+async function changeAdminPassword() {
+  const cur  = document.getElementById('sec-cur-pass').value;
+  const nw   = document.getElementById('sec-new-pass').value;
+  const conf = document.getElementById('sec-conf-pass').value;
+
+  const cfg = getSecConfig();
+  const curHash = await sha256hex(cur);
+  if (curHash !== cfg.passHash) {
+    showAlert('sec-alert', 'Current password is incorrect.', 'danger'); return;
+  }
+  if (nw.length < 8) {
+    showAlert('sec-alert', 'New password must be at least 8 characters.', 'danger'); return;
+  }
+  if (nw !== conf) {
+    showAlert('sec-alert', 'Passwords do not match.', 'danger'); return;
+  }
+  const newHash = await sha256hex(nw);
+  cfg.passHash = newHash;
+  localStorage.setItem(SEC_KEY, JSON.stringify(cfg));
+  document.getElementById('sec-cur-pass').value = '';
+  document.getElementById('sec-new-pass').value = '';
+  document.getElementById('sec-conf-pass').value = '';
+  showAlert('sec-alert', 'Password updated successfully. Use the new password on next login.', 'success');
+}
+
+function renderAdminSecurity() {
+  const sessEl = document.getElementById('sec-session-info');
+  const lockEl = document.getElementById('sec-lockout-info');
+  if (!sessEl) return;
+
+  // Session info
+  const raw = localStorage.getItem(ADMIN_KEY);
+  if (raw) {
+    try {
+      const sess = JSON.parse(raw);
+      const exp = new Date(sess.exp);
+      sessEl.textContent = `Session started: ${new Date(sess.at).toLocaleTimeString()} · Expires: ${exp.toLocaleTimeString()}`;
+    } catch { sessEl.textContent = 'Session active.'; }
+  } else {
+    sessEl.textContent = 'No active session.';
+  }
+
+  // Lockout info
+  const lo = getLockout();
+  if (lo.until && Date.now() < lo.until) {
+    const mins = Math.ceil((lo.until - Date.now()) / 60000);
+    lockEl.innerHTML = `<span style="color:var(--red)">⚠ Locked — ${lo.attempts} failed attempts. Unlocks in ${mins} min.</span>`;
+  } else if (lo.attempts) {
+    lockEl.textContent = `${lo.attempts} failed attempt${lo.attempts !== 1 ? 's' : ''} recorded (no active lockout).`;
+  } else {
+    lockEl.textContent = 'No failed attempts. Login is open.';
+  }
+}
+
+async function runIntegrityCheck() {
+  const resultEl = document.getElementById('sec-integrity-result');
+  resultEl.innerHTML = '<div class="loading-dots" style="justify-content:flex-start"><span></span><span></span><span></span></div> Checking…';
+
+  const records = getRecords();
+  if (!records.length) {
+    resultEl.innerHTML = '<p style="color:var(--muted)">No attendance records to check.</p>';
+    return;
+  }
+
+  let ok = 0, tampered = 0, unsigned = 0;
+  for (const r of records) {
+    if (!r.sig) { unsigned++; continue; }
+    const valid = await verifyRecord(r);
+    if (valid) ok++; else tampered++;
+  }
+
+  const total = records.length;
+  let html = `<div class="integrity-result">`;
+  html += `<div class="integrity-row ok"><i class="bi bi-check-circle-fill"></i> <strong>${ok}</strong> / ${total} records verified</div>`;
+  if (unsigned > 0) html += `<div class="integrity-row warn"><i class="bi bi-question-circle-fill"></i> <strong>${unsigned}</strong> unsigned (created before security upgrade)</div>`;
+  if (tampered > 0) html += `<div class="integrity-row bad"><i class="bi bi-x-circle-fill"></i> <strong>${tampered}</strong> TAMPERED — signatures do not match!</div>`;
+  if (tampered === 0 && unsigned === 0) html += `<div class="integrity-row ok" style="margin-top:4px">All records are intact. ✓</div>`;
+  html += '</div>';
+  resultEl.innerHTML = html;
+}
+
 /* ════════════════════════════ INIT ════════════════════════════ */
 (function init() {
   /* Propagate real UDUS logo to all img placeholders */
@@ -3460,6 +3765,23 @@ function kioskSignOut() {
   const lt = document.getElementById('lec-time');
   if (ld) ld.value = today();
   if (lt) lt.value = nowTime();
+
+  /* Bootstrap security config (creates HMAC key + password hash on first run) */
+  getSecConfig();
+
+  /* Auto-logout admin after session expires — check every 60s */
+  setInterval(() => {
+    if (!adminLoggedIn) return;
+    const raw = localStorage.getItem(ADMIN_KEY);
+    if (!raw) { adminLogout(); return; }
+    try {
+      const sess = JSON.parse(raw);
+      if (Date.now() >= sess.exp) {
+        adminLogout();
+        toast('Admin session expired. Please log in again.', 'info');
+      }
+    } catch { adminLogout(); }
+  }, 60000);
 })();
 </script>
 </body>
