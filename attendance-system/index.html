@@ -1000,6 +1000,19 @@
     <button class="btn-full-login" onclick="loginStudent()">
       <i class="bi bi-box-arrow-in-right"></i>&nbsp; Sign In
     </button>
+
+    <!-- Shown only when registration validation fails -->
+    <div id="reg-form-link" style="display:none;margin-top:14px;background:rgba(200,150,12,.15);border:1.5px solid rgba(200,150,12,.4);border-radius:10px;padding:14px;text-align:center">
+      <p style="color:#ffd54f;font-size:.88rem;margin-bottom:8px">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        Not registered? Fill the form below first:
+      </p>
+      <a id="reg-form-href" href="#" target="_blank" rel="noopener"
+         style="display:inline-block;background:var(--gold);color:var(--pine);font-weight:700;padding:9px 20px;border-radius:8px;text-decoration:none;font-size:.88rem">
+        <i class="bi bi-google"></i> Open Registration Form
+      </a>
+      <p style="color:rgba(255,255,255,.5);font-size:.75rem;margin-top:8px">After submitting, wait for admin to sync, then try signing in again.</p>
+    </div>
   </div>
 </div>
 
@@ -1566,10 +1579,10 @@
                 <small class="text-muted">From Google Cloud Console → Credentials → OAuth 2.0 Client ID</small>
               </div>
               <div class="field">
-                <label>Google Spreadsheet ID</label>
+                <label>Attendance Spreadsheet ID</label>
                 <input type="text" id="gdrive-sheet-id" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms"
                        autocomplete="off" spellcheck="false"/>
-                <small class="text-muted">From the spreadsheet URL: docs.google.com/spreadsheets/d/<strong>ID</strong>/edit</small>
+                <small class="text-muted">Spreadsheet where attendance, courses and exam data is stored. URL: …/d/<strong>ID</strong>/edit</small>
               </div>
 
               <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
@@ -1591,17 +1604,89 @@
               </div>
 
               <details style="margin-top:18px">
-                <summary class="text-sm text-muted" style="cursor:pointer">Setup instructions</summary>
+                <summary class="text-sm text-muted" style="cursor:pointer">Google Cloud setup guide</summary>
                 <ol class="gdrive-steps">
                   <li>Go to <strong>console.cloud.google.com</strong> and create a project.</li>
                   <li>Enable <strong>Google Sheets API</strong>.</li>
                   <li>Go to <strong>Credentials → Create → OAuth 2.0 Client ID</strong>.</li>
                   <li>Application type: <strong>Web application</strong>. Add your site URL to Authorized JS origins.</li>
                   <li>Copy the <strong>Client ID</strong> and paste it above.</li>
-                  <li>Create a new <strong>Google Spreadsheet</strong> and copy its ID from the URL.</li>
-                  <li>Paste the Spreadsheet ID above and click <strong>Save Settings</strong> then <strong>Connect</strong>.</li>
+                  <li>Create a blank <strong>Google Spreadsheet</strong> for attendance data and paste its ID.</li>
+                  <li>Click <strong>Save Settings</strong> then <strong>Connect &amp; Sign In</strong>.</li>
                 </ol>
               </details>
+            </div>
+
+            <!-- Student Registration via Google Form -->
+            <div class="sec-section">
+              <h3><i class="bi bi-person-plus-fill" style="color:var(--forest)"></i> Student Registration — Google Form</h3>
+              <p class="text-muted text-sm" style="margin-bottom:14px">
+                Share a Google Form with students for registration. Link its response spreadsheet here so the app
+                can validate logins and auto-fill student names.
+              </p>
+
+              <div class="field">
+                <label>Google Form URL (shared with students)</label>
+                <input type="url" id="gdrive-form-url" placeholder="https://docs.google.com/forms/d/…/viewform"
+                       autocomplete="off" spellcheck="false"
+                       oninput="const a=document.getElementById('reg-form-href');if(a)a.href=this.value"/>
+                <small class="text-muted">Students open this URL to self-register. It will appear on the login screen if their matric is not found.</small>
+              </div>
+
+              <div class="field">
+                <label>Form Responses Spreadsheet ID</label>
+                <input type="text" id="gdrive-reg-sheet-id" placeholder="Spreadsheet ID from Form's linked sheet URL"
+                       autocomplete="off" spellcheck="false"/>
+                <small class="text-muted">Open the linked sheet from the form → copy the ID from the URL.</small>
+              </div>
+
+              <p class="text-muted text-sm" style="margin-bottom:8px;margin-top:14px">Column mapping (letter A–Z, matching your form's column order):</p>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+                <div class="field">
+                  <label>Matric No. column</label>
+                  <input type="text" id="gdrive-col-matric" placeholder="B" maxlength="2"
+                         style="text-transform:uppercase"/>
+                  <small class="text-muted">Default: B (A = Timestamp)</small>
+                </div>
+                <div class="field">
+                  <label>Level column</label>
+                  <input type="text" id="gdrive-col-level" placeholder="C" maxlength="2"
+                         style="text-transform:uppercase"/>
+                </div>
+                <div class="field">
+                  <label>Full Name column</label>
+                  <input type="text" id="gdrive-col-name" placeholder="D" maxlength="2"
+                         style="text-transform:uppercase"/>
+                </div>
+              </div>
+
+              <label class="remember-row" style="color:var(--text);margin-bottom:14px">
+                <input type="checkbox" id="gdrive-require-reg"/>
+                <span>Require registration — block login for unregistered matric numbers</span>
+              </label>
+
+              <div id="students-alert" style="margin-bottom:10px"></div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <button class="btn btn-green" onclick="saveSyncCfg();syncStudentsFromForm()" id="sync-students-btn">
+                  <i class="bi bi-person-check"></i> Sync Students Now
+                </button>
+                <button class="btn btn-outline" onclick="renderStudentsList()">
+                  <i class="bi bi-list-ul"></i> Show List
+                </button>
+              </div>
+
+              <!-- Students table -->
+              <div style="margin-top:14px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                  <span class="text-sm text-muted" id="students-count">0 students registered</span>
+                </div>
+                <div style="overflow-x:auto;max-height:260px;overflow-y:auto">
+                  <table class="bio-table">
+                    <thead><tr><th>Matric No.</th><th>Full Name</th><th>Level</th><th>Registered At</th></tr></thead>
+                    <tbody id="students-list-body"></tbody>
+                  </table>
+                </div>
+              </div>
             </div>
 
             <div class="sec-section">
@@ -1972,6 +2057,7 @@ const COURSES_KEY= 'mls_courses_db';
 const SEC_KEY    = 'mls_security_v1';      // stores hashed password + HMAC key
 const LOCKOUT_KEY= 'mls_lockout_v1';       // brute-force lockout state
 const GDRIVE_CFG_KEY = 'mls_gdrive_cfg_v1'; // Google Drive config (client ID + sheet ID)
+const STUDENTS_KEY   = 'mls_students_db';      // locally cached registered students from Form
 
 /* Google Sheets column layouts (zero-indexed) */
 const SHEETS = {
@@ -1979,6 +2065,7 @@ const SHEETS = {
   courses:      'Courses',
   examSessions: 'ExamSessions',
   examRecords:  'ExamRecords',
+  students:     'Students',
 };
 
 /* Default admin password hash — SHA-256 of "admin123"
@@ -2217,15 +2304,35 @@ function showPage(name) {
 
 /* ════════════════════════════ AUTH ════════════════════════════ */
 function loginStudent() {
-  const matric = document.getElementById('matric').value.trim().toUpperCase();
-  const level  = document.getElementById('level').value;
+  const matric   = document.getElementById('matric').value.trim().toUpperCase();
+  const level    = document.getElementById('level').value;
   const remember = document.getElementById('remember-me').checked;
 
   if (!matric || !level) {
     showAlert('login-alert', 'Please enter your admission number and select your level.', 'danger'); return;
   }
 
-  currentUser = { matric, fullname: matric, level, semester: '' };
+  /* Validate against Google Form registry (if enabled) */
+  const cfg = getGdriveCfg();
+  if (cfg.requireReg) {
+    const student = findStudent(matric);
+    if (!student) {
+      showAlert('login-alert',
+        'You are not registered in the system. Please complete the registration form provided by your department.',
+        'danger');
+      const linkEl = document.getElementById('reg-form-link');
+      if (linkEl) linkEl.style.display = 'block';
+      return;
+    }
+    /* Use level from registry if student didn't pick one */
+    if (!level && student.level) {
+      document.getElementById('level').value = student.level;
+    }
+    currentUser = { matric, fullname: student.fullname || matric, level: level || student.level, semester: '' };
+  } else {
+    currentUser = { matric, fullname: matric, level, semester: '' };
+  }
+
   localStorage.setItem(USER_KEY, JSON.stringify(currentUser));
 
   if (remember) {
@@ -2235,10 +2342,10 @@ function loginStudent() {
   }
 
   updateBadge();
-  populateCoursesDropdown('course-code', level);
+  populateCoursesDropdown('course-code', currentUser.level);
   prefillMarkForm();
   showPage('mark');
-  toast(`Welcome! Signed in as ${matric} 👋`);
+  toast(`Welcome, ${currentUser.fullname !== currentUser.matric ? currentUser.fullname.split(' ')[0] + '!' : matric + '!'} 👋`);
 }
 
 function logout() {
@@ -3885,12 +3992,110 @@ async function pullFromSheets() {
 }
 
 function saveSyncCfg() {
-  const clientId = document.getElementById('gdrive-client-id').value.trim();
-  const sheetId  = document.getElementById('gdrive-sheet-id').value.trim();
-  if (!clientId || !sheetId) { showAlert('gdrive-alert','Enter both Client ID and Spreadsheet ID.','danger'); return; }
-  saveGdriveCfg({ clientId, sheetId });
+  const clientId    = document.getElementById('gdrive-client-id').value.trim();
+  const sheetId     = document.getElementById('gdrive-sheet-id').value.trim();
+  const regSheetId  = document.getElementById('gdrive-reg-sheet-id').value.trim();
+  const colMatric   = document.getElementById('gdrive-col-matric').value.trim().toUpperCase() || 'B';
+  const colLevel    = document.getElementById('gdrive-col-level').value.trim().toUpperCase()  || 'C';
+  const colName     = document.getElementById('gdrive-col-name').value.trim().toUpperCase()   || 'D';
+  const requireReg  = document.getElementById('gdrive-require-reg').checked;
+  const formUrl     = (document.getElementById('gdrive-form-url') || {}).value?.trim() || '';
+  if (!clientId || !sheetId) { showAlert('gdrive-alert','Enter Client ID and Attendance Spreadsheet ID.','danger'); return; }
+  saveGdriveCfg({ clientId, sheetId, regSheetId, colMatric, colLevel, colName, requireReg, formUrl });
+  /* Update login page registration link */
+  const a = document.getElementById('reg-form-href');
+  if (a && formUrl) a.href = formUrl;
   showAlert('gdrive-alert','Settings saved. Click Connect to sign in.','success');
   initGoogleDrive();
+}
+
+/* ── Student Registration (Google Form → Sheets) ── */
+function getStudents() {
+  try { return JSON.parse(localStorage.getItem(STUDENTS_KEY) || '[]'); } catch { return []; }
+}
+function saveStudents(list) { localStorage.setItem(STUDENTS_KEY, JSON.stringify(list)); }
+
+function findStudent(matric) {
+  return getStudents().find(s => s.matric.toUpperCase() === matric.toUpperCase());
+}
+
+async function syncStudentsFromForm() {
+  const cfg = getGdriveCfg();
+  if (!cfg.regSheetId) { showAlert('gdrive-alert','Enter the Form Responses Sheet ID first.','danger'); return; }
+  if (!gdriveToken) { toast('Connect to Google Drive first.', 'info'); return; }
+
+  const btn = document.getElementById('sync-students-btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Syncing…'; }
+  updateSyncStatus('syncing');
+
+  try {
+    // Read the entire form responses sheet (all rows from row 2 onward)
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.regSheetId}/values/A1:ZZ?majorDimension=ROWS`;
+    const resp = await fetch(url, { headers: { Authorization: `Bearer ${gdriveToken}` } });
+    if (!resp.ok) throw new Error(resp.statusText);
+    const data = await resp.json();
+
+    const rows = data.values || [];
+    if (rows.length < 2) { showAlert('students-alert','No student data found in the sheet.','info'); return; }
+
+    // Header row to map column letters to indices
+    const header = rows[0].map(h => h.toLowerCase());
+    const colM = cfg.colMatric ? cfg.colMatric.charCodeAt(0) - 65 : guessCol(header, ['matric','admission','reg','id','number']);
+    const colL = cfg.colLevel  ? cfg.colLevel.charCodeAt(0)  - 65 : guessCol(header, ['level','year']);
+    const colN = cfg.colName   ? cfg.colName.charCodeAt(0)   - 65 : guessCol(header, ['name','fullname','student']);
+
+    const students = [];
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      const matric = (row[colM] || '').trim().toUpperCase();
+      if (!matric) continue;
+      students.push({
+        matric,
+        level:    (row[colL] || '').trim(),
+        fullname: (row[colN] || '').trim(),
+        registeredAt: row[0] || '',           // column A = timestamp from Google Form
+      });
+    }
+
+    saveStudents(students);
+    updateSyncStatus('connected');
+    showAlert('students-alert', `✓ ${students.length} students imported from Google Form responses.`, 'success');
+    renderStudentsList();
+  } catch(e) {
+    updateSyncStatus('error', 'Students sync failed');
+    showAlert('students-alert', 'Failed to read form responses. Check the Sheet ID and permissions.', 'danger');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-person-check"></i> Sync Students Now'; }
+  }
+}
+
+function guessCol(header, keywords) {
+  for (const kw of keywords) {
+    const idx = header.findIndex(h => h.includes(kw));
+    if (idx >= 0) return idx;
+  }
+  return 1; // default to column B
+}
+
+function renderStudentsList() {
+  const el = document.getElementById('students-list-body');
+  if (!el) return;
+  const students = getStudents();
+  if (!students.length) {
+    el.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:18px">No students synced yet.</td></tr>';
+    const cnt = document.getElementById('students-count');
+    if (cnt) cnt.textContent = '0 students';
+    return;
+  }
+  el.innerHTML = students.map(s => `
+    <tr>
+      <td>${esc(s.matric)}</td>
+      <td>${esc(s.fullname||'—')}</td>
+      <td>${esc(s.level||'—')}</td>
+      <td style="font-size:.75rem;color:var(--muted)">${esc(s.registeredAt||'—')}</td>
+    </tr>`).join('');
+  const cnt = document.getElementById('students-count');
+  if (cnt) cnt.textContent = `${students.length} student${students.length !== 1 ? 's' : ''} registered`;
 }
 
 function syncAfterWrite() {
@@ -3924,6 +4129,7 @@ async function changeAdminPassword() {
 }
 
 function renderAdminSecurity() {
+  renderStudentsList();
   const sessEl = document.getElementById('sec-session-info');
   const lockEl = document.getElementById('sec-lockout-info');
   if (!sessEl) return;
@@ -4033,10 +4239,21 @@ async function runIntegrityCheck() {
   /* Pre-fill saved Google Drive config fields */
   const gCfg = getGdriveCfg();
   if (gCfg.clientId) {
-    const ciEl = document.getElementById('gdrive-client-id');
-    const siEl = document.getElementById('gdrive-sheet-id');
-    if (ciEl) ciEl.value = gCfg.clientId;
-    if (siEl) siEl.value = gCfg.sheetId || '';
+    const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+    set('gdrive-client-id',    gCfg.clientId);
+    set('gdrive-sheet-id',     gCfg.sheetId);
+    set('gdrive-reg-sheet-id', gCfg.regSheetId);
+    set('gdrive-form-url',     gCfg.formUrl);
+    set('gdrive-col-matric',   gCfg.colMatric || 'B');
+    set('gdrive-col-level',    gCfg.colLevel  || 'C');
+    set('gdrive-col-name',     gCfg.colName   || 'D');
+    const rr = document.getElementById('gdrive-require-reg');
+    if (rr) rr.checked = !!gCfg.requireReg;
+    /* Set registration form link on login page */
+    if (gCfg.formUrl) {
+      const a = document.getElementById('reg-form-href');
+      if (a) a.href = gCfg.formUrl;
+    }
   }
 
   /* Auto-logout admin after session expires — check every 60s */
