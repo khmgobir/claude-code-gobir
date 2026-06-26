@@ -9,6 +9,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+  <!-- Google Identity Services + Sheets API -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://apis.google.com/js/api.js" async defer></script>
   <style>
     /* ═══════════════════════ DESIGN TOKENS ═══════════════════════ */
     :root {
@@ -830,6 +833,30 @@
     .bio-table td { padding:10px 12px; font-size:.83rem; border-bottom:1px solid var(--border); }
     .bio-table tr:last-child td { border-bottom:none; }
 
+    /* ═══════════════════════ CLOUD SYNC ═══════════════════════ */
+    .cloud-badge {
+      display: flex; align-items: center; gap: 5px;
+      padding: 6px 10px; border-radius: var(--radius-sm);
+      cursor: pointer; transition: background var(--t);
+      margin-left: 4px;
+    }
+    .cloud-badge:hover { background: rgba(255,255,255,.08); }
+    .gdrive-dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: #94a3b8; display: inline-block; flex-shrink: 0;
+      transition: background .4s;
+    }
+    .gdrive-status {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; background: var(--mint);
+      border-radius: var(--radius-sm); margin-bottom: 16px;
+    }
+    .gdrive-steps {
+      margin: 12px 0 0 18px; font-size: .85rem;
+      color: var(--muted); line-height: 1.9;
+    }
+    .gdrive-steps strong { color: var(--pine); }
+
     /* ═══════════════════════ SECURITY ═══════════════════════ */
     .sec-section {
       background: var(--surface); border: 1.5px solid var(--border);
@@ -991,6 +1018,10 @@
     <div class="app-badge">
       <div class="app-badge-dot"></div>
       <span id="badge-text">Student</span>
+    </div>
+    <div class="cloud-badge" title="Google Drive sync status" onclick="if(adminLoggedIn){switchAdminTab('security',document.querySelector('.seg-ctrl button:last-child'));showPage('admin');}">
+      <span id="header-sync-dot" class="gdrive-dot"></span>
+      <i class="bi bi-cloud-fill" style="font-size:.9rem;color:var(--muted)"></i>
     </div>
   </header>
 
@@ -1513,6 +1544,67 @@
             </div>
 
             <div class="sec-section">
+              <h3><i class="bi bi-cloud-arrow-up-fill" style="color:var(--forest)"></i> Google Drive / Sheets Sync</h3>
+              <p class="text-muted text-sm" style="margin-bottom:14px">
+                Connect to a Google Spreadsheet to back up all attendance, courses and exam records in real time.
+                Each data type gets its own sheet tab. Data is pushed every time a record is saved.
+              </p>
+
+              <!-- Status bar -->
+              <div class="gdrive-status">
+                <span id="sync-dot" class="gdrive-dot"></span>
+                <span id="sync-text" class="text-sm" style="font-weight:600">Not connected</span>
+                <span id="sync-last" class="text-sm text-muted" style="margin-left:auto"></span>
+              </div>
+
+              <div id="gdrive-alert" style="margin-bottom:12px"></div>
+
+              <div class="field">
+                <label>Google OAuth Client ID</label>
+                <input type="text" id="gdrive-client-id" placeholder="xxxxxxxxx.apps.googleusercontent.com"
+                       autocomplete="off" spellcheck="false"/>
+                <small class="text-muted">From Google Cloud Console → Credentials → OAuth 2.0 Client ID</small>
+              </div>
+              <div class="field">
+                <label>Google Spreadsheet ID</label>
+                <input type="text" id="gdrive-sheet-id" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms"
+                       autocomplete="off" spellcheck="false"/>
+                <small class="text-muted">From the spreadsheet URL: docs.google.com/spreadsheets/d/<strong>ID</strong>/edit</small>
+              </div>
+
+              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+                <button class="btn btn-green" onclick="saveSyncCfg()">
+                  <i class="bi bi-floppy-fill"></i> Save Settings
+                </button>
+                <button class="btn btn-green" onclick="gdriveSignIn()">
+                  <i class="bi bi-google"></i> Connect &amp; Sign In
+                </button>
+                <button class="btn btn-outline" onclick="syncAllToSheets()">
+                  <i class="bi bi-cloud-upload"></i> Push Now
+                </button>
+                <button class="btn btn-outline" onclick="pullFromSheets()">
+                  <i class="bi bi-cloud-download"></i> Pull from Sheets
+                </button>
+                <button class="btn btn-ghost btn-sm" onclick="gdriveSignOut()" style="margin-left:auto">
+                  <i class="bi bi-plug"></i> Disconnect
+                </button>
+              </div>
+
+              <details style="margin-top:18px">
+                <summary class="text-sm text-muted" style="cursor:pointer">Setup instructions</summary>
+                <ol class="gdrive-steps">
+                  <li>Go to <strong>console.cloud.google.com</strong> and create a project.</li>
+                  <li>Enable <strong>Google Sheets API</strong>.</li>
+                  <li>Go to <strong>Credentials → Create → OAuth 2.0 Client ID</strong>.</li>
+                  <li>Application type: <strong>Web application</strong>. Add your site URL to Authorized JS origins.</li>
+                  <li>Copy the <strong>Client ID</strong> and paste it above.</li>
+                  <li>Create a new <strong>Google Spreadsheet</strong> and copy its ID from the URL.</li>
+                  <li>Paste the Spreadsheet ID above and click <strong>Save Settings</strong> then <strong>Connect</strong>.</li>
+                </ol>
+              </details>
+            </div>
+
+            <div class="sec-section">
               <h3><i class="bi bi-shield-exclamation"></i> Record Integrity Check</h3>
               <p class="text-muted text-sm" style="margin-bottom:12px">Verify all attendance records carry valid HMAC signatures. A ⚠ warning icon flags any tampered record.</p>
               <button class="btn btn-green" onclick="runIntegrityCheck()">
@@ -1879,6 +1971,15 @@ const ADMIN_KEY  = 'mls_admin_session';
 const COURSES_KEY= 'mls_courses_db';
 const SEC_KEY    = 'mls_security_v1';      // stores hashed password + HMAC key
 const LOCKOUT_KEY= 'mls_lockout_v1';       // brute-force lockout state
+const GDRIVE_CFG_KEY = 'mls_gdrive_cfg_v1'; // Google Drive config (client ID + sheet ID)
+
+/* Google Sheets column layouts (zero-indexed) */
+const SHEETS = {
+  attendance:   'Attendance',
+  courses:      'Courses',
+  examSessions: 'ExamSessions',
+  examRecords:  'ExamRecords',
+};
 
 /* Default admin password hash — SHA-256 of "admin123"
    First login creates a unique HMAC key and this hash.
@@ -1980,6 +2081,9 @@ let gpsCoords    = null;
 let editingCourse= null;
 let adminLoggedIn= false;
 let _adminSessionStart = 0;  // timestamp for auto-logout
+let gdriveReady   = false;   // Google Sheets API loaded
+let gdriveToken   = null;    // OAuth access token
+let gdriveSyncing = false;   // sync in progress flag
 
 /* ════════════════════════════ DEFAULT COURSES ════════════════════════════ */
 const DEFAULT_COURSES = [
@@ -2012,6 +2116,7 @@ function getRecords() {
 }
 function saveRecords(records) {
   localStorage.setItem(ATT_KEY, JSON.stringify(records));
+  syncAfterWrite();
 }
 function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -3353,7 +3458,7 @@ let examAdminLoggedIn = false;
 function getExamSessions() { return JSON.parse(localStorage.getItem(EXAM_SESS_KEY) || '[]'); }
 function saveExamSessions(s) { localStorage.setItem(EXAM_SESS_KEY, JSON.stringify(s)); }
 function getExamRecords() { return JSON.parse(localStorage.getItem(EXAM_REC_KEY) || '[]'); }
-function saveExamRecords(r) { localStorage.setItem(EXAM_REC_KEY, JSON.stringify(r)); }
+function saveExamRecords(r) { localStorage.setItem(EXAM_REC_KEY, JSON.stringify(r)); syncAfterWrite(); }
 
 function initExamPage() {
   populateKioskSelect();
@@ -3639,6 +3744,159 @@ function kioskSignOut() {
   kioskOutBioVerified = false;
 }
 
+/* ════════════════════════════ GOOGLE DRIVE / SHEETS SYNC ════════════════════════════ */
+
+function getGdriveCfg() {
+  try { return JSON.parse(localStorage.getItem(GDRIVE_CFG_KEY) || '{}'); } catch { return {}; }
+}
+function saveGdriveCfg(cfg) { localStorage.setItem(GDRIVE_CFG_KEY, JSON.stringify(cfg)); }
+
+function initGoogleDrive() {
+  const cfg = getGdriveCfg();
+  if (!cfg.clientId || !cfg.sheetId) return;
+  if (typeof gapi === 'undefined') { setTimeout(initGoogleDrive, 1000); return; }
+  gapi.load('client', async () => {
+    try {
+      await gapi.client.init({ discoveryDocs: ['https://sheets.googleapis.com/$discovery/rest?version=v4'] });
+      gdriveReady = true;
+      updateSyncStatus('idle');
+    } catch(e) { updateSyncStatus('error', 'API failed'); }
+  });
+}
+
+function gdriveSignIn() {
+  const cfg = getGdriveCfg();
+  if (!cfg.clientId) { toast('Enter your Google Client ID in Cloud Sync settings first.', 'info'); return; }
+  if (typeof google === 'undefined') { toast('Google API not loaded. Check your internet connection.', 'danger'); return; }
+  google.accounts.oauth2.initTokenClient({
+    client_id: cfg.clientId,
+    scope: 'https://www.googleapis.com/auth/spreadsheets',
+    callback: (resp) => {
+      if (resp.error) { updateSyncStatus('error', resp.error); return; }
+      gdriveToken = resp.access_token;
+      if (typeof gapi !== 'undefined') gapi.client.setToken({ access_token: gdriveToken });
+      updateSyncStatus('connected');
+      toast('Connected to Google Sheets! Syncing…', 'success');
+      syncAllToSheets();
+    },
+  }).requestAccessToken();
+}
+
+function gdriveSignOut() {
+  if (gdriveToken && typeof google !== 'undefined') google.accounts.oauth2.revoke(gdriveToken, () => {});
+  gdriveToken = null;
+  if (typeof gapi !== 'undefined') gapi.client.setToken(null);
+  updateSyncStatus('idle');
+  toast('Disconnected from Google Drive.');
+}
+
+function updateSyncStatus(state, msg) {
+  const map = { idle:{color:'#94a3b8',label:'Not connected'}, connected:{color:'#22c55e',label:'Synced'}, syncing:{color:'#f59e0b',label:'Syncing…'}, error:{color:'#ef4444',label:msg||'Error'} };
+  const s = map[state] || map.idle;
+  // Header dot
+  const hd = document.getElementById('header-sync-dot');
+  if (hd) hd.style.background = s.color;
+  // Security pane dot + text
+  const pd = document.getElementById('sync-dot');
+  if (pd) pd.style.background = s.color;
+  const text = document.getElementById('sync-text');
+  if (text) text.textContent = s.label;
+}
+
+async function sheetsRequest(method, path, body) {
+  const cfg = getGdriveCfg();
+  if (!gdriveToken || !cfg.sheetId) return null;
+  const url = `https://sheets.googleapis.com/v4/spreadsheets/${cfg.sheetId}${path}`;
+  const opts = { method, headers: { Authorization: `Bearer ${gdriveToken}`, 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  try {
+    const r = await fetch(url, opts);
+    if (r.status === 401) { gdriveSignOut(); return null; }
+    return r.ok ? await r.json() : null;
+  } catch { return null; }
+}
+
+async function ensureSheetExists(title, headerRow) {
+  const meta = await sheetsRequest('GET', '?fields=sheets.properties.title', null);
+  if (!meta) return false;
+  if (meta.sheets.some(s => s.properties.title === title)) return true;
+  await sheetsRequest('POST', ':batchUpdate', { requests: [{ addSheet: { properties: { title } } }] });
+  if (headerRow) await sheetsRequest('PUT', `/values/${encodeURIComponent(title)}!A1?valueInputOption=RAW`, { values: [headerRow] });
+  return true;
+}
+
+async function overwriteSheet(title, headerRow, rows) {
+  await ensureSheetExists(title, headerRow);
+  await sheetsRequest('PUT', `/values/${encodeURIComponent(title)}!A2?valueInputOption=RAW`, { values: rows.length ? rows : [[]] });
+}
+
+async function syncAllToSheets() {
+  if (!gdriveToken) { toast('Connect to Google Drive first.', 'info'); return; }
+  if (gdriveSyncing) return;
+  gdriveSyncing = true;
+  updateSyncStatus('syncing');
+  try {
+    await overwriteSheet(SHEETS.attendance,
+      ['ID','Matric','Level','Semester','CourseCode','CourseTitle','Date','Time','Venue','Method','Lat','Lng','Accuracy','Token','Sig','Timestamp'],
+      getRecords().map(r => [r.id||'', r.matric||'', r.level||'', r.semester||'', r.courseCode||'', r.courseTitle||'', r.date||'', r.time||'', r.venue||'', r.method||'', r.lat||'', r.lng||'', r.accuracy||'', r.token||'', r.sig||'', r.timestamp||'']));
+
+    await overwriteSheet(SHEETS.courses,
+      ['ID','Code','Title','Level','Semester','Units'],
+      getCourses().map(c => [c.id||'', c.code||'', c.title||'', c.level||'', c.semester||'', c.units||'']));
+
+    await overwriteSheet(SHEETS.examSessions,
+      ['ID','CourseCode','CourseTitle','Date','StartTime','Venue','Duration','CreatedAt'],
+      getExamSessions().map(s => [s.id||'', s.courseCode||'', s.courseTitle||'', s.date||'', s.startTime||'', s.venue||'', s.duration||'', s.createdAt||'']));
+
+    await overwriteSheet(SHEETS.examRecords,
+      ['ID','ExamID','CourseCode','CourseTitle','Date','Matric','Level','BookletNo','SignInTime','SignInMethod','SignOutTime','SignOutMethod','Status','Timestamp'],
+      getExamRecords().map(r => [r.id||'', r.examId||'', r.courseCode||'', r.courseTitle||'', r.date||'', r.matric||'', r.level||'', r.bookletNo||'', r.signInTime||'', r.signInMethod||'', r.signOutTime||'', r.signOutMethod||'', r.status||'', r.timestamp||'']));
+
+    updateSyncStatus('connected');
+    const ts = new Date().toLocaleTimeString();
+    const el = document.getElementById('sync-last');
+    if (el) el.textContent = `Last sync: ${ts}`;
+    const att = getRecords().length;
+    toast(`Synced to Google Sheets (${att} attendance records) ✓`, 'success');
+  } catch(e) {
+    updateSyncStatus('error', 'Sync failed');
+  } finally {
+    gdriveSyncing = false;
+  }
+}
+
+async function pullFromSheets() {
+  if (!gdriveToken) { toast('Connect to Google Drive first.', 'info'); return; }
+  updateSyncStatus('syncing');
+  try {
+    const sheetNames = Object.values(SHEETS);
+    const ranges = sheetNames.map(s => `${encodeURIComponent(s)}!A2:ZZ`).join('&ranges=');
+    const resp = await sheetsRequest('GET', `/values:batchGet?ranges=${ranges}`, null);
+    if (!resp || !resp.valueRanges) throw new Error();
+    const [attVals, crsVals, esVals, erVals] = resp.valueRanges.map(r => r.values || []);
+    if (attVals && attVals.length) saveRecords(attVals.map(r => ({ id:r[0], matric:r[1], level:r[2], semester:r[3], courseCode:r[4], courseTitle:r[5], date:r[6], time:r[7], venue:r[8], method:r[9], lat:r[10], lng:r[11], accuracy:r[12], token:r[13], sig:r[14], timestamp:r[15] })));
+    if (crsVals && crsVals.length) saveCourseDB(crsVals.map(r => ({ id:r[0], code:r[1], title:r[2], level:r[3], semester:r[4], units:r[5] })));
+    if (esVals  && esVals.length)  saveExamSessions(esVals.map(r => ({ id:r[0], courseCode:r[1], courseTitle:r[2], date:r[3], startTime:r[4], venue:r[5], duration:r[6], createdAt:r[7] })));
+    if (erVals  && erVals.length)  saveExamRecords(erVals.map(r => ({ id:r[0], examId:r[1], courseCode:r[2], courseTitle:r[3], date:r[4], matric:r[5], level:r[6], bookletNo:r[7], signInTime:r[8], signInMethod:r[9], signOutTime:r[10], signOutMethod:r[11], status:r[12], timestamp:r[13] })));
+    updateSyncStatus('connected');
+    toast('Pulled latest data from Google Sheets ✓', 'success');
+    if (adminLoggedIn) { renderAdminRecords(); renderCourses(); }
+  } catch { updateSyncStatus('error','Pull failed'); toast('Failed to pull from Sheets.','danger'); }
+}
+
+function saveSyncCfg() {
+  const clientId = document.getElementById('gdrive-client-id').value.trim();
+  const sheetId  = document.getElementById('gdrive-sheet-id').value.trim();
+  if (!clientId || !sheetId) { showAlert('gdrive-alert','Enter both Client ID and Spreadsheet ID.','danger'); return; }
+  saveGdriveCfg({ clientId, sheetId });
+  showAlert('gdrive-alert','Settings saved. Click Connect to sign in.','success');
+  initGoogleDrive();
+}
+
+function syncAfterWrite() {
+  if (gdriveToken) setTimeout(syncAllToSheets, 800);
+}
+
 /* ════════════════════════════ SECURITY FUNCTIONS ════════════════════════════ */
 async function changeAdminPassword() {
   const cur  = document.getElementById('sec-cur-pass').value;
@@ -3768,6 +4026,18 @@ async function runIntegrityCheck() {
 
   /* Bootstrap security config (creates HMAC key + password hash on first run) */
   getSecConfig();
+
+  /* Initialize Google Drive integration if configured */
+  initGoogleDrive();
+
+  /* Pre-fill saved Google Drive config fields */
+  const gCfg = getGdriveCfg();
+  if (gCfg.clientId) {
+    const ciEl = document.getElementById('gdrive-client-id');
+    const siEl = document.getElementById('gdrive-sheet-id');
+    if (ciEl) ciEl.value = gCfg.clientId;
+    if (siEl) siEl.value = gCfg.sheetId || '';
+  }
 
   /* Auto-logout admin after session expires — check every 60s */
   setInterval(() => {
