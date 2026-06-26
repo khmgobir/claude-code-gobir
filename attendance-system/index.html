@@ -1124,7 +1124,6 @@
     <button onclick="showPage('login')">Login</button><!-- hidden, preserves index -->
     <button onclick="showPage('mark')"><i class="bi bi-check2-circle"></i> Mark Attendance</button>
     <button onclick="showPage('history')"><i class="bi bi-clock-history"></i> My History</button>
-    <button onclick="showPage('exam')"><i class="bi bi-journal-richtext"></i> Exam</button>
     <button onclick="showPage('admin')"><i class="bi bi-shield-lock"></i> Admin</button>
   </nav>
 
@@ -1430,6 +1429,9 @@
             </button>
             <button onclick="switchAdminTab('session', this)">
               <i class="bi bi-calendar-plus"></i> Session
+            </button>
+            <button onclick="switchAdminTab('exam', this)">
+              <i class="bi bi-journal-richtext"></i> Exam
             </button>
             <button onclick="switchAdminTab('biometrics', this)">
               <i class="bi bi-fingerprint"></i> Biometrics
@@ -1830,6 +1832,17 @@
               <div id="sec-integrity-result" style="margin-top:14px"></div>
             </div>
           </div><!-- /security pane -->
+          <div class="admin-pane" id="admin-pane-exam">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+              <div class="card-icon" style="width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,#d1fae5,#a7f3d0);display:flex;align-items:center;justify-content:center;color:#047857;font-size:1rem"><i class="bi bi-journal-richtext"></i></div>
+              <h2 style="font-size:1rem;font-weight:700;color:var(--pine);margin:0">Exam Management</h2>
+            </div>
+            <p class="text-muted text-sm" style="margin-bottom:16px">Create exam sessions and view sign-in/sign-out records. Open the kiosk on a shared screen for students to check in.</p>
+            <button class="btn btn-green btn-full mb-12" onclick="showPage('exam')">
+              <i class="bi bi-display"></i> Open Full Exam Panel
+            </button>
+          </div><!-- /exam pane -->
+
 
           <hr class="divider" />
           <button class="btn btn-ghost btn-sm" onclick="adminLogout()">
@@ -1841,6 +1854,13 @@
 
     <!-- ── EXAM ── -->
     <div class="page" id="page-exam">
+      <!-- Back to admin bar -->
+      <div style="background:var(--pine);padding:8px 16px;display:flex;align-items:center;gap:12px">
+        <button onclick="showPage('admin')" style="background:rgba(255,255,255,.12);border:none;color:#fff;padding:6px 14px;border-radius:var(--radius-sm);cursor:pointer;font-size:.82rem;display:flex;align-items:center;gap:6px">
+          <i class="bi bi-arrow-left"></i> Back to Admin
+        </button>
+        <span style="color:rgba(255,255,255,.6);font-size:.8rem"><i class="bi bi-journal-richtext"></i> Exam Management</span>
+      </div>
       <!-- Mode selector -->
       <div class="exam-seg">
         <button class="active" id="exam-tab-kiosk" onclick="switchExamTab('kiosk',this)">
@@ -2115,9 +2135,6 @@
     </button>
     <button id="bn-history" onclick="showPage('history')">
       <i class="bi bi-clock-history"></i> History
-    </button>
-    <button id="bn-exam" onclick="showPage('exam')">
-      <i class="bi bi-journal-richtext"></i> Exam
     </button>
     <button id="bn-admin" onclick="showPage('admin')">
       <i class="bi bi-shield-lock"></i> Admin
@@ -2407,6 +2424,7 @@ function animateCount(elId, target, suffix='') {
 function showPage(name) {
   if (name === 'mark' && !currentUser) { showPage('login'); return; }
   if (name === 'history' && !currentUser) { showPage('login'); return; }
+  if (name === 'exam' && !adminLoggedIn) { showPage('admin'); toast('Please log in as admin to access Exam.', 'info'); return; }
 
   const shell = document.getElementById('app-shell');
   const loginPage = document.getElementById('page-login');
@@ -2428,13 +2446,13 @@ function showPage(name) {
   if (target) target.classList.add('active');
 
   /* Desktop nav */
-  const idx = {login:0, mark:1, history:2, exam:3, admin:4};
+  const idx = {login:0, mark:1, history:2, admin:3, exam:4};
   document.querySelectorAll('nav.main-nav button').forEach(b => b.classList.remove('active'));
   const nb = document.querySelectorAll('nav.main-nav button')[idx[name]];
   if (nb) nb.classList.add('active');
 
   /* Mobile bottom nav */
-  ['mark','history','exam','admin'].forEach(n => {
+  ['mark','history','admin'].forEach(n => {
     const btn = document.getElementById('bn-' + n);
     if (btn) btn.classList.toggle('active', n === name);
   });
@@ -2895,9 +2913,11 @@ function updateAdminStats() {
 
 function switchAdminTab(name, btn) {
   document.querySelectorAll('.seg-ctrl button').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (name === 'exam') { showPage('exam'); return; }
   document.querySelectorAll('.admin-pane').forEach(p => p.classList.remove('active'));
-  document.getElementById('admin-pane-' + name).classList.add('active');
+  const pane = document.getElementById('admin-pane-' + name);
+  if (pane) pane.classList.add('active');
   if (name === 'security') renderAdminSecurity();
 }
 
