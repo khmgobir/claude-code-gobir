@@ -857,6 +857,56 @@
     }
     .gdrive-steps strong { color: var(--pine); }
 
+    /* ═══════════════════════ OFFLINE BADGE ═══════════════════════ */
+    .offline-badge {
+      display: none; align-items: center; gap: 5px;
+      padding: 5px 10px; border-radius: var(--radius-sm);
+      background: rgba(220,38,38,.18); color: #fca5a5;
+      font-size: .75rem; font-weight: 600; margin-left: 2px;
+      animation: pulse-red 2s infinite;
+    }
+    .offline-badge.visible { display: flex; }
+    @keyframes pulse-red {
+      0%,100% { opacity:1; } 50% { opacity:.55; }
+    }
+
+    /* ═══════════════════════ COURSE BAR CHART ═══════════════════════ */
+    .course-bar-row {
+      display: grid; grid-template-columns: 110px 1fr 46px;
+      align-items: center; gap: 10px; padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .course-bar-row:last-child { border-bottom: none; }
+    .course-bar-label {
+      font-size: .78rem; font-weight: 600; color: var(--pine);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .course-bar-track {
+      height: 10px; border-radius: 99px;
+      background: var(--border); overflow: hidden;
+    }
+    .course-bar-fill {
+      height: 100%; border-radius: 99px;
+      background: linear-gradient(90deg, var(--leaf), var(--forest));
+      transition: width .5s var(--ease-spring);
+    }
+    .course-bar-count {
+      font-size: .75rem; color: var(--muted); text-align: right;
+      white-space: nowrap;
+    }
+
+    /* ═══════════════════════ SPIN ANIMATION ═══════════════════════ */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { display: inline-block; animation: spin .7s linear infinite; }
+
+    /* ═══════════════════════ BIO STATUS BADGE ═══════════════════════ */
+    #bio-status-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 99px; font-size: .75rem; font-weight: 700;
+    }
+    #bio-status-badge.enrolled { background: #dcfce7; color: #166534; }
+    #bio-status-badge.missing  { background: var(--red-pale); color: var(--red); }
+
     /* ═══════════════════════ SECURITY ═══════════════════════ */
     .sec-section {
       background: var(--surface); border: 1.5px solid var(--border);
@@ -943,6 +993,12 @@
       .stats-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
       .stat-tile .stat-val { font-size: 1.5rem; }
       .content-wrap { padding: 16px 12px; }
+      .modal-box { border-radius: var(--radius); margin: 0 8px; }
+      .records-filter { flex-wrap: wrap; }
+    }
+    @media (max-width: 480px) {
+      /* admin 4-col stat grid → 2×2 on small phones */
+      .admin-stats-row { grid-template-columns: repeat(2, 1fr) !important; }
     }
   </style>
 </head>
@@ -1035,6 +1091,9 @@
     <div class="cloud-badge" title="Google Drive sync status" onclick="if(adminLoggedIn){switchAdminTab('security',document.querySelector('.seg-ctrl button:last-child'));showPage('admin');}">
       <span id="header-sync-dot" class="gdrive-dot"></span>
       <i class="bi bi-cloud-fill" style="font-size:.9rem;color:var(--muted)"></i>
+    </div>
+    <div id="offline-badge" class="offline-badge" title="You are offline — attendance will be saved locally">
+      <i class="bi bi-wifi-off"></i>
     </div>
   </header>
 
@@ -1219,6 +1278,17 @@
           </div>
         </div>
 
+        <!-- Per-course attendance breakdown -->
+        <div class="card" id="course-breakdown-card">
+          <div class="card-head">
+            <div class="card-icon"><i class="bi bi-bar-chart-fill"></i></div>
+            <h2>Per-Course Summary</h2>
+          </div>
+          <div class="card-body" id="course-breakdown-body" style="padding:12px 16px">
+            <p class="text-muted text-sm" style="text-align:center;padding:8px">No records yet.</p>
+          </div>
+        </div>
+
         <div class="card">
           <div class="card-head">
             <div class="card-icon"><i class="bi bi-filter"></i></div>
@@ -1242,7 +1312,7 @@
           <div class="tbl-desktop">
             <div id="history-empty" class="empty-state" style="display:none">
               <i class="bi bi-clipboard-x"></i>
-              <p>No attendance records yet.</p>
+              <p>No records match your filter — try <strong>All Courses</strong>, or mark your first attendance on the <strong>Mark Attendance</strong> tab.</p>
             </div>
             <table class="att-table" id="history-body-table">
               <thead>
@@ -1296,7 +1366,7 @@
         <div class="content-wrap">
 
           <!-- Stats -->
-          <div class="stats-row" style="grid-template-columns:repeat(4,1fr)">
+          <div class="stats-row admin-stats-row" style="grid-template-columns:repeat(4,1fr)">
             <div class="stat-tile">
               <div class="stat-val" id="a-students">0</div>
               <div class="stat-lbl">Students</div>
@@ -1337,6 +1407,8 @@
           <!-- Records pane -->
           <div class="admin-pane active" id="admin-pane-records">
             <div class="records-filter">
+              <input type="search" id="af-search" placeholder="Search matric / name…" oninput="renderAdminRecords()"
+                style="padding:9px 12px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-size:.85rem; background:var(--surface); min-width:150px; flex:1;" />
               <select id="af-course" onchange="renderAdminRecords()">
                 <option value="">All Courses</option>
               </select>
@@ -2417,7 +2489,8 @@ function captureLocation() {
   waiting.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>&nbsp; Getting location…';
   navigator.geolocation.getCurrentPosition(
     pos => {
-      gpsCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy };
+      const acc = pos.coords.accuracy;
+      gpsCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc };
       btn.className = 'btn-gps captured';
       btn.querySelector('i').className = 'bi bi-geo-fill';
       waiting.textContent = 'Location captured!';
@@ -2426,8 +2499,12 @@ function captureLocation() {
       ls.style.display = 'flex';
       document.getElementById('loc-text').textContent =
         `${gpsCoords.lat.toFixed(6)}, ${gpsCoords.lng.toFixed(6)}`;
-      document.getElementById('loc-accuracy').textContent =
-        `Accuracy: ±${gpsCoords.acc.toFixed(0)}m`;
+      const accEl = document.getElementById('loc-accuracy');
+      accEl.textContent = `Accuracy: ±${acc.toFixed(0)}m`;
+      accEl.style.color = acc > 200 ? 'var(--red)' : acc > 80 ? '#d97706' : 'var(--forest)';
+      if (acc > 200) {
+        showAlert('mark-alert', `Poor GPS accuracy (±${acc.toFixed(0)}m). Move to an open area and try again for a more precise reading.`, 'warning');
+      }
 
       const mc = document.getElementById('map-container');
       mc.style.display = 'block';
@@ -2547,7 +2624,7 @@ function renderHistory() {
   animateCount('s-courses', uniqueCourses);
   const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
   const weekCount = all.filter(r => new Date(r.timestamp) >= weekAgo).length;
-  document.getElementById('s-percent').textContent = weekCount + '';
+  document.getElementById('s-percent').textContent = weekCount;
 
   /* Empty state */
   const isEmpty = filtered.length === 0;
@@ -2559,19 +2636,49 @@ function renderHistory() {
   if (tbody) {
     tbody.innerHTML = filtered.slice().reverse().map(r => `
       <tr>
-        <td><strong>${r.courseCode}</strong><br><span class="text-muted text-sm">${r.courseTitle||''}</span></td>
-        <td>${fmtDate(r.date)}</td>
-        <td>${r.time||''}</td>
-        <td>${r.venue||'—'}</td>
-        <td><span style="font-size:.72rem;color:var(--muted)">${r.method==='token'?`<i class="bi bi-key-fill"></i> Token`:`±${(r.accuracy||0).toFixed(0)}m`}</span></td>
+        <td><strong>${esc(r.courseCode)}</strong><br><span class="text-muted text-sm">${esc(r.courseTitle||'')}</span></td>
+        <td>${esc(fmtDate(r.date))}</td>
+        <td>${esc(r.time||'')}</td>
+        <td>${esc(r.venue||'—')}</td>
+        <td><span style="font-size:.72rem;color:var(--muted)">${r.method==='token'?'<i class="bi bi-key-fill"></i> Token':r.method==='bio'?'<i class="bi bi-fingerprint"></i> Bio':'±'+((r.accuracy||0).toFixed(0))+'m'}</span></td>
         <td><span class="pill-present">Present</span></td>
       </tr>`).join('');
+  }
+
+  /* Per-course breakdown */
+  const breakdown = document.getElementById('course-breakdown-body');
+  if (breakdown) {
+    const coursesAll = getCourses().filter(c => c.level === currentUser.level);
+    if (!all.length) {
+      breakdown.innerHTML = '<p class="text-muted text-sm" style="text-align:center;padding:8px">Mark attendance to see your per-course summary.</p>';
+    } else {
+      const courseMap = {};
+      all.forEach(r => { courseMap[r.courseCode] = (courseMap[r.courseCode]||0) + 1; });
+      // Build sorted list of courses this student has attended
+      const attended = Object.entries(courseMap).sort((a,b) => b[1]-a[1]);
+      breakdown.innerHTML = attended.map(([code, count]) => {
+        const course = coursesAll.find(c => c.code === code) || {};
+        const bar = Math.min(100, Math.round((count / Math.max(all.length, 1)) * 100 * attended.length / attended.length));
+        // Attendance % = sessions attended / total sessions (use all records same course)
+        const pct = Math.min(100, count * 10); // rough: 10 sessions = 100%
+        return `<div class="course-bar-row">
+          <div class="course-bar-label">
+            <span class="fw-600 text-sm">${esc(code)}</span>
+            <span class="text-muted text-sm">${esc(course.title||'')}</span>
+          </div>
+          <div class="course-bar-track">
+            <div class="course-bar-fill" style="width:${Math.min(100, count * 10)}%"></div>
+          </div>
+          <span class="course-bar-count">${count} session${count!==1?'s':''}</span>
+        </div>`;
+      }).join('');
+    }
   }
 
   /* Mobile cards */
   const cards = document.getElementById('history-cards');
   if (cards) {
-    if (isEmpty) { cards.innerHTML = '<div class="empty-state"><i class="bi bi-clipboard-x"></i><p>No attendance records yet.</p></div>'; return; }
+    if (isEmpty) { cards.innerHTML = '<div class="empty-state"><i class="bi bi-clipboard-x"></i><p>No records yet — mark your first attendance on the <strong>Mark Attendance</strong> tab.</p></div>'; return; }
     cards.innerHTML = filtered.slice().reverse().map((r,i) => `
       <div class="record-card" style="animation-delay:${i*40}ms">
         <div class="record-card-head">
@@ -2698,11 +2805,13 @@ function switchAdminTab(name, btn) {
 
 function renderAdminRecords() {
   const records = getRecords();
+  const fs = (document.getElementById('af-search')?.value || '').trim().toUpperCase();
   const fc = document.getElementById('af-course').value;
   const fl = document.getElementById('af-level').value;
   const fd = document.getElementById('af-date').value;
 
   let filtered = records;
+  if (fs) filtered = filtered.filter(r => (r.matric||'').toUpperCase().includes(fs) || (r.fullname||'').toUpperCase().includes(fs));
   if (fc) filtered = filtered.filter(r => r.courseCode === fc);
   if (fl) filtered = filtered.filter(r => r.level === fl);
   if (fd) filtered = filtered.filter(r => r.date === fd);
@@ -2736,7 +2845,8 @@ function renderAdminRecords() {
       <td>${esc(fmtDate(r.date))}</td>
       <td>${esc(r.time||'')}</td>
       <td>${esc(r.venue||'—')}</td>
-      <td><span style="font-size:.7rem;color:var(--muted)">${r.method==='token'?`Token: ${esc(r.token||'')}`:`±${(r.accuracy||0).toFixed(0)}m`}</span>${r.sig?'':'<span title="No integrity signature — possible tampering" style="color:var(--red);margin-left:4px">⚠</span>'}</td>
+      <td><span style="font-size:.7rem;color:var(--muted)">${r.method==='token'?'Token':r.method==='bio'?'Bio':'GPS ±'+((r.accuracy||0).toFixed(0))+'m'}</span>${r.sig?'':'<span title="No integrity signature — possible tampering" style="color:var(--red);margin-left:4px">⚠</span>'}</td>
+      <td><button class="btn btn-danger btn-sm" title="Delete record" onclick="deleteAttRecord('${r.id}')"><i class="bi bi-trash3-fill"></i></button></td>
     </tr>`).join('');
 }
 
@@ -2752,6 +2862,15 @@ function exportAdminCSV() {
   a.download = `mls_attendance_all.csv`; a.click();
   URL.revokeObjectURL(a.href);
   toast('Full records exported!', 'success');
+}
+
+function deleteAttRecord(id) {
+  if (!confirm('Delete this attendance record? This cannot be undone.')) return;
+  const records = getRecords().filter(r => r.id !== id);
+  saveRecords(records);
+  renderAdminRecords();
+  updateAdminStats();
+  toast('Record deleted.', 'info');
 }
 
 /* ════════════════════════════ COURSES ════════════════════════════ */
@@ -2850,7 +2969,9 @@ function saveCourse() {
 }
 
 function deleteCourse(id) {
-  if (!confirm('Delete this course? Existing attendance records will still reference it.')) return;
+  const c = getCourses().find(x => x.id === id);
+  const label = c ? `"${c.code} – ${c.title}"` : 'this course';
+  if (!confirm(`Delete ${label}?\n\nExisting attendance records will still reference it.`)) return;
   const courses = getCourses().filter(c => c.id !== id);
   saveCourseDB(courses);
   renderCourses();
@@ -4269,6 +4390,19 @@ async function runIntegrityCheck() {
       }
     } catch { adminLogout(); }
   }, 60000);
+
+  /* Offline/online badge */
+  const offlineBadge = document.getElementById('offline-badge');
+  function updateOnlineStatus() {
+    if (offlineBadge) offlineBadge.classList.toggle('visible', !navigator.onLine);
+  }
+  window.addEventListener('online',  updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
+  updateOnlineStatus();
+
+  /* Restrict attendance date input to today or earlier */
+  const ldEl = document.getElementById('lec-date');
+  if (ldEl) ldEl.setAttribute('max', today());
 })();
 </script>
 </body>
