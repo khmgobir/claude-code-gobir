@@ -2203,7 +2203,7 @@ const SHEETS = {
 /* Default admin password hash — SHA-256 of "admin123"
    First login creates a unique HMAC key and this hash.
    Admin should change password immediately. */
-const DEFAULT_PASS_HASH = 'ecd71870d1963316a97e3ac3408c9835ad8cf0f3c1bc703527c30265534f75ae';
+const DEFAULT_PASS_HASH = '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9';
 // ^ SHA-256("admin123") — computed at build time, never stored in plaintext
 
 /* ════════════════════════════ SECURITY HELPERS ════════════════════════════ */
@@ -2232,9 +2232,18 @@ async function hmacVerify(key, data, sig) {
 }
 
 /* Get or create the security config (hashed password + HMAC secret) */
+const OLD_WRONG_HASH = 'ecd71870d1963316a97e3ac3408c9835ad8cf0f3c1bc703527c30265534f75ae';
 function getSecConfig() {
   const raw = localStorage.getItem(SEC_KEY);
-  if (raw) try { return JSON.parse(raw); } catch {}
+  if (raw) try {
+    const cfg = JSON.parse(raw);
+    // Migrate: if stored hash is the old wrong hash, replace with correct one
+    if (cfg.passHash === OLD_WRONG_HASH) {
+      cfg.passHash = DEFAULT_PASS_HASH;
+      localStorage.setItem(SEC_KEY, JSON.stringify(cfg));
+    }
+    return cfg;
+  } catch {}
   // First run — generate a random HMAC secret and use default password hash
   const hmacSecret = Array.from(crypto.getRandomValues(new Uint8Array(32)))
     .map(b => b.toString(16).padStart(2,'0')).join('');
