@@ -857,6 +857,21 @@
     }
     .gdrive-steps strong { color: var(--pine); }
 
+    /* Toggle switch */
+    .toggle-switch { display:inline-flex; align-items:center; cursor:pointer; }
+    .toggle-track {
+      width:44px; height:24px; background:var(--border); border-radius:99px;
+      position:relative; transition:background var(--t);
+    }
+    .toggle-switch input:checked ~ .toggle-track { background:var(--leaf); }
+    .toggle-thumb {
+      position:absolute; top:3px; left:3px; width:18px; height:18px;
+      border-radius:50%; background:#fff; transition:transform var(--t);
+      box-shadow:0 1px 3px rgba(0,0,0,.2);
+    }
+    .toggle-switch input:checked ~ .toggle-track .toggle-thumb { transform:translateX(20px); }
+    .toggle-switch input { display:none; }
+
     /* ═══════════════════════ OFFLINE BADGE ═══════════════════════ */
     .offline-badge {
       display: none; align-items: center; gap: 5px;
@@ -1238,6 +1253,19 @@
               <button class="btn btn-outline btn-full mt-12" onclick="verifyToken()">
                 <i class="bi bi-key-fill"></i> Verify Token
               </button>
+              <!-- GPS panel shown when session requires location verification -->
+              <div id="token-gps-required" style="display:none; margin-top:14px">
+                <div style="background:var(--gold-pale);border-radius:var(--radius-sm);padding:10px 14px;font-size:.82rem;color:#92620a;margin-bottom:10px">
+                  <i class="bi bi-shield-lock-fill"></i> This session requires GPS verification. You must be physically present in class.
+                </div>
+                <button class="btn btn-outline btn-full" id="token-gps-btn" onclick="captureTokenGps()">
+                  <i class="bi bi-geo-alt-fill"></i> Capture My Location
+                </button>
+                <div id="token-gps-strip" style="display:none; margin-top:8px; font-size:.82rem" class="loc-strip">
+                  <i class="bi bi-geo-fill" style="color:var(--leaf)"></i>
+                  <span id="token-gps-text"></span>
+                </div>
+              </div>
             </div>
 
           </div>
@@ -1504,6 +1532,31 @@
                     <option value="480">8 hours (full day)</option>
                     <option value="0">No expiry</option>
                   </select>
+                </div>
+                <div class="field">
+                  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px">
+                    <label style="margin:0">Require GPS verification</label>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="sess-require-gps" onchange="toggleGpsRequire(this.checked)" />
+                      <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                    </label>
+                  </div>
+                  <div id="sess-gps-fields" style="display:none">
+                    <div style="background:var(--mint);border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:10px;font-size:.82rem;color:var(--pine)">
+                      <i class="bi bi-shield-lock-fill"></i> Students must be within range of the classroom to submit. Token alone is not enough.
+                    </div>
+                    <button type="button" class="btn btn-outline btn-full" onclick="captureClassroomLocation()" id="sess-capture-loc-btn">
+                      <i class="bi bi-crosshair"></i> Capture Classroom GPS
+                    </button>
+                    <div id="sess-classroom-loc" style="display:none; margin-top:10px; font-size:.82rem; color:var(--forest); display:flex; align-items:center; gap:8px">
+                      <i class="bi bi-geo-fill"></i>
+                      <span id="sess-classroom-loc-text"></span>
+                    </div>
+                    <div class="field" style="margin-top:10px; margin-bottom:0">
+                      <label for="sess-gps-radius">Allowed radius (metres)</label>
+                      <input type="number" id="sess-gps-radius" value="150" min="20" max="2000" style="padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:.85rem;width:100%" />
+                    </div>
+                  </div>
                 </div>
                 <button class="btn btn-green btn-full" onclick="createSession()">
                   <i class="bi bi-broadcast-pin"></i> Generate Token &amp; Open Session
@@ -2237,6 +2290,7 @@ async function verifyRecord(record) {
 /* ════════════════════════════ STATE ════════════════════════════ */
 let currentUser  = null;
 let gpsCoords    = null;
+let classroomGps = null; // { lat, lng } — set by admin when creating session
 let editingCourse= null;
 let adminLoggedIn= false;
 let _adminSessionStart = 0;  // timestamp for auto-logout
@@ -2477,6 +2531,10 @@ function resetMarkForm() {
   const tp = document.getElementById('token-session-preview');
   if (tp) tp.style.display = 'none';
   clearAlert('token-alert');
+  const tgr = document.getElementById('token-gps-required');
+  if (tgr) tgr.style.display = 'none';
+  const tgs = document.getElementById('token-gps-strip');
+  if (tgs) tgs.style.display = 'none';
 }
 
 function captureLocation() {
@@ -2552,6 +2610,22 @@ function submitAttendance() {
       document.getElementById('token-session-preview').style.display = 'none';
       return;
     }
+    /* Geofence check — only if session requires GPS */
+    if (live.requireGps) {
+      if (!gpsCoords) {
+        showAlert('mark-alert','This session requires GPS verification. Capture your location first.','danger'); return;
+      }
+      const dist = haversineMetres(
+        { lat: live.classLat, lng: live.classLng },
+        { lat: gpsCoords.lat, lng: gpsCoords.lng }
+      );
+      if (dist > live.gpsRadius) {
+        showAlert('mark-alert',
+          `You appear to be ${Math.round(dist)}m from the classroom (allowed: ${live.gpsRadius}m). Attendance can only be marked when you are physically present.`,
+          'danger');
+        return;
+      }
+    }
   }
 
   /* Prevent duplicate same-day same-course */
@@ -2581,7 +2655,15 @@ function submitAttendance() {
     record.accuracy = gpsCoords.acc;
   } else {
     record.token = currentTokenSession.token;
-    record.lat = null; record.lng = null; record.accuracy = null;
+    /* Store GPS if session required it (token+GPS combined mode) */
+    if (gpsCoords && currentTokenSession?.requireGps) {
+      record.lat = gpsCoords.lat;
+      record.lng = gpsCoords.lng;
+      record.accuracy = gpsCoords.acc;
+      record.method = 'token+gps';
+    } else {
+      record.lat = null; record.lng = null; record.accuracy = null;
+    }
   }
 
   signRecord(record).then(signed => {
@@ -3034,11 +3116,21 @@ function createSession() {
   const createdAt = Date.now();
   const expiresAt = expiryMins > 0 ? createdAt + expiryMins * 60000 : 0;
 
+  const requireGps = document.getElementById('sess-require-gps')?.checked || false;
+  const gpsRadius = parseInt(document.getElementById('sess-gps-radius')?.value || '150');
+  if (requireGps && !classroomGps) {
+    toast('Please capture the classroom GPS location first.', 'error'); return;
+  }
+
   const session = {
     id: uid(), token, courseCode: course,
     courseTitle: courseObj.title || '',
     lecturer, date, venue,
     createdAt, expiresAt,
+    requireGps,
+    classLat: requireGps ? classroomGps.lat : null,
+    classLng: requireGps ? classroomGps.lng : null,
+    gpsRadius: requireGps ? gpsRadius : null,
     revoked: false
   };
 
@@ -3056,6 +3148,10 @@ function createSession() {
 
   renderActiveSessions();
   toast(`Session token generated: ${token}`, 'success');
+  /* Reset geofence fields */
+  classroomGps = null;
+  const rg = document.getElementById('sess-require-gps');
+  if (rg) { rg.checked = false; toggleGpsRequire(false); }
 }
 
 function copyToken() {
@@ -3077,6 +3173,69 @@ function revokeToken(token) {
   saveSessions(sessions);
   renderActiveSessions();
   toast(`Token ${token} revoked.`, 'info');
+}
+
+function toggleGpsRequire(on) {
+  document.getElementById('sess-gps-fields').style.display = on ? 'block' : 'none';
+  if (!on) classroomGps = null;
+}
+
+function captureClassroomLocation() {
+  const btn = document.getElementById('sess-capture-loc-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"><i class="bi bi-arrow-repeat"></i></span> Getting location…';
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      classroomGps = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy };
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-check-circle-fill" style="color:var(--leaf)"></i> Location captured — tap to refresh';
+      const locDiv = document.getElementById('sess-classroom-loc');
+      locDiv.style.display = 'flex';
+      document.getElementById('sess-classroom-loc-text').textContent =
+        `${classroomGps.lat.toFixed(5)}, ${classroomGps.lng.toFixed(5)} (±${classroomGps.acc.toFixed(0)}m)`;
+      toast('Classroom location captured!', 'success');
+    },
+    err => {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="bi bi-crosshair"></i> Capture Classroom GPS';
+      const msgs = { 1:'Location access denied.', 2:'Location unavailable.', 3:'Request timed out.' };
+      toast(msgs[err.code] || 'Could not get location.', 'error');
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+  );
+}
+
+/* Haversine distance in metres between two {lat,lng} points */
+function haversineMetres(a, b) {
+  const R = 6371000;
+  const dLat = (b.lat - a.lat) * Math.PI / 180;
+  const dLng = (b.lng - a.lng) * Math.PI / 180;
+  const x = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(a.lat * Math.PI/180) * Math.cos(b.lat * Math.PI/180) *
+    Math.sin(dLng/2) * Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
+}
+
+function captureTokenGps() {
+  const btn = document.getElementById('token-gps-btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spin"><i class="bi bi-arrow-repeat"></i></span> Getting location…'; }
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      gpsCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: pos.coords.accuracy };
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-check-circle-fill" style="color:var(--leaf)"></i> Location captured'; }
+      const strip = document.getElementById('token-gps-strip');
+      if (strip) { strip.style.display = 'flex'; }
+      const txt = document.getElementById('token-gps-text');
+      if (txt) txt.textContent = `±${gpsCoords.acc.toFixed(0)}m accuracy`;
+      clearAlert('mark-alert');
+    },
+    err => {
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-geo-alt-fill"></i> Capture My Location'; }
+      const msgs = { 1:'Location access denied. Enable in browser settings.', 2:'Location unavailable.', 3:'Request timed out.' };
+      showAlert('mark-alert', msgs[err.code] || 'Could not get location.', 'danger');
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+  );
 }
 
 function renderActiveSessions() {
@@ -3168,6 +3327,13 @@ function verifyToken() {
     if (ven && !ven.value) ven.value = sess.venue;
   }
   toast('Token verified! Fill in the form and submit.', 'success');
+  /* Show GPS capture panel if session requires location verification */
+  const gpsRequired = document.getElementById('token-gps-required');
+  if (gpsRequired) gpsRequired.style.display = sess.requireGps ? 'block' : 'none';
+  if (sess.requireGps) {
+    gpsCoords = null; // force fresh capture
+    toast('Token verified! Now capture your GPS location to confirm you are in class.', 'info');
+  }
 }
 
 /* ════════════════════════════ DROPDOWN HELPERS ════════════════════════════ */
