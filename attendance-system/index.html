@@ -1046,6 +1046,13 @@
   </div>
 
   <div class="login-card">
+    <!-- Admin shortcut -->
+    <div style="text-align:right;margin-bottom:10px">
+      <button onclick="showPage('admin')" style="background:none;border:none;color:rgba(255,255,255,.55);font-size:.8rem;cursor:pointer;text-decoration:underline;padding:4px 8px">
+        <i class="bi bi-shield-lock"></i> Admin / Lecturer login
+      </button>
+    </div>
+
     <h2>Student Sign In</h2>
     <div id="login-alert"></div>
 
@@ -1071,13 +1078,6 @@
     <button class="btn-full-login" onclick="loginStudent()">
       <i class="bi bi-box-arrow-in-right"></i>&nbsp; Sign In
     </button>
-
-    <!-- Admin shortcut -->
-    <div style="text-align:center;margin-top:18px">
-      <button onclick="showPage('admin')" style="background:none;border:none;color:rgba(255,255,255,.45);font-size:.8rem;cursor:pointer;text-decoration:underline;padding:4px 8px">
-        <i class="bi bi-shield-lock"></i> Admin / Lecturer login
-      </button>
-    </div>
 
     <!-- Shown only when registration validation fails -->
     <div id="reg-form-link" style="display:none;margin-top:14px;background:rgba(245,158,11,.15);border:1.5px solid rgba(245,158,11,.45);border-radius:10px;padding:14px;text-align:center">
