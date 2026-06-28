@@ -7,7 +7,7 @@
         content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src https://fonts.gstatic.com https://cdn.jsdelivr.net data:; img-src 'self' data: blob: https://maps.googleapis.com; connect-src 'self'; frame-src https://www.google.com;" />
   <title>MLS Attendance – UDUS</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Orbitron:wght@700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
   <!-- Google Identity Services + Sheets API -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -72,83 +72,228 @@
       *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
     }
 
-    /* ═══════════════════════ LOGIN SPLASH ═══════════════════════ */
+    /* ═══════════════════════ 3D BIOSPHERE LOGIN ═══════════════════════ */
+    @keyframes bioFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+    @keyframes scanLine { 0%{top:-2%} 100%{top:102%} }
+    @keyframes nodeGlow { 0%,100%{opacity:.4;transform:scale(1)} 50%{opacity:1;transform:scale(1.3)} }
+    @keyframes lpPanelIn { from{opacity:0;transform:translateY(30px) rotateX(8deg)} to{opacity:1;transform:translateY(0) rotateX(0deg)} }
+
     #page-login {
       position: fixed; inset: 0; z-index: 9000;
-      background: linear-gradient(145deg, #0a2e1e 0%, #064e3b 40%, #065f46 70%, #047857 100%);
+      background: radial-gradient(ellipse 80% 60% at 50% 40%, #001a0d 0%, #000a12 100%);
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
-      padding: 24px;
-      transition: opacity .4s var(--ease-out), transform .4s var(--ease-out);
+      padding: 16px;
+      overflow: hidden;
+      transition: opacity .5s var(--ease-out), transform .5s var(--ease-out);
     }
-    #page-login.hiding {
-      opacity: 0; transform: scale(1.04) translateY(-20px); pointer-events: none;
+    #page-login.hiding { opacity: 0; transform: scale(1.06) translateY(-24px); pointer-events: none; }
+
+    /* Fullscreen canvas behind everything */
+    #bio-canvas {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 0;
+    }
+    /* Scan line overlay */
+    #page-login::after {
+      content:''; position:absolute; left:0; right:0; height:3px;
+      background: linear-gradient(180deg, transparent, rgba(0,255,136,.18), transparent);
+      animation: scanLine 6s linear infinite;
+      pointer-events: none; z-index: 1;
     }
 
-    /* Microscope reticle — signature element */
-    .reticle {
-      position: relative; width: 140px; height: 140px;
-      margin-bottom: 32px; flex-shrink: 0;
+    /* Wrap: positions content above canvas */
+    .lp-wrap {
+      position: relative; z-index: 2;
+      display: flex; flex-direction: column;
+      align-items: center; width: 100%; max-width: 460px;
     }
-    .reticle-ring {
-      position: absolute; border-radius: 50%;
-      border: 2px solid rgba(245,158,11,.65);
-    }
-    .reticle-ring:nth-child(1){ inset:0; animation: ring1 18s linear infinite; }
-    .reticle-ring:nth-child(2){ inset:14px; border-color:rgba(245,158,11,.4); animation: ring2 12s linear infinite; }
-    .reticle-ring:nth-child(3){ inset:28px; border-color:rgba(16,185,129,.7); animation: ring1 8s linear infinite reverse; }
-    .reticle-ring:nth-child(4){ inset:44px; border-color:rgba(16,185,129,.45); }
-    .reticle-cross {
-      position: absolute; inset: 0;
-      animation: rSpin 30s linear infinite;
-    }
-    .reticle-cross::before,.reticle-cross::after {
-      content:''; position:absolute; background:rgba(245,158,11,.55);
-    }
-    .reticle-cross::before{ left:50%; top:8px; bottom:8px; width:1px; transform:translateX(-50%); }
-    .reticle-cross::after { top:50%; left:8px; right:8px; height:1px; transform:translateY(-50%); }
-    .reticle-dot {
-      position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-    }
-    .reticle-dot::after {
-      content:''; width:10px; height:10px; border-radius:50%;
-      background:var(--gold); box-shadow: 0 0 12px var(--gold);
-      animation: pulse 2.4s ease-in-out infinite;
-    }
-    .reticle-tick {
-      position:absolute; width:6px; height:14px;
-      background:rgba(245,158,11,.65); border-radius:2px;
-    }
-    .reticle-tick:nth-child(5){ top:0; left:50%; transform:translateX(-50%); }
-    .reticle-tick:nth-child(6){ bottom:0; left:50%; transform:translateX(-50%); }
-    .reticle-tick:nth-child(7){ left:0; top:50%; transform:translateY(-50%) rotate(90deg); }
-    .reticle-tick:nth-child(8){ right:0; top:50%; transform:translateY(-50%) rotate(90deg); }
 
-    .login-brand {
-      text-align: center; color: #fff; margin-bottom: 40px;
-      animation: fadeUp .7s var(--ease-out) .1s both;
+    /* Brand area */
+    .lp-brand {
+      text-align: center; margin-bottom: 24px;
+      animation: lpPanelIn .7s var(--ease-out) .05s both;
     }
-    .login-brand .school-badge {
-      width: 84px; height: 84px;
-      display: inline-flex; align-items: center; justify-content: center;
-      margin-bottom: 16px;
-      filter: drop-shadow(0 0 12px rgba(245,158,11,.4));
+    .lp-logo-ring {
+      width: 88px; height: 88px; border-radius: 50%; margin: 0 auto 12px;
+      position: relative; display: flex; align-items: center; justify-content: center;
+      border: 2px solid rgba(0,255,136,.35);
+      box-shadow: 0 0 0 6px rgba(0,255,136,.08), 0 0 40px rgba(0,255,136,.15);
+      animation: bioFloat 4s ease-in-out infinite;
     }
-    .login-brand h1 { font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
-    .login-brand p  { font-size: .85rem; opacity: .65; margin-top: 6px; letter-spacing: .03em; }
+    .lp-logo-ring img { width: 72px; height: 72px; object-fit: contain; border-radius: 50%; }
+    .lp-brand-title {
+      font-family: 'Orbitron', monospace; font-weight: 800; font-size: 1.1rem;
+      letter-spacing: .12em; color: #fff; text-transform: uppercase;
+      text-shadow: 0 0 18px rgba(0,255,136,.45);
+    }
+    .lp-brand-sub {
+      font-family: 'JetBrains Mono', monospace; font-size: .7rem;
+      color: rgba(0,255,136,.6); letter-spacing: .1em; margin-top: 4px;
+    }
 
-    .login-card {
-      width: 100%; max-width: 420px;
-      background: rgba(255,255,255,.06);
-      border: 1px solid rgba(255,255,255,.12);
-      backdrop-filter: blur(12px);
-      border-radius: var(--radius-lg);
-      padding: 32px 28px;
-      animation: fadeUp .7s var(--ease-out) .25s both;
+    /* Tab switcher */
+    .lp-tabs {
+      display: flex; gap: 0; margin-bottom: 0;
+      border-radius: 10px 10px 0 0; overflow: hidden;
+      width: 100%;
+      animation: lpPanelIn .6s var(--ease-out) .15s both;
     }
-    .login-card h2 {
-      color: #fff; font-size: 1.15rem; font-weight: 600;
-      margin-bottom: 22px; text-align: center;
+    .lp-tab {
+      flex: 1; padding: 10px 0; border: none; cursor: pointer;
+      font-family: 'Orbitron', monospace; font-size: .65rem;
+      font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+      transition: all .3s; position: relative; overflow: hidden;
+    }
+    .lp-tab--student {
+      background: rgba(0,255,136,.08); color: rgba(0,255,136,.55);
+      border-bottom: 2px solid rgba(0,255,136,.15);
+    }
+    .lp-tab--student.active {
+      background: rgba(0,255,136,.14); color: #00ff88;
+      border-bottom: 2px solid #00ff88;
+      text-shadow: 0 0 10px rgba(0,255,136,.6);
+    }
+    .lp-tab--admin {
+      background: rgba(0,212,255,.08); color: rgba(0,212,255,.55);
+      border-bottom: 2px solid rgba(0,212,255,.15);
+    }
+    .lp-tab--admin.active {
+      background: rgba(0,212,255,.14); color: #00d4ff;
+      border-bottom: 2px solid #00d4ff;
+      text-shadow: 0 0 10px rgba(0,212,255,.6);
+    }
+
+    /* 3D stage */
+    .lp-stage {
+      width: 100%; perspective: 1000px;
+      position: relative;
+      animation: lpPanelIn .7s var(--ease-out) .2s both;
+    }
+
+    /* Panels */
+    .lp-panel {
+      width: 100%; padding: 28px 26px 24px;
+      border-radius: 0 0 18px 18px;
+      backdrop-filter: blur(18px);
+      transition: opacity .45s var(--ease-out), transform .45s var(--ease-out);
+    }
+    .lp-panel--student {
+      background: rgba(0,12,8,.82);
+      border: 1.5px solid rgba(0,255,136,.22); border-top: none;
+      box-shadow: 0 24px 60px rgba(0,255,136,.08), 0 0 0 1px rgba(0,255,136,.06) inset;
+    }
+    .lp-panel--admin {
+      background: rgba(0,10,18,.85);
+      border: 1.5px solid rgba(0,212,255,.22); border-top: none;
+      box-shadow: 0 24px 60px rgba(0,212,255,.08), 0 0 0 1px rgba(0,212,255,.06) inset;
+      position: absolute; top: 0; left: 0; right: 0;
+      pointer-events: none;
+    }
+
+    /* Panel switching via data-mode */
+    .lp-stage[data-mode="student"] .lp-panel--student {
+      opacity: 1; transform: translateX(0) rotateY(0deg) scale(1);
+      pointer-events: all; position: relative;
+    }
+    .lp-stage[data-mode="student"] .lp-panel--admin {
+      opacity: 0; transform: translateX(40px) rotateY(18deg) scale(.93);
+      pointer-events: none; position: absolute; top: 0;
+    }
+    .lp-stage[data-mode="admin"] .lp-panel--admin {
+      opacity: 1; transform: translateX(0) rotateY(0deg) scale(1);
+      pointer-events: all; position: relative;
+    }
+    .lp-stage[data-mode="admin"] .lp-panel--student {
+      opacity: 0; transform: translateX(-40px) rotateY(-18deg) scale(.93);
+      pointer-events: none; position: absolute; top: 0;
+    }
+
+    /* Panel heading */
+    .lp-panel-head {
+      font-family: 'Orbitron', monospace; font-weight: 700; font-size: .78rem;
+      letter-spacing: .14em; margin-bottom: 20px; text-transform: uppercase;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .lp-panel-head::before {
+      content:''; display:block; width:6px; height:6px; border-radius:50%;
+      animation: nodeGlow 2s ease-in-out infinite;
+    }
+    .lp-panel--student .lp-panel-head { color: #00ff88; }
+    .lp-panel--student .lp-panel-head::before { background:#00ff88; box-shadow:0 0 8px #00ff88; }
+    .lp-panel--admin .lp-panel-head { color: #00d4ff; }
+    .lp-panel--admin .lp-panel-head::before { background:#00d4ff; box-shadow:0 0 8px #00d4ff; }
+
+    /* Alert boxes */
+    .lp-alert {
+      display: none; padding: 10px 14px; border-radius: 8px; margin-bottom: 14px;
+      font-size: .82rem; font-family: 'JetBrains Mono', monospace;
+      line-height: 1.4;
+    }
+    .lp-alert-student { background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.4); color: #fca5a5; }
+    .lp-alert-admin { background: rgba(0,212,255,.1); border: 1px solid rgba(0,212,255,.35); color: #7dd3fc; }
+
+    /* Login field labels in 3D panels */
+    .lp-panel .field label { color: rgba(255,255,255,.5); }
+    .lp-panel--student .field input:focus, .lp-panel--student .field select:focus {
+      border-color: #00ff88; box-shadow: 0 0 0 3px rgba(0,255,136,.18);
+    }
+    .lp-panel--admin .field input:focus {
+      border-color: #00d4ff; box-shadow: 0 0 0 3px rgba(0,212,255,.18);
+    }
+
+    /* Login buttons */
+    .lp-btn-student {
+      width: 100%; padding: 13px; border: none; border-radius: 9px; cursor: pointer;
+      font-family: 'Orbitron', monospace; font-size: .75rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase;
+      background: linear-gradient(135deg, #00c46b, #00ff88);
+      color: #001a0d; transition: all .25s;
+      box-shadow: 0 4px 20px rgba(0,255,136,.25);
+    }
+    .lp-btn-student:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,255,136,.4); }
+    .lp-btn-admin {
+      width: 100%; padding: 13px; border: none; border-radius: 9px; cursor: pointer;
+      font-family: 'Orbitron', monospace; font-size: .75rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase;
+      background: linear-gradient(135deg, #0098c8, #00d4ff);
+      color: #000a12; transition: all .25s;
+      box-shadow: 0 4px 20px rgba(0,212,255,.25);
+    }
+    .lp-btn-admin:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,212,255,.4); }
+
+    /* Remember row */
+    .remember-row {
+      display: flex; align-items: center; gap: 10px;
+      margin: 4px 0 14px; cursor: pointer;
+      font-size: .9rem; color: rgba(255,255,255,.8);
+    }
+    .remember-row input[type="checkbox"] {
+      width: 18px; height: 18px; accent-color: #00ff88;
+      cursor: pointer; flex-shrink: 0;
+    }
+
+    /* Coordinates + clock bar */
+    .lp-coords {
+      margin-top: 14px; font-family: 'JetBrains Mono', monospace;
+      font-size: .62rem; color: rgba(0,255,136,.35); letter-spacing: .08em;
+      display: flex; gap: 14px; animation: lpPanelIn .5s var(--ease-out) .4s both;
+    }
+
+    /* Lock badge on admin panel */
+    .lp-lock-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: 'JetBrains Mono', monospace; font-size: .65rem;
+      color: rgba(0,212,255,.55); margin-bottom: 18px;
+      padding: 4px 10px; border: 1px solid rgba(0,212,255,.2); border-radius: 100px;
+    }
+
+    /* Reg form link box */
+    #reg-form-link {
+      margin-top: 14px;
+      background: rgba(245,158,11,.12);
+      border: 1.5px solid rgba(245,158,11,.35);
+      border-radius: 10px; padding: 14px; text-align: center;
     }
 
     /* ═══════════════════════ FORM ELEMENTS ═══════════════════════ */
@@ -1024,72 +1169,97 @@
 
 <!-- ═══════ LOGIN SPLASH ═══════ -->
 <div id="page-login">
-  <div class="reticle">
-    <div class="reticle-ring"></div>
-    <div class="reticle-ring"></div>
-    <div class="reticle-ring"></div>
-    <div class="reticle-ring"></div>
-    <div class="reticle-cross"></div>
-    <div class="reticle-tick"></div>
-    <div class="reticle-tick"></div>
-    <div class="reticle-tick"></div>
-    <div class="reticle-tick"></div>
-    <div class="reticle-dot"></div>
-  </div>
+  <canvas id="bio-canvas"></canvas>
 
-  <div class="login-brand">
-    <div class="school-badge">
-      <img src="" class="udus-logo-ref" alt="UDUS Logo" style="width:84px;height:84px;object-fit:contain"/>
+  <div class="lp-wrap">
+    <!-- Brand -->
+    <div class="lp-brand">
+      <div class="lp-logo-ring">
+        <img src="" class="udus-logo-ref" alt="UDUS Logo" />
+      </div>
+      <div class="lp-brand-title">MLS Attendance</div>
+      <div class="lp-brand-sub">SCHOOL OF MEDICAL LABORATORY SCIENCE · UDUS SOKOTO</div>
     </div>
-    <h1>MLS Attendance Portal</h1>
-    <p>School of Medical Laboratory Science · UDUS Sokoto</p>
-  </div>
 
-  <div class="login-card">
-    <!-- Admin shortcut -->
-    <div style="text-align:right;margin-bottom:10px">
-      <button onclick="showPage('admin')" style="background:none;border:none;color:rgba(255,255,255,.55);font-size:.8rem;cursor:pointer;text-decoration:underline;padding:4px 8px">
-        <i class="bi bi-shield-lock"></i> Admin / Lecturer login
+    <!-- Tab switcher -->
+    <div class="lp-tabs">
+      <button class="lp-tab lp-tab--student active" onclick="lpSwitch('student')" id="lp-tab-student">
+        <i class="bi bi-person-badge"></i> Student Portal
+      </button>
+      <button class="lp-tab lp-tab--admin" onclick="lpSwitch('admin')" id="lp-tab-admin">
+        <i class="bi bi-shield-lock-fill"></i> Admin / Lecturer
       </button>
     </div>
 
-    <h2>Student Sign In</h2>
-    <div id="login-alert"></div>
+    <!-- 3D Stage -->
+    <div class="lp-stage" id="lp-stage" data-mode="student">
 
-    <div class="field">
-      <label for="matric">Admission / Matriculation Number</label>
-      <input type="text" id="matric" placeholder="e.g. MLS/21/0001" autocomplete="username" />
-    </div>
-    <div class="field">
-      <label for="level">Level</label>
-      <select id="level">
-        <option value="">Select your level</option>
-        <option>100L</option><option>200L</option>
-        <option>300L</option><option>400L</option>
-        <option>500L</option>
-      </select>
-    </div>
+      <!-- Student Panel -->
+      <div class="lp-panel lp-panel--student">
+        <div class="lp-panel-head">Student Sign-In</div>
+        <div id="login-alert" class="lp-alert lp-alert-student"></div>
 
-    <label class="remember-row">
-      <input type="checkbox" id="remember-me" />
-      <span>Remember my details on this device</span>
-    </label>
+        <div class="field">
+          <label for="matric">Admission / Matriculation Number</label>
+          <input type="text" id="matric" placeholder="e.g. MLS/21/0001" autocomplete="username" />
+        </div>
+        <div class="field">
+          <label for="level">Level</label>
+          <select id="level">
+            <option value="">Select your level</option>
+            <option>100L</option><option>200L</option>
+            <option>300L</option><option>400L</option>
+            <option>500L</option>
+          </select>
+        </div>
 
-    <button class="btn-full-login" onclick="loginStudent()">
-      <i class="bi bi-box-arrow-in-right"></i>&nbsp; Sign In
-    </button>
+        <label class="remember-row">
+          <input type="checkbox" id="remember-me" />
+          <span>Remember my details on this device</span>
+        </label>
 
-    <!-- Shown only when registration validation fails -->
-    <div id="reg-form-link" style="display:none;margin-top:14px;background:rgba(245,158,11,.15);border:1.5px solid rgba(245,158,11,.45);border-radius:10px;padding:14px;text-align:center">
-      <p style="color:#ffd54f;font-size:.88rem;margin-bottom:8px">
-        <i class="bi bi-exclamation-triangle-fill"></i>
-        Not registered? Fill the form below first:
-      </p>
-      <a id="reg-form-href" href="#" target="_blank" rel="noopener"
-         style="display:inline-block;background:var(--gold);color:var(--pine);font-weight:700;padding:9px 20px;border-radius:8px;text-decoration:none;font-size:.88rem">
-        <i class="bi bi-google"></i> Open Registration Form
-      </a>
-      <p style="color:rgba(255,255,255,.5);font-size:.75rem;margin-top:8px">After submitting, wait for admin to sync, then try signing in again.</p>
+        <button class="lp-btn-student" onclick="loginStudent()">
+          <i class="bi bi-box-arrow-in-right"></i> &nbsp;SIGN IN
+        </button>
+
+        <!-- Shown only when registration validation fails -->
+        <div id="reg-form-link" style="display:none">
+          <p style="color:#ffd54f;font-size:.88rem;margin-bottom:8px">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            Not registered? Fill the form below first:
+          </p>
+          <a id="reg-form-href" href="#" target="_blank" rel="noopener"
+             style="display:inline-block;background:var(--gold);color:var(--pine);font-weight:700;padding:9px 20px;border-radius:8px;text-decoration:none;font-size:.88rem">
+            <i class="bi bi-google"></i> Open Registration Form
+          </a>
+          <p style="color:rgba(255,255,255,.5);font-size:.75rem;margin-top:8px">After submitting, wait for admin to sync, then try signing in again.</p>
+        </div>
+      </div>
+
+      <!-- Admin Panel -->
+      <div class="lp-panel lp-panel--admin">
+        <div class="lp-lock-badge"><i class="bi bi-shield-lock-fill"></i> RESTRICTED ACCESS</div>
+        <div class="lp-panel-head">Admin / Lecturer Login</div>
+        <div id="lp-admin-alert" class="lp-alert lp-alert-admin"></div>
+
+        <div class="field">
+          <label for="lp-admin-pass">Administrator Password</label>
+          <input type="password" id="lp-admin-pass" placeholder="Enter password"
+                 autocomplete="current-password"
+                 onkeydown="if(event.key==='Enter') loginAdminDirect()" />
+        </div>
+
+        <button class="lp-btn-admin" onclick="loginAdminDirect()">
+          <i class="bi bi-shield-check-fill"></i> &nbsp;AUTHENTICATE
+        </button>
+      </div>
+
+    </div><!-- /lp-stage -->
+
+    <!-- Coordinates bar -->
+    <div class="lp-coords">
+      <span>LAT 13.0638°N · LNG 05.2390°E</span>
+      <span id="lp-clock">--:--:--</span>
     </div>
   </div>
 </div>
@@ -4508,11 +4678,204 @@ async function runIntegrityCheck() {
   resultEl.innerHTML = html;
 }
 
+/* ─── BioSphere 3D Canvas ─── */
+function initBioCanvas() {
+  const canvas = document.getElementById('bio-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W, H, cx, cy, mx = 0, my = 0, t = 0;
+  const NODES = 160, nodes = [];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+    cx = W / 2; cy = H / 2;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  document.getElementById('page-login').addEventListener('mousemove', e => {
+    mx = (e.clientX - cx) / cx;
+    my = (e.clientY - cy) / cy;
+  });
+
+  // Init floating nodes
+  for (let i = 0; i < NODES; i++) {
+    nodes.push({
+      x: Math.random() * W, y: Math.random() * H,
+      vx: (Math.random()-.5)*.3, vy: (Math.random()-.5)*.3,
+      r: Math.random()*1.6+.4, phase: Math.random()*Math.PI*2,
+      col: Math.random() > .5 ? 0 : 1  // 0=emerald 1=cyan
+    });
+  }
+
+  function drawHelix() {
+    const STEPS = 120, AMP = Math.min(W, H) * .13;
+    const STRAND_PAIRS = [[0, Math.PI], [0, 0]]; // [offsetAngle, pairedStrandOffset]
+
+    // Collect all helix points for z-sorting
+    const pts = [];
+    for (let s = 0; s < 2; s++) {
+      for (let i = 0; i <= STEPS; i++) {
+        const progress = i / STEPS;
+        const ang = progress * Math.PI * 6 + t + s * Math.PI;
+        const sx = cx + Math.sin(ang) * AMP + mx * 30;
+        const sy = cy - H * .32 + progress * H * .64 + my * 20;
+        const depth = Math.cos(ang);
+        pts.push({ x: sx, y: sy, depth, s, progress, ang });
+      }
+    }
+    pts.sort((a,b) => a.depth - b.depth);
+
+    // Draw strands first
+    for (let s = 0; s < 2; s++) {
+      const strand = pts.filter(p => p.s === s);
+      ctx.beginPath();
+      strand.forEach((p, i) => {
+        const alpha = (.15 + .35 * (p.depth + 1) / 2);
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      });
+      ctx.strokeStyle = s === 0 ? `rgba(0,255,136,.18)` : `rgba(0,212,255,.18)`;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Draw base pairs & nodes (z-sorted)
+    for (let i = 0; i <= STEPS; i++) {
+      const p0 = pts.filter(p => p.s===0)[i];
+      const p1 = pts.filter(p => p.s===1)[i];
+      if (!p0 || !p1) continue;
+      const avgDepth = (p0.depth + p1.depth) / 2;
+      if (avgDepth > -0.1) {
+        const alpha = .06 + .12 * (avgDepth + 1) / 2;
+        ctx.beginPath();
+        ctx.moveTo(p0.x, p0.y);
+        ctx.lineTo(p1.x, p1.y);
+        ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+        ctx.lineWidth = .6;
+        ctx.stroke();
+      }
+      // Node glow
+      [p0, p1].forEach((p, si) => {
+        const nr = (.8 + 1.4 * (p.depth + 1) / 2);
+        const alpha = .2 + .6 * (p.depth + 1) / 2;
+        const col = si === 0 ? `rgba(0,255,136,${alpha})` : `rgba(0,212,255,${alpha})`;
+        const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, nr * 3);
+        grd.addColorStop(0, col);
+        grd.addColorStop(1, 'transparent');
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, nr * 3, 0, Math.PI * 2);
+        ctx.fillStyle = grd;
+        ctx.fill();
+      });
+    }
+  }
+
+  function drawNodes() {
+    nodes.forEach(n => {
+      n.x += n.vx; n.y += n.vy;
+      if (n.x < 0) n.x = W; if (n.x > W) n.x = 0;
+      if (n.y < 0) n.y = H; if (n.y > H) n.y = 0;
+      const pulse = .4 + .6 * Math.sin(t * 1.5 + n.phase);
+      const alpha = pulse * .5;
+      const col = n.col === 0 ? `rgba(0,255,136,${alpha})` : `rgba(0,212,255,${alpha})`;
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r * pulse, 0, Math.PI * 2);
+      ctx.fillStyle = col;
+      ctx.fill();
+    });
+  }
+
+  function loop() {
+    if (!document.getElementById('page-login') || document.getElementById('page-login').style.display === 'none') return;
+    ctx.clearRect(0, 0, W, H);
+    // Ambient radial glow
+    const grd = ctx.createRadialGradient(cx + mx*60, cy*.7 + my*40, 0, cx + mx*60, cy*.7, Math.min(W,H)*.55);
+    grd.addColorStop(0, 'rgba(0,80,40,.22)');
+    grd.addColorStop(.5, 'rgba(0,26,13,.14)');
+    grd.addColorStop(1, 'transparent');
+    ctx.fillStyle = grd;
+    ctx.fillRect(0, 0, W, H);
+
+    drawNodes();
+    drawHelix();
+    t += .008;
+    requestAnimationFrame(loop);
+  }
+  loop();
+
+  // Clock
+  function tickClock() {
+    const el = document.getElementById('lp-clock');
+    if (el) el.textContent = new Date().toLocaleTimeString('en-GB');
+  }
+  tickClock();
+  setInterval(tickClock, 1000);
+}
+
+function lpSwitch(mode) {
+  const stage = document.getElementById('lp-stage');
+  if (!stage) return;
+  stage.dataset.mode = mode;
+  document.getElementById('lp-tab-student').classList.toggle('active', mode === 'student');
+  document.getElementById('lp-tab-admin').classList.toggle('active', mode === 'admin');
+  // Clear admin alert on switch
+  const aa = document.getElementById('lp-admin-alert');
+  if (aa) { aa.textContent = ''; aa.style.display = 'none'; }
+}
+
+function lpAlert(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+async function loginAdminDirect() {
+  const passEl = document.getElementById('lp-admin-pass');
+  const alertId = 'lp-admin-alert';
+  const LOCK_KEY = 'mls_admin_lock';
+  const lock = JSON.parse(localStorage.getItem(LOCK_KEY) || '{"attempts":0}');
+
+  if (lock.lockedUntil && Date.now() < lock.lockedUntil) {
+    const mins = Math.ceil((lock.lockedUntil - Date.now()) / 60000);
+    lpAlert(alertId, `Too many attempts. Locked for ${mins} min.`); return;
+  }
+
+  const pass = passEl ? passEl.value.trim() : '';
+  if (!pass) { lpAlert(alertId, 'Enter your password.'); return; }
+
+  let cfg;
+  try { cfg = JSON.parse(localStorage.getItem('mls_config') || '{}'); } catch { cfg = {}; }
+  const storedHash = cfg.passHash || DEFAULT_PASS_HASH;
+  const inputHash  = await sha256hex(pass);
+
+  if (inputHash !== storedHash) {
+    lock.attempts = (lock.attempts || 0) + 1;
+    if (lock.attempts >= 5) {
+      lock.lockedUntil = Date.now() + 15 * 60 * 1000;
+      lock.attempts = 0;
+    }
+    localStorage.setItem(LOCK_KEY, JSON.stringify(lock));
+    const left = 5 - (lock.attempts || 0);
+    lpAlert(alertId, `Invalid password.${left > 0 ? ' ' + left + ' attempt(s) left.' : ''}`); return;
+  }
+
+  localStorage.removeItem(LOCK_KEY);
+  adminLoggedIn = true;
+  localStorage.setItem(ADMIN_KEY, JSON.stringify({ at: Date.now(), exp: Date.now() + 2*60*60*1000 }));
+  if (passEl) passEl.value = '';
+  showPage('admin');
+}
+
 /* ════════════════════════════ INIT ════════════════════════════ */
 (function init() {
   /* Propagate real UDUS logo to all img placeholders */
   const logoSrc = (document.getElementById('udus-logo-img') || {}).src || '';
   document.querySelectorAll('.udus-logo-ref').forEach(img => img.src = logoSrc);
+
+  initBioCanvas();
 
   /* Restore user session */
   const saved = localStorage.getItem(USER_KEY);
