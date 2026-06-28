@@ -1,0 +1,8 @@
+{
+  "appId": "ng.edu.udusok.mls.attendance",
+  "appName": "MLS Attendance UDUS",
+  "webDir": "attendance-system",
+  "server": {
+    "androidScheme": "https"
+  }
+}
