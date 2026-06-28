@@ -3895,6 +3895,23 @@ function randomChallenge() {
   const arr = new Uint8Array(32); crypto.getRandomValues(arr); return arr;
 }
 
+/* A verified biometric capture also registers the student (upsert into the student roster). */
+function registerStudentFromBio(matric, fullname, level) {
+  if (!matric) return;
+  const list = getStudents();
+  const i = list.findIndex(s => (s.matric || '').toUpperCase() === matric.toUpperCase());
+  const rec = {
+    matric,
+    fullname: fullname || matric,
+    level: level || '',
+    registeredAt: new Date().toISOString(),
+    source: 'biometric',
+  };
+  if (i >= 0) list[i] = { ...list[i], ...rec, registeredAt: list[i].registeredAt || rec.registeredAt };
+  else list.push(rec);
+  saveStudents(list);
+}
+
 async function enrollBiometric(matric, fullname, level) {
   if (!window.PublicKeyCredential) throw new Error('WebAuthn is not supported on this browser/device.');
   const bios = getBiometrics();
@@ -3942,8 +3959,10 @@ async function selfEnrollBiometric() {
   }
   try {
     await enrollBiometric(currentUser.matric, currentUser.fullname, currentUser.level);
+    registerStudentFromBio(currentUser.matric, currentUser.fullname, currentUser.level);
     updateBiometricBanner();
-    toast('Fingerprint enrolled successfully!', 'success');
+    syncAfterWrite();
+    toast('Fingerprint enrolled & registration verified!', 'success');
   } catch(e) {
     toast(e.message || 'Enrollment failed.', 'error');
   }
@@ -4000,7 +4019,9 @@ async function adminEnrollBiometric() {
   if (!matric || !name || !level) { showAlert('bio-reg-alert','All fields required.','danger'); return; }
   try {
     await enrollBiometric(matric, name, level);
-    showAlert('bio-reg-alert','Fingerprint enrolled for ' + name + '.','success');
+    registerStudentFromBio(matric, name, level);
+    syncAfterWrite();
+    showAlert('bio-reg-alert','Fingerprint enrolled & ' + name + ' registered.','success');
     renderBioAdminTable();
     document.getElementById('bio-reg-matric').value = '';
     document.getElementById('bio-reg-name').value = '';
@@ -4519,6 +4540,7 @@ function buildSyncPayload() {
     examSessions: getExamSessions(),
     examRecords:  getExamRecords(),
     students:     getStudents(),
+    biometrics:   getBiometrics(),
   };
 }
 
@@ -4571,6 +4593,7 @@ async function pullFromGithub() {
     if (Array.isArray(data.examSessions)) saveExamSessions(data.examSessions);
     if (Array.isArray(data.examRecords))  saveExamRecords(data.examRecords);
     if (Array.isArray(data.students))     saveStudents(data.students);
+    if (data.biometrics && typeof data.biometrics === 'object') saveBiometrics(data.biometrics);
     updateGithubStatus('connected');
     const el = document.getElementById('gh-sync-last');
     if (el) el.textContent = `Last pull: ${new Date().toLocaleTimeString()}`;
@@ -4843,6 +4866,7 @@ function renderStudentsList() {
 
 function syncAfterWrite() {
   if (gdriveToken) setTimeout(syncAllToSheets, 800);
+  if (getGithubCfg().token) setTimeout(syncAllToGithub, 1000);
 }
 
 /* ════════════════════════════ SECURITY FUNCTIONS ════════════════════════════ */
