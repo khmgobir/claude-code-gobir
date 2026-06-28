@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src https://fonts.gstatic.com https://cdn.jsdelivr.net data:; img-src 'self' data: blob: https://maps.googleapis.com; connect-src 'self'; frame-src https://www.google.com;" />
+        content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src https://fonts.gstatic.com https://cdn.jsdelivr.net data:; img-src 'self' data: blob: https://maps.googleapis.com; connect-src 'self' https://api.github.com; frame-src https://www.google.com;" />
   <title>MLS Attendance – UDUS</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Orbitron:wght@700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -1921,6 +1921,81 @@
               </details>
             </div>
 
+            <!-- GitHub Sync (alternative backend) -->
+            <div class="sec-section">
+              <h3><i class="bi bi-github" style="color:var(--pine)"></i> GitHub Sync (Backend)</h3>
+              <p class="text-muted text-sm" style="margin-bottom:14px">
+                Use a private GitHub repository as your backend instead of Google. All attendance, courses,
+                exam and student data is committed as a single <code>JSON</code> file. Push to save, Pull to restore.
+              </p>
+
+              <div class="gdrive-status">
+                <span id="gh-sync-dot" class="gdrive-dot"></span>
+                <span id="gh-sync-text" class="text-sm" style="font-weight:600">Not connected</span>
+                <span id="gh-sync-last" class="text-sm text-muted" style="margin-left:auto"></span>
+              </div>
+
+              <div id="gh-alert" style="margin-bottom:12px"></div>
+
+              <div class="field">
+                <label>Fine-grained Personal Access Token</label>
+                <input type="password" id="gh-token" placeholder="github_pat_…"
+                       autocomplete="off" spellcheck="false"/>
+                <small class="text-muted">Stored only in this browser. Scope it to one private repo, Contents = Read &amp; write, with an expiry.</small>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div class="field">
+                  <label>Owner (user or org)</label>
+                  <input type="text" id="gh-owner" placeholder="khmgobir" autocomplete="off" spellcheck="false"/>
+                </div>
+                <div class="field">
+                  <label>Repository</label>
+                  <input type="text" id="gh-repo" placeholder="mls-attendance-data" autocomplete="off" spellcheck="false"/>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div class="field">
+                  <label>Branch</label>
+                  <input type="text" id="gh-branch" placeholder="main" autocomplete="off" spellcheck="false"/>
+                </div>
+                <div class="field">
+                  <label>Data file path</label>
+                  <input type="text" id="gh-path" placeholder="mls-data.json" autocomplete="off" spellcheck="false"/>
+                </div>
+              </div>
+
+              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+                <button class="btn btn-green" onclick="saveGithubCfgFromForm()">
+                  <i class="bi bi-floppy-fill"></i> Save Settings
+                </button>
+                <button class="btn btn-green" onclick="githubConnect()">
+                  <i class="bi bi-github"></i> Connect &amp; Test
+                </button>
+                <button class="btn btn-outline" onclick="syncAllToGithub()">
+                  <i class="bi bi-cloud-upload"></i> Push Now
+                </button>
+                <button class="btn btn-outline" onclick="pullFromGithub()">
+                  <i class="bi bi-cloud-download"></i> Pull from GitHub
+                </button>
+                <button class="btn btn-ghost btn-sm" onclick="githubDisconnect()" style="margin-left:auto">
+                  <i class="bi bi-plug"></i> Disconnect
+                </button>
+              </div>
+
+              <details style="margin-top:18px">
+                <summary class="text-sm text-muted" style="cursor:pointer">GitHub setup guide</summary>
+                <ol class="gdrive-steps">
+                  <li>Create a <strong>private</strong> repository (e.g. <code>mls-attendance-data</code>) to hold the data file.</li>
+                  <li>Go to <strong>GitHub → Settings → Developer settings → Fine-grained tokens → Generate new token</strong>.</li>
+                  <li>Resource owner = your account; <strong>Only select repositories</strong> → pick that one repo.</li>
+                  <li>Repository permissions → <strong>Contents: Read and write</strong>. Set an expiry.</li>
+                  <li>Generate, copy the token, and paste it above with the owner / repo names.</li>
+                  <li>Click <strong>Save Settings</strong>, then <strong>Connect &amp; Test</strong>, then <strong>Push Now</strong>.</li>
+                  <li>Security: the token lives only in this browser's storage. Use a dedicated admin device and revoke the token if it leaks.</li>
+                </ol>
+              </details>
+            </div>
+
             <!-- Student Registration via Google Form -->
             <div class="sec-section">
               <h3><i class="bi bi-person-plus-fill" style="color:var(--forest)"></i> Student Registration — Google Form</h3>
@@ -2377,6 +2452,7 @@ const SEC_KEY    = 'mls_security_v1';      // stores hashed password + HMAC key
 const LOCKOUT_KEY= 'mls_lockout_v1';       // brute-force lockout state
 const GDRIVE_CFG_KEY = 'mls_gdrive_cfg_v1'; // Google Drive config (client ID + sheet ID)
 const STUDENTS_KEY   = 'mls_students_db';      // locally cached registered students from Form
+const GH_CFG_KEY     = 'mls_github_cfg_v1';     // GitHub sync config (token + owner/repo/branch/path)
 
 /* Google Sheets column layouts (zero-indexed) */
 const SHEETS = {
@@ -4344,6 +4420,180 @@ function kioskSignOut() {
   kioskOutBioVerified = false;
 }
 
+/* ════════════════════════════ GITHUB SYNC (BACKEND) ════════════════════════════ */
+let githubSyncing = false;
+
+function getGithubCfg() {
+  try { return JSON.parse(localStorage.getItem(GH_CFG_KEY) || '{}'); } catch { return {}; }
+}
+function saveGithubCfg(cfg) { localStorage.setItem(GH_CFG_KEY, JSON.stringify(cfg)); }
+
+/* UTF-8 safe base64 (GitHub Contents API stores base64) */
+function ghB64Encode(str) { return btoa(unescape(encodeURIComponent(str))); }
+function ghB64Decode(b64) { return decodeURIComponent(escape(atob((b64 || '').replace(/\s/g, '')))); }
+
+function ghHeaders(token) {
+  return {
+    'Authorization': `Bearer ${token}`,
+    'Accept': 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+    'Content-Type': 'application/json',
+  };
+}
+
+function updateGithubStatus(state, msg) {
+  const map = {
+    idle:      { color:'#94a3b8', label:'Not connected' },
+    connected: { color:'#22c55e', label:'Connected' },
+    syncing:   { color:'#f59e0b', label:'Syncing…' },
+    error:     { color:'#ef4444', label: msg || 'Error' },
+  };
+  const s = map[state] || map.idle;
+  const dot = document.getElementById('gh-sync-dot');
+  if (dot) dot.style.background = s.color;
+  const txt = document.getElementById('gh-sync-text');
+  if (txt) txt.textContent = s.label;
+}
+
+function ghContentsUrl(cfg) {
+  const path = (cfg.path || 'mls-data.json').replace(/^\/+/, '');
+  return `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${encodeURIComponent(path).replace(/%2F/g, '/')}`;
+}
+
+function saveGithubCfgFromForm() {
+  const token  = (document.getElementById('gh-token').value || '').trim();
+  const owner  = (document.getElementById('gh-owner').value || '').trim();
+  const repo   = (document.getElementById('gh-repo').value || '').trim();
+  const branch = (document.getElementById('gh-branch').value || '').trim() || 'main';
+  const path   = (document.getElementById('gh-path').value || '').trim() || 'mls-data.json';
+  if (!token || !owner || !repo) { showAlert('gh-alert', 'Enter token, owner and repository.', 'danger'); return; }
+  saveGithubCfg({ token, owner, repo, branch, path });
+  showAlert('gh-alert', 'Settings saved. Click Connect & Test.', 'success');
+}
+
+async function githubConnect() {
+  const cfg = getGithubCfg();
+  if (!cfg.token || !cfg.owner || !cfg.repo) { showAlert('gh-alert', 'Save your settings first.', 'danger'); return; }
+  updateGithubStatus('syncing');
+  try {
+    const r = await fetch(`https://api.github.com/repos/${cfg.owner}/${cfg.repo}`, { headers: ghHeaders(cfg.token) });
+    if (r.status === 401) { updateGithubStatus('error', 'Bad token'); showAlert('gh-alert', 'Authentication failed — check the token.', 'danger'); return; }
+    if (r.status === 404) { updateGithubStatus('error', 'Repo not found'); showAlert('gh-alert', 'Repo not found or token lacks access to it.', 'danger'); return; }
+    if (!r.ok) { updateGithubStatus('error'); showAlert('gh-alert', `GitHub error ${r.status}.`, 'danger'); return; }
+    updateGithubStatus('connected');
+    showAlert('gh-alert', 'Connected to GitHub. You can Push or Pull now.', 'success');
+    toast('GitHub backend connected ✓', 'success');
+  } catch {
+    updateGithubStatus('error', 'Network');
+    showAlert('gh-alert', 'Network error reaching GitHub.', 'danger');
+  }
+}
+
+function githubDisconnect() {
+  const cfg = getGithubCfg();
+  delete cfg.token;
+  saveGithubCfg(cfg);
+  const tEl = document.getElementById('gh-token');
+  if (tEl) tEl.value = '';
+  updateGithubStatus('idle');
+  toast('GitHub token cleared from this browser.');
+}
+
+/* Read the data file's current sha (needed to update an existing file). Returns sha or null. */
+async function githubGetSha(cfg) {
+  const url = `${ghContentsUrl(cfg)}?ref=${encodeURIComponent(cfg.branch || 'main')}`;
+  const r = await fetch(url, { headers: ghHeaders(cfg.token) });
+  if (r.status === 404) return null;
+  if (!r.ok) throw new Error(`GET ${r.status}`);
+  const j = await r.json();
+  return j.sha || null;
+}
+
+function buildSyncPayload() {
+  return {
+    version: 1,
+    app: 'MLS Attendance UDUS',
+    updatedAt: new Date().toISOString(),
+    attendance:   getRecords(),
+    courses:      getCourses(),
+    examSessions: getExamSessions(),
+    examRecords:  getExamRecords(),
+    students:     getStudents(),
+  };
+}
+
+async function syncAllToGithub() {
+  const cfg = getGithubCfg();
+  if (!cfg.token || !cfg.owner || !cfg.repo) { toast('Configure GitHub Sync first.', 'info'); return; }
+  if (githubSyncing) return;
+  githubSyncing = true;
+  updateGithubStatus('syncing');
+  try {
+    let sha = null;
+    try { sha = await githubGetSha(cfg); } catch (e) { /* treat as new file */ }
+    const content = ghB64Encode(JSON.stringify(buildSyncPayload(), null, 2));
+    const body = {
+      message: `chore(data): sync attendance data ${new Date().toISOString()}`,
+      content,
+      branch: cfg.branch || 'main',
+    };
+    if (sha) body.sha = sha;
+    const r = await fetch(ghContentsUrl(cfg), { method: 'PUT', headers: ghHeaders(cfg.token), body: JSON.stringify(body) });
+    if (r.status === 401) { updateGithubStatus('error', 'Bad token'); toast('GitHub auth failed.', 'danger'); return; }
+    if (!r.ok) { updateGithubStatus('error', `HTTP ${r.status}`); toast(`GitHub push failed (${r.status}).`, 'danger'); return; }
+    updateGithubStatus('connected');
+    const ts = new Date().toLocaleTimeString();
+    const el = document.getElementById('gh-sync-last');
+    if (el) el.textContent = `Last push: ${ts}`;
+    toast(`Pushed to GitHub (${getRecords().length} attendance records) ✓`, 'success');
+  } catch (e) {
+    updateGithubStatus('error', 'Push failed');
+    toast('GitHub push failed.', 'danger');
+  } finally {
+    githubSyncing = false;
+  }
+}
+
+async function pullFromGithub() {
+  const cfg = getGithubCfg();
+  if (!cfg.token || !cfg.owner || !cfg.repo) { toast('Configure GitHub Sync first.', 'info'); return; }
+  updateGithubStatus('syncing');
+  try {
+    const url = `${ghContentsUrl(cfg)}?ref=${encodeURIComponent(cfg.branch || 'main')}`;
+    const r = await fetch(url, { headers: ghHeaders(cfg.token) });
+    if (r.status === 404) { updateGithubStatus('connected'); toast('No data file yet — Push first.', 'info'); return; }
+    if (r.status === 401) { updateGithubStatus('error', 'Bad token'); toast('GitHub auth failed.', 'danger'); return; }
+    if (!r.ok) { updateGithubStatus('error', `HTTP ${r.status}`); toast(`GitHub pull failed (${r.status}).`, 'danger'); return; }
+    const j = await r.json();
+    const data = JSON.parse(ghB64Decode(j.content));
+    if (Array.isArray(data.attendance))   saveRecords(data.attendance);
+    if (Array.isArray(data.courses))      saveCourseDB(data.courses);
+    if (Array.isArray(data.examSessions)) saveExamSessions(data.examSessions);
+    if (Array.isArray(data.examRecords))  saveExamRecords(data.examRecords);
+    if (Array.isArray(data.students))     saveStudents(data.students);
+    updateGithubStatus('connected');
+    const el = document.getElementById('gh-sync-last');
+    if (el) el.textContent = `Last pull: ${new Date().toLocaleTimeString()}`;
+    toast('Pulled latest data from GitHub ✓', 'success');
+    if (adminLoggedIn) { renderAdminRecords(); renderCourses(); }
+  } catch (e) {
+    updateGithubStatus('error', 'Pull failed');
+    toast('GitHub pull failed.', 'danger');
+  }
+}
+
+/* Populate the GitHub form fields from stored config (token left blank for safety unless present). */
+function loadGithubCfgIntoForm() {
+  const cfg = getGithubCfg();
+  const set = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.value = v; };
+  set('gh-owner', cfg.owner);
+  set('gh-repo', cfg.repo);
+  set('gh-branch', cfg.branch || 'main');
+  set('gh-path', cfg.path || 'mls-data.json');
+  if (cfg.token) { set('gh-token', cfg.token); updateGithubStatus('connected'); }
+  else updateGithubStatus('idle');
+}
+
 /* ════════════════════════════ GOOGLE DRIVE / SHEETS SYNC ════════════════════════════ */
 
 function getGdriveCfg() {
@@ -4941,6 +5191,9 @@ async function loginAdminDirect() {
       if (a) a.href = gCfg.formUrl;
     }
   }
+
+  /* Pre-fill saved GitHub backend config fields */
+  loadGithubCfgIntoForm();
 
   /* Auto-logout admin after session expires — check every 60s */
   setInterval(() => {
