@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src https://fonts.gstatic.com https://cdn.jsdelivr.net data:; img-src 'self' data: blob: https://maps.googleapis.com; connect-src 'self' https://api.github.com; frame-src https://www.google.com;" />
+        content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src https://fonts.gstatic.com https://cdn.jsdelivr.net data:; img-src 'self' data: blob: https://maps.googleapis.com; connect-src 'self' https://api.github.com https://cdn.jsdelivr.net; frame-src https://www.google.com;" />
   <title>MLS Attendance – UDUS</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Orbitron:wght@700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -1160,6 +1160,15 @@
       /* admin 4-col stat grid → 2×2 on small phones */
       .admin-stats-row { grid-template-columns: repeat(2, 1fr) !important; }
     }
+    /* ═══════════════════════ FACE ID MODAL (cross-kiosk) ═══════════════════════ */
+    .face-modal { display:none; position:fixed; inset:0; z-index:11000; background:rgba(0,10,8,.80); backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:18px; }
+    .face-modal.show { display:flex; }
+    .face-modal-card { background:var(--surface); border-radius:var(--radius-lg); padding:22px; width:100%; max-width:420px; box-shadow:var(--shadow-lg); animation:modalPop .3s var(--ease-spring); }
+    .face-modal-card h3 { font-size:1.12rem; color:var(--pine); margin-bottom:14px; text-align:center; }
+    .face-video-wrap { position:relative; width:100%; aspect-ratio:4/3; background:#000; border-radius:var(--radius); overflow:hidden; }
+    .face-video-wrap video { width:100%; height:100%; object-fit:cover; transform:scaleX(-1); }
+    .face-oval { position:absolute; inset:0; margin:auto; width:54%; height:74%; border:3px dashed rgba(16,185,129,.75); border-radius:50%; pointer-events:none; }
+    .face-status { text-align:center; font-size:.85rem; color:var(--muted); margin-top:12px; min-height:1.2em; }
   </style>
 </head>
 <body>
@@ -1358,6 +1367,9 @@
               <i class="bi bi-fingerprint" style="font-size:1.6rem;color:var(--gold);flex-shrink:0"></i>
               <p>You don't have a fingerprint enrolled yet. Enroll once to sign attendance with your finger.</p>
               <button class="btn btn-primary btn-sm" onclick="selfEnrollBiometric()">Enroll</button>
+              <button class="btn btn-outline" style="margin-top:8px" onclick="selfEnrollFace()">
+                <i class="bi bi-person-bounding-box"></i> Enroll Face ID
+              </button>
             </div>
 
             <!-- Method toggle -->
@@ -1817,6 +1829,9 @@
                 <button class="btn btn-green btn-full" onclick="adminEnrollBiometric()">
                   <i class="bi bi-fingerprint"></i> Enroll Fingerprint
                 </button>
+                <button class="btn btn-outline btn-full" style="margin-top:10px" onclick="adminEnrollFace()">
+                  <i class="bi bi-person-bounding-box"></i> Enroll Face (works on any kiosk)
+                </button>
               </div>
             </div>
           </div>
@@ -2185,6 +2200,9 @@
                   <span id="kiosk-bio-label">Verify with fingerprint</span>
                 </button>
               </div>
+              <button class="btn btn-outline btn-full" style="margin-bottom:12px" onclick="kioskVerifyFace()">
+                <i class="bi bi-person-bounding-box"></i> Verify with Face (any kiosk)
+              </button>
               <div style="display:flex;gap:10px">
                 <button class="btn btn-ghost" onclick="cancelKioskFlow()">Cancel</button>
                 <button class="btn btn-green" style="flex:1" onclick="kioskSignIn()">
@@ -2216,6 +2234,9 @@
                   <span id="kiosk-out-bio-label">Verify with fingerprint</span>
                 </button>
               </div>
+              <button class="btn btn-outline btn-full" style="margin-bottom:12px" onclick="kioskOutVerifyFace()">
+                <i class="bi bi-person-bounding-box"></i> Verify with Face (any kiosk)
+              </button>
               <div style="display:flex;gap:10px">
                 <button class="btn btn-ghost" onclick="cancelKioskFlow()">Cancel</button>
                 <button class="btn btn-primary" style="flex:1;color:var(--pine)" onclick="kioskSignOut()">
@@ -4441,6 +4462,177 @@ function kioskSignOut() {
   kioskOutBioVerified = false;
 }
 
+/* ════════════════════════════ FACE ID (CROSS-KIOSK BIOMETRIC) ════════════════════════════ */
+const FACE_KEY = 'mls_face_descriptors';
+const FACE_MATCH_THRESHOLD = 0.52;   /* euclidean distance on 128-D descriptors; lower = stricter */
+let faceModelsLoaded = false;
+let faceModelsLoading = null;
+let faceStream = null;
+let faceCaptureResolve = null;
+
+function getFaces() { try { return JSON.parse(localStorage.getItem(FACE_KEY) || '{}'); } catch { return {}; } }
+function saveFaces(f) { localStorage.setItem(FACE_KEY, JSON.stringify(f)); }
+
+async function loadFaceModels() {
+  if (faceModelsLoaded) return true;
+  if (faceModelsLoading) return faceModelsLoading;
+  faceModelsLoading = (async () => {
+    if (typeof faceapi === 'undefined') {
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.min.js';
+        s.onload = res;
+        s.onerror = () => rej(new Error('Could not load the face engine (check your connection).'));
+        document.head.appendChild(s);
+      });
+    }
+    const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
+    await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+    await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+    await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+    faceModelsLoaded = true;
+    return true;
+  })();
+  return faceModelsLoading;
+}
+
+function openFaceCapture(title) {
+  return new Promise(async (resolve) => {
+    const modal = document.getElementById('face-modal');
+    const video = document.getElementById('face-video');
+    const statusEl = document.getElementById('face-status');
+    const titleEl = document.getElementById('face-modal-title');
+    if (titleEl) titleEl.textContent = title || 'Face Capture';
+    faceCaptureResolve = resolve;
+    if (modal) modal.classList.add('show');
+    if (statusEl) statusEl.textContent = 'Loading face engine…';
+    try {
+      await loadFaceModels();
+      if (statusEl) statusEl.textContent = 'Starting camera…';
+      faceStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+      video.srcObject = faceStream;
+      await video.play();
+      if (statusEl) statusEl.textContent = 'Center your face in the oval, then tap Capture.';
+    } catch (e) {
+      if (statusEl) statusEl.textContent = e.message || 'Camera unavailable.';
+    }
+  });
+}
+
+async function doFaceCapture() {
+  const video = document.getElementById('face-video');
+  const statusEl = document.getElementById('face-status');
+  if (statusEl) statusEl.textContent = 'Analyzing…';
+  try {
+    const det = await faceapi
+      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 }))
+      .withFaceLandmarks()
+      .withFaceDescriptor();
+    if (!det) { if (statusEl) statusEl.textContent = 'No face detected — move into the light and retry.'; return; }
+    const desc = Array.from(det.descriptor);
+    const resolve = faceCaptureResolve;
+    closeFaceCapture();
+    if (resolve) resolve(desc);
+  } catch (e) {
+    if (statusEl) statusEl.textContent = 'Capture failed. Try again.';
+  }
+}
+
+function closeFaceCapture() {
+  const modal = document.getElementById('face-modal');
+  if (faceStream) { faceStream.getTracks().forEach(t => t.stop()); faceStream = null; }
+  if (modal) modal.classList.remove('show');
+  faceCaptureResolve = null;
+}
+function cancelFaceCapture() {
+  const resolve = faceCaptureResolve;
+  closeFaceCapture();
+  if (resolve) resolve(null);
+}
+
+function faceDistance(a, b) {
+  let s = 0;
+  for (let i = 0; i < a.length; i++) { const d = a[i] - b[i]; s += d * d; }
+  return Math.sqrt(s);
+}
+function matchFace(descriptor) {
+  const faces = getFaces();
+  let best = null, bestDist = Infinity;
+  for (const matric in faces) {
+    const f = faces[matric];
+    if (!f || !Array.isArray(f.descriptor) || f.descriptor.length !== descriptor.length) continue;
+    const dist = faceDistance(descriptor, f.descriptor);
+    if (dist < bestDist) { bestDist = dist; best = { matric, name: f.name, level: f.level, distance: dist }; }
+  }
+  return (best && bestDist <= FACE_MATCH_THRESHOLD) ? best : null;
+}
+
+async function enrollFace(matric, fullname, level) {
+  const desc = await openFaceCapture('Enroll Face — ' + (fullname || matric));
+  if (!desc) throw new Error('Face capture cancelled.');
+  const faces = getFaces();
+  faces[matric] = { descriptor: desc, name: fullname || matric, level: level || '', enrolledAt: new Date().toISOString() };
+  saveFaces(faces);
+  if (typeof registerStudentFromBio === 'function') registerStudentFromBio(matric, fullname, level);
+  if (typeof syncAfterWrite === 'function') syncAfterWrite();
+  return true;
+}
+
+async function adminEnrollFace() {
+  const matric = document.getElementById('bio-reg-matric').value.trim();
+  const name   = document.getElementById('bio-reg-name').value.trim();
+  const level  = document.getElementById('bio-reg-level').value;
+  if (!matric || !name || !level) { showAlert('bio-reg-alert', 'All fields required for Face ID.', 'danger'); return; }
+  try {
+    await enrollFace(matric, name, level);
+    showAlert('bio-reg-alert', 'Face enrolled for ' + name + ' — verifies on any kiosk.', 'success');
+    if (typeof renderBioAdminTable === 'function') renderBioAdminTable();
+  } catch (e) {
+    showAlert('bio-reg-alert', e.message || 'Face enrollment failed.', 'danger');
+  }
+}
+
+async function selfEnrollFace() {
+  if (!currentUser) return;
+  try {
+    await enrollFace(currentUser.matric, currentUser.fullname, currentUser.level);
+    toast('Face enrolled — verify at any exam kiosk now.', 'success');
+    if (typeof updateBiometricBanner === 'function') updateBiometricBanner();
+  } catch (e) {
+    toast(e.message || 'Face enrollment failed.', 'error');
+  }
+}
+
+async function kioskVerifyFace() {
+  try {
+    const desc = await openFaceCapture('Verify Face — Sign In');
+    if (!desc) return;
+    const match = matchFace(desc);
+    if (!match) { showAlert('kiosk-in-alert', 'Face not recognized. Enroll first or enter details manually.', 'danger'); return; }
+    document.getElementById('kiosk-in-matric').value = match.matric;
+    const nameEl = document.getElementById('kiosk-in-name'); if (nameEl) nameEl.value = match.name || '';
+    if (match.level) { const lvl = document.getElementById('kiosk-in-level'); if (lvl) lvl.value = match.level; }
+    kioskBioVerified = true;
+    showAlert('kiosk-in-alert', 'Identified: ' + (match.name || match.matric) + ' ✓', 'success');
+  } catch (e) {
+    showAlert('kiosk-in-alert', e.message || 'Face verification failed.', 'danger');
+  }
+}
+
+async function kioskOutVerifyFace() {
+  try {
+    const desc = await openFaceCapture('Verify Face — Sign Out');
+    if (!desc) return;
+    const match = matchFace(desc);
+    if (!match) { showAlert('kiosk-out-alert', 'Face not recognized.', 'danger'); return; }
+    document.getElementById('kiosk-out-matric').value = match.matric;
+    kioskOutBioVerified = true;
+    showAlert('kiosk-out-alert', 'Identified: ' + (match.name || match.matric) + ' ✓', 'success');
+  } catch (e) {
+    showAlert('kiosk-out-alert', e.message || 'Face verification failed.', 'danger');
+  }
+}
+
 /* ════════════════════════════ GITHUB SYNC (BACKEND) ════════════════════════════ */
 let githubSyncing = false;
 
@@ -4541,6 +4733,7 @@ function buildSyncPayload() {
     examRecords:  getExamRecords(),
     students:     getStudents(),
     biometrics:   getBiometrics(),
+    faces:        getFaces(),
   };
 }
 
@@ -4594,6 +4787,7 @@ async function pullFromGithub() {
     if (Array.isArray(data.examRecords))  saveExamRecords(data.examRecords);
     if (Array.isArray(data.students))     saveStudents(data.students);
     if (data.biometrics && typeof data.biometrics === 'object') saveBiometrics(data.biometrics);
+    if (data.faces && typeof data.faces === 'object') saveFaces(data.faces);
     updateGithubStatus('connected');
     const el = document.getElementById('gh-sync-last');
     if (el) el.textContent = `Last pull: ${new Date().toLocaleTimeString()}`;
@@ -5247,5 +5441,22 @@ async function loginAdminDirect() {
   if (ldEl) ldEl.setAttribute('max', today());
 })();
 </script>
+<!-- Face ID capture modal (cross-kiosk biometric) -->
+<div id="face-modal" class="face-modal">
+  <div class="face-modal-card">
+    <h3 id="face-modal-title">Face Capture</h3>
+    <div class="face-video-wrap">
+      <video id="face-video" autoplay playsinline muted></video>
+      <div class="face-oval"></div>
+    </div>
+    <p id="face-status" class="face-status">Loading…</p>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-ghost" onclick="cancelFaceCapture()">Cancel</button>
+      <button class="btn btn-green" style="flex:1" onclick="doFaceCapture()">
+        <i class="bi bi-camera-fill"></i> Capture
+      </button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
