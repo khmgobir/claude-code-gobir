@@ -209,6 +209,62 @@
       pointer-events: none; position: absolute; top: 0;
     }
 
+    /* Register panel + tab (amber) */
+    .lp-tab--register {
+      background: rgba(245,158,11,.08); color: rgba(245,158,11,.6);
+      border-bottom: 2px solid rgba(245,158,11,.15);
+    }
+    .lp-tab--register.active {
+      background: rgba(245,158,11,.14); color: #f7b733;
+      border-bottom: 2px solid #f59e0b;
+      text-shadow: 0 0 10px rgba(245,158,11,.55);
+    }
+    .lp-panel--register {
+      background: rgba(18,12,0,.85);
+      border: 1.5px solid rgba(245,158,11,.22); border-top: none;
+      box-shadow: 0 24px 60px rgba(245,158,11,.08), 0 0 0 1px rgba(245,158,11,.06) inset;
+      position: absolute; top: 0; left: 0; right: 0;
+      pointer-events: none;
+    }
+    .lp-panel--register .lp-panel-head { color: #f7b733; }
+    .lp-panel--register .lp-panel-head::before { background:#f59e0b; box-shadow:0 0 8px #f59e0b; }
+    .lp-panel--register .field input:focus, .lp-panel--register .field select:focus {
+      border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,.18);
+    }
+    .lp-alert-register { background: rgba(245,158,11,.12); border: 1px solid rgba(245,158,11,.4); color: #fcd34d; }
+    .lp-btn-register {
+      width: 100%; padding: 13px; border: none; border-radius: 9px; cursor: pointer;
+      font-family: 'Orbitron', monospace; font-size: .75rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase;
+      background: linear-gradient(135deg, #d97706, #f59e0b);
+      color: #1a1200; transition: all .25s;
+      box-shadow: 0 4px 20px rgba(245,158,11,.25);
+    }
+    .lp-btn-register:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(245,158,11,.4); }
+    .lp-reg-switch {
+      display:block; width:100%; margin-top:14px; text-align:center;
+      background:none; border:none; cursor:pointer;
+      font-size:.8rem; color: rgba(0,255,136,.7);
+      font-family:'JetBrains Mono', monospace;
+    }
+    .lp-reg-switch:hover { color:#00ff88; text-decoration:underline; }
+
+    /* 3-way panel switching: register mode */
+    .lp-stage[data-mode="register"] .lp-panel--register {
+      opacity:1; transform: translateX(0) rotateY(0deg) scale(1);
+      pointer-events:all; position:relative;
+    }
+    .lp-stage[data-mode="register"] .lp-panel--student,
+    .lp-stage[data-mode="register"] .lp-panel--admin {
+      opacity:0; transform: translateX(40px) rotateY(18deg) scale(.93);
+      pointer-events:none; position:absolute; top:0;
+    }
+    .lp-stage[data-mode="student"] .lp-panel--register,
+    .lp-stage[data-mode="admin"] .lp-panel--register {
+      opacity:0; transform: translateX(40px) rotateY(18deg) scale(.93);
+      pointer-events:none; position:absolute; top:0;
+    }
+
     /* Panel heading */
     .lp-panel-head {
       font-family: 'Orbitron', monospace; font-weight: 700; font-size: .78rem;
@@ -1193,10 +1249,13 @@
     <!-- Tab switcher -->
     <div class="lp-tabs">
       <button class="lp-tab lp-tab--student active" onclick="lpSwitch('student')" id="lp-tab-student">
-        <i class="bi bi-person-badge"></i> Student Portal
+        <i class="bi bi-box-arrow-in-right"></i> Sign In
+      </button>
+      <button class="lp-tab lp-tab--register" onclick="lpSwitch('register')" id="lp-tab-register">
+        <i class="bi bi-person-plus-fill"></i> Register
       </button>
       <button class="lp-tab lp-tab--admin" onclick="lpSwitch('admin')" id="lp-tab-admin">
-        <i class="bi bi-shield-lock-fill"></i> Admin / Lecturer
+        <i class="bi bi-shield-lock-fill"></i> Admin
       </button>
     </div>
 
@@ -1231,6 +1290,8 @@
           <i class="bi bi-box-arrow-in-right"></i> &nbsp;SIGN IN
         </button>
 
+        <button class="lp-reg-switch" onclick="lpSwitch('register')">New student? Create your record →</button>
+
         <!-- Shown only when registration validation fails -->
         <div id="reg-form-link" style="display:none">
           <p style="color:#ffd54f;font-size:.88rem;margin-bottom:8px">
@@ -1261,6 +1322,38 @@
         <button class="lp-btn-admin" onclick="loginAdminDirect()">
           <i class="bi bi-shield-check-fill"></i> &nbsp;AUTHENTICATE
         </button>
+      </div>
+
+      <!-- Register Panel -->
+      <div class="lp-panel lp-panel--register">
+        <div class="lp-panel-head">New Student Registration</div>
+        <div id="lp-reg-alert" class="lp-alert lp-alert-register"></div>
+
+        <div class="field">
+          <label for="reg-fullname">Full Name</label>
+          <input type="text" id="reg-fullname" placeholder="e.g. Hamisu Abdullahi" autocomplete="name" />
+        </div>
+        <div class="field">
+          <label for="reg-matric">Admission / Matriculation Number</label>
+          <input type="text" id="reg-matric" placeholder="e.g. MLS/21/0001" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="reg-level">Level</label>
+          <select id="reg-level">
+            <option value="">Select your level</option>
+            <option>100L</option><option>200L</option>
+            <option>300L</option><option>400L</option>
+            <option>500L</option>
+          </select>
+        </div>
+
+        <button class="lp-btn-register" onclick="submitRegistration()">
+          <i class="bi bi-person-check-fill"></i> &nbsp;CREATE MY RECORD
+        </button>
+        <p style="color:rgba(255,255,255,.45);font-size:.72rem;margin-top:12px;font-family:'JetBrains Mono',monospace;line-height:1.5">
+          After registering you can sign in, then add Face ID or fingerprint from your dashboard for faster check-in.
+        </p>
+        <button class="lp-reg-switch" onclick="lpSwitch('student')">Already registered? Sign in →</button>
       </div>
 
     </div><!-- /lp-stage -->
@@ -5286,11 +5379,45 @@ function lpSwitch(mode) {
   const stage = document.getElementById('lp-stage');
   if (!stage) return;
   stage.dataset.mode = mode;
-  document.getElementById('lp-tab-student').classList.toggle('active', mode === 'student');
-  document.getElementById('lp-tab-admin').classList.toggle('active', mode === 'admin');
-  // Clear admin alert on switch
-  const aa = document.getElementById('lp-admin-alert');
-  if (aa) { aa.textContent = ''; aa.style.display = 'none'; }
+  const tab = (id, on) => { const e = document.getElementById(id); if (e) e.classList.toggle('active', on); };
+  tab('lp-tab-student', mode === 'student');
+  tab('lp-tab-register', mode === 'register');
+  tab('lp-tab-admin', mode === 'admin');
+  // Clear alerts on switch
+  ['lp-admin-alert', 'lp-reg-alert', 'login-alert'].forEach(id => {
+    const a = document.getElementById(id);
+    if (a) { a.textContent = ''; a.style.display = 'none'; }
+  });
+}
+
+/* In-app student registration → roster + backend sync */
+function submitRegistration() {
+  const fullname = (document.getElementById('reg-fullname').value || '').trim();
+  const matric   = (document.getElementById('reg-matric').value || '').trim().toUpperCase();
+  const level    = document.getElementById('reg-level').value;
+  if (!fullname || !matric || !level) { lpAlert('lp-reg-alert', 'Please fill in your name, matric number and level.'); return; }
+
+  const list = getStudents();
+  const existing = list.find(s => (s.matric || '').toUpperCase() === matric);
+  if (existing) {
+    lpAlert('lp-reg-alert', 'This matric number is already registered — please sign in.');
+    document.getElementById('matric').value = matric;
+    if (existing.level) document.getElementById('level').value = existing.level;
+    return;
+  }
+
+  list.push({ matric, fullname, level, registeredAt: new Date().toISOString(), source: 'self-registration' });
+  saveStudents(list);
+  if (typeof syncAfterWrite === 'function') syncAfterWrite();
+
+  // Pre-fill the sign-in panel and switch to it
+  document.getElementById('matric').value = matric;
+  document.getElementById('level').value = level;
+  document.getElementById('reg-fullname').value = '';
+  document.getElementById('reg-matric').value = '';
+  document.getElementById('reg-level').value = '';
+  lpSwitch('student');
+  toast('Registered ✓ — you can sign in now.', 'success');
 }
 
 function lpAlert(id, msg) {
