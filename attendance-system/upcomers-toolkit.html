@@ -81,6 +81,11 @@
   .badge.bad{background:rgba(255,91,110,.16);color:var(--red)}
   .ready-row{display:flex;gap:8px;align-items:flex-start;font-size:.75rem;color:var(--muted);padding:3px 0}
   .ready-row .ok{color:var(--emer)}.ready-row .bad{color:var(--red)}
+  .acctbar{border-color:var(--line2);box-shadow:0 0 0 1px rgba(0,229,140,.07),0 18px 50px rgba(0,229,140,.05)}
+  .acct-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:680px){.acct-grid{grid-template-columns:1fr}}
+  .acct-summary{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+  .acct-summary .spec{background:#0a1422;border-color:var(--line2)}
   /* table wrappers scroll smoothly on touch */
   .tscroll,div[style*="overflow-x"]{ -webkit-overflow-scrolling:touch }
   @media(max-width:680px){
@@ -200,6 +205,22 @@
     <span class="spec"><b>$100k Vanguard</b> ≈ $239.9 (code spring90)</span>
   </div>
 
+  <div class="card acctbar" id="acctBar">
+    <h2 style="margin-bottom:12px">Active account</h2>
+    <div class="acct-grid">
+      <div><label>Account model</label><select id="acPlan"></select></div>
+      <div><label>Platform</label><select id="acPlatform">
+        <option>MetaTrader 5</option><option>TradeLocker</option><option>Bybit</option><option>Match-Trader</option><option>cTrader</option>
+      </select></div>
+      <div><label>Account size</label><select id="acSize">
+        <option value="2000">$2K</option><option value="25000">$25K</option>
+        <option value="100000" selected>$100K</option><option value="500000">$500K</option><option value="1000000">$1M</option>
+      </select></div>
+    </div>
+    <div id="acSummary" class="acct-summary"></div>
+    <p class="sub" style="margin-top:10px">Everything below — calculators, tracker, calendar, consistency, readiness — applies to this account. Expand "all plans" anywhere to compare.</p>
+  </div>
+
   <div class="toc">
     <a href="#cmp">Plans</a><a href="#calc">Risk calc</a><a href="#track">Live tracker</a><a href="#jrnl">Journal &amp; edge</a><a href="#cal">Calendar</a><a href="#cons">Consistency</a><a href="#ready">Readiness</a><a href="#proj">Path to $100k</a><a href="#rules">Rules reference</a><a href="#backup">Backup</a>
   </div>
@@ -211,6 +232,7 @@
       Two families. <b class="ok">Daily-march</b> products need N valid days each closing ≥ +0.5% realized.
       <b class="vio">Timed sprints</b> give a short window from your first trade to hit a target. All: 99% split, no profit target on march products.
     </p>
+    <details class="rule"><summary>Compare all plans &amp; drawdown chart</summary><div class="rule-body">
     <div style="overflow-x:auto">
     <table id="cmpTbl">
       <thead><tr>
@@ -223,14 +245,14 @@
     <h2 style="margin-top:22px;font-size:.95rem">Drawdown room per plan (Dynamic Risk Shield)</h2>
     <div id="cmpChart" class="chart"></div>
     <div class="legend"><span><i style="background:var(--emer)"></i>Daily-march</span><span><i style="background:var(--violet)"></i>Timed sprint</span><span><i style="background:var(--red)"></i>Daily DD cap</span></div>
+    </div></details>
   </div>
 
   <div class="grid">
     <!-- RISK CALCULATOR -->
     <div class="card" id="calc">
       <h2>Risk &amp; consistency calculator</h2>
-      <label>Plan</label><select id="rcPlan"></select>
-      <label>Account size (USD)</label><input id="rcSize" class="mono" type="number" value="100000" />
+      <p class="sub" id="rcActive" style="margin-bottom:4px"></p>
       <label>Risk per trade (% of account)</label><input id="rcRisk" class="mono" type="number" value="0.5" step="0.1" />
       <div class="grid3">
         <div><label>Stop distance (pips)</label><input id="rcPips" class="mono" type="number" value="20" /></div>
@@ -242,7 +264,7 @@
     <!-- RULES TRACKER -->
     <div class="card" id="track">
       <h2>Live rules tracker</h2>
-      <label>Plan</label><select id="trPlan"></select>
+      <p class="sub" id="trActive" style="margin-bottom:4px"></p>
       <div class="grid3">
         <div><label>Initial balance</label><input id="trStart" class="mono" type="number" value="100000" /></div>
         <div><label>Highest equity (peak)</label><input id="trPeak" class="mono" type="number" value="100000" /></div>
@@ -298,7 +320,6 @@
     <p class="sub" style="margin:4px 0 12px"><b class="ok">Auto-fills from your journal</b> — each logged trade's date sums into that day (R × risk%). <b class="ok">Green ≥ +0.5%</b> counts toward valid days, <b class="warn">amber</b> = positive but short, <b class="bad">red</b> = loss. Click any day to edit manually.</p>
     <div class="grid">
       <div>
-        <label>Plan (for valid-day target)</label><select id="calPlan"></select>
         <label>Date</label><input id="calDate" type="date" />
         <label>Day result (% of account)</label><input id="calPct" class="mono" type="number" step="0.1" placeholder="e.g. 0.8 or -0.4" />
         <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
@@ -485,12 +506,40 @@ function drawCmp(){
   svg.append('g').attr('class','axis').attr('transform',`translate(0,${H-m.b})`).call(d3.axisBottom(x).ticks(8).tickFormat(d=>d+'%'));
 }
 
-/* ---------- selects ---------- */
-['rcPlan','trPlan'].forEach(id=>{const s=$(id);PLANS.forEach((p,i)=>s.insertAdjacentHTML('beforeend',`<option value="${i}">${p.name} — ${p.fam==='march'?'march':'sprint'}</option>`));});
+/* ---------- Active account (global selector) ---------- */
+let ACTIVE={plan:0,platform:'MetaTrader 5',size:100000};
+const P=()=>PLANS[ACTIVE.plan], SZ=()=>ACTIVE.size;
+PLANS.forEach((p,i)=>$('acPlan').insertAdjacentHTML('beforeend',`<option value="${i}">${p.name} — ${p.fam==='march'?'instant (daily-march)':p.window+' sprint'}</option>`));
+function acctSummary(){
+  const p=P(),size=SZ(),c=[];
+  c.push(`<span class="spec"><b>${p.name}</b> · ${p.fam==='march'?'daily-march':p.window+' sprint'}</span>`);
+  c.push(`<span class="spec"><b>${ACTIVE.platform}</b></span>`);
+  c.push(`<span class="spec"><b>$${size.toLocaleString()}</b></span>`);
+  if(p.target)c.push(`<span class="spec">Target <b>${p.target}%</b> = $${(size*p.target/100).toLocaleString()}</span>`);
+  if(p.validDays)c.push(`<span class="spec"><b>${p.validDays}</b> valid days · +0.5%/day</span>`);
+  if(p.dailyDD)c.push(`<span class="spec">Daily DD <b>${p.dailyDD}%</b> = $${(size*p.dailyDD/100).toLocaleString()}</span>`);
+  c.push(`<span class="spec">Shield <b>${p.shield}%</b> = $${(size*p.shield/100).toLocaleString()}</span>`);
+  if(p.single)c.push(`<span class="spec">Single-trade <b>${p.single}%</b></span>`);
+  c.push(`<span class="spec">${p.cons.type==='day'?'Best-day':p.cons.type==='score'?'Consistency':'Best-trade'} <b>${p.cons.pct}%</b></span>`);
+  if(p.minTrades)c.push(`<span class="spec">Min <b>${p.minTrades}</b> trades</span>`);
+  $('acSummary').innerHTML=c.join('');
+  const tag=`${P().name} · ${ACTIVE.platform} · $${SZ().toLocaleString()}`;
+  if($('rcActive'))$('rcActive').innerHTML=`Active: <b style="color:var(--emer)">${tag}</b>`;
+  if($('trActive'))$('trActive').innerHTML=`Active: <b style="color:var(--emer)">${tag}</b> — defaults set to size; edit live values below`;
+}
+function applyActive(){
+  ['trStart','trPeak','trDayStart'].forEach(id=>{if($(id))$(id).value=SZ();});
+  if($('pjSize'))$('pjSize').value=SZ();
+  acctSummary();
+  drawCmp();calcRisk();calcTrack();renderCal();renderConsistency();renderReadiness();calcProj();
+}
+$('acPlan').onchange=()=>{ACTIVE.plan=+$('acPlan').value;applyActive();};
+$('acPlatform').onchange=()=>{ACTIVE.platform=$('acPlatform').value;acctSummary();};
+$('acSize').onchange=()=>{ACTIVE.size=+$('acSize').value;applyActive();};
 
 /* ---------- Risk calculator ---------- */
 function calcRisk(){
-  const p=PLANS[+rcPlan.value], size=+rcSize.value, risk=+rcRisk.value/100, pips=+rcPips.value, pv=+rcPipVal.value;
+  const p=P(), size=SZ(), risk=+rcRisk.value/100, pips=+rcPips.value, pv=+rcPipVal.value;
   const riskUsd=size*risk;
   const shieldCap=size*p.shield/100;
   const dailyCap=p.dailyDD?size*p.dailyDD/100:null;
@@ -522,11 +571,11 @@ function calcRisk(){
   }
   rcOut.innerHTML=h;
 }
-['rcPlan','rcSize','rcRisk','rcPips','rcPipVal'].forEach(id=>$(id).addEventListener('input',calcRisk));
+['rcRisk','rcPips','rcPipVal'].forEach(id=>$(id).addEventListener('input',calcRisk));
 
 /* ---------- Rules tracker ---------- */
 function calcTrack(){
-  const p=PLANS[+trPlan.value], start=+trStart.value, peak=+trPeak.value, ds=+trDayStart.value,
+  const p=P(), start=+trStart.value, peak=+trPeak.value, ds=+trDayStart.value,
         eq=+trEquity.value, days=+trDays.value, bigDay=+trBigDay.value;
   // Dynamic Risk Shield: trails peak at shield% below; LOCKS at initial balance once peak profit ≥ shield%
   const peakProfitPct=(peak-start)/start*100, locked=peakProfitPct>=p.shield;
@@ -565,7 +614,7 @@ function calcTrack(){
   h+=`<div class="row"><span>Payout eligible (≥ ${fmt(payReq)}${p.fam==='march'?' + '+p.validDays+'d':''})</span><b class="${eligible?'ok':'warn'}">${eligible?'YES':'not yet'}</b></div>`;
   trOut.innerHTML=h;
 }
-['trPlan','trStart','trPeak','trDayStart','trEquity','trDays','trBigDay'].forEach(id=>$(id).addEventListener('input',calcTrack));
+['trStart','trPeak','trDayStart','trEquity','trDays','trBigDay'].forEach(id=>$(id).addEventListener('input',calcTrack));
 
 /* ---------- Journal + edge tester ---------- */
 const JKEY='upc_journal_v1'; let journal=[];
@@ -676,7 +725,6 @@ const CKEY='upc_caldays_v1'; let cal={};
 try{cal=JSON.parse(localStorage.getItem(CKEY)||'{}')}catch(e){cal={}}
 const saveC=()=>localStorage.setItem(CKEY,JSON.stringify(cal));
 let calView=new Date(); calView.setDate(1);
-PLANS.forEach((p,i)=>calPlan.insertAdjacentHTML('beforeend',`<option value="${i}">${p.name}</option>`));
 const pad=n=>String(n).padStart(2,'0');
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());};
 function colDay(v){ if(v==null)return null; if(v>=0.5)return'var(--emer)'; if(v>0)return'var(--amber)'; if(v===0)return'var(--muted)'; return'var(--red)'; }
@@ -718,7 +766,7 @@ function renderCal(){
   html+='</div>'; calGrid.innerHTML=html;
   calGrid.querySelectorAll('.cal-d[data-k]').forEach(el=>el.onclick=()=>{calDate.value=el.dataset.k;calPct.value=calVal(cal[el.dataset.k])??'';});
   // stats
-  const p=PLANS[+calPlan.value], pref=`${y}-${pad(mo+1)}`;
+  const p=P(), pref=`${y}-${pad(mo+1)}`;
   const all=Object.entries(cal).map(([k,x])=>[k,calVal(x)]), month=all.filter(([k])=>k.startsWith(pref));
   const valid=month.filter(([,v])=>v>=0.5).length, traded=month.length;
   const net=month.reduce((a,[,v])=>a+(+v),0);
@@ -737,7 +785,6 @@ calDel.onclick=()=>{if(calDate.value&&cal[calDate.value]!=null){delete cal[calDa
 calSync.onclick=rebuildCal;
 calPrev.onclick=()=>{calView.setMonth(calView.getMonth()-1);renderCal();};
 calNext.onclick=()=>{calView.setMonth(calView.getMonth()+1);renderCal();};
-calPlan.onchange=renderCal;
 calDate.value=todayStr();
 if($('jDate'))$('jDate').value=todayStr();
 
@@ -773,7 +820,8 @@ function meterHTML(p){
 }
 function renderConsistency(){
   if(!$('consBody'))return;
-  $('consBody').innerHTML=PLANS.map(meterHTML).join('');
+  $('consBody').innerHTML=meterHTML(P())+
+    `<details class="rule" style="margin-top:12px"><summary>All plans</summary><div class="rule-body">${PLANS.map(meterHTML).join('')}</div></details>`;
   const fills=$('consBody').querySelectorAll('.meter-fill[data-w]');
   if(RM) fills.forEach(el=>el.style.width=el.dataset.w+'%');
   else requestAnimationFrame(()=>fills.forEach((el,i)=>{el.style.transitionDelay=(i*40)+'ms';el.style.width=el.dataset.w+'%';}));
@@ -793,21 +841,23 @@ function readinessFor(p){
   const overall=pass===4?['READY','ok']:pass>=3?['ALMOST','warn']:['NOT READY','bad'];
   return{p,e,m,risk,gEdge,gDD,gCons,gVol,volLabel,ddPct,ddCap,overall,pass};
 }
+function readyCard(p){
+  const r=readinessFor(p);
+  const row=(ok,txt)=>`<div class="ready-row"><span class="${ok?'ok':'bad'}">${ok?'✓':'✗'}</span><span>${txt}</span></div>`;
+  const edgeTxt=r.e?`Edge: ${r.e.exp>0?'+':''}${r.e.exp.toFixed(2)}R · PF ${r.e.pf===Infinity?'∞':r.e.pf.toFixed(2)} · n${r.e.n}`:'Edge: log ≥50 trades';
+  const ddTxt=r.e?`Drawdown: ${r.ddPct.toFixed(1)}% ≤ ${r.ddCap.toFixed(1)}% shield-fit`:'Drawdown: no data';
+  const consTxt=r.m.share!=null?`Consistency: ${r.m.share.toFixed(0)}% ≤ ${p.cons.pct}%`:'Consistency: no profit yet';
+  const fam=p.fam==='march'?'t-march':'t-sprint';
+  return `<div class="ready-card ${r.overall[0]==='READY'?'is-ready':''}">
+    <div class="ready-head"><b>${p.name}</b><span class="badge ${r.overall[1]}">${r.overall[0]}</span></div>
+    <span class="tag ${fam}" style="margin-bottom:8px;display:inline-block">${p.fam==='march'?'daily-march':'timed sprint'}</span>
+    ${row(r.gEdge,edgeTxt)}${row(r.gDD,ddTxt)}${row(r.gCons,consTxt)}${row(r.gVol,r.volLabel)}
+  </div>`;
+}
 function renderReadiness(){
   if(!$('readyBody'))return;
-  $('readyBody').innerHTML=PLANS.map(p=>{
-    const r=readinessFor(p);
-    const row=(ok,txt)=>`<div class="ready-row"><span class="${ok?'ok':'bad'}">${ok?'✓':'✗'}</span><span>${txt}</span></div>`;
-    const edgeTxt=r.e?`Edge: ${r.e.exp>0?'+':''}${r.e.exp.toFixed(2)}R · PF ${r.e.pf===Infinity?'∞':r.e.pf.toFixed(2)} · n${r.e.n}`:'Edge: log ≥50 trades';
-    const ddTxt=r.e?`Drawdown: ${r.ddPct.toFixed(1)}% ≤ ${r.ddCap.toFixed(1)}% shield-fit`:'Drawdown: no data';
-    const consTxt=r.m.share!=null?`Consistency: ${r.m.share.toFixed(0)}% ≤ ${p.cons.pct}%`:'Consistency: no profit yet';
-    const fam=p.fam==='march'?'t-march':'t-sprint';
-    return `<div class="ready-card ${r.overall[0]==='READY'?'is-ready':''}">
-      <div class="ready-head"><b>${p.name}</b><span class="badge ${r.overall[1]}">${r.overall[0]}</span></div>
-      <span class="tag ${fam}" style="margin-bottom:8px;display:inline-block">${p.fam==='march'?'daily-march':'timed sprint'}</span>
-      ${row(r.gEdge,edgeTxt)}${row(r.gDD,ddTxt)}${row(r.gCons,consTxt)}${row(r.gVol,r.volLabel)}
-    </div>`;
-  }).join('');
+  $('readyBody').innerHTML=readyCard(P())+
+    `<details class="rule" style="grid-column:1/-1;margin-top:4px"><summary>All plans</summary><div class="rule-body ready-grid" style="margin-top:8px">${PLANS.map(readyCard).join('')}</div></details>`;
 }
 
 /* ---------- Backup: export / import ---------- */
@@ -845,7 +895,7 @@ function setupReveal(){
   cards.forEach(c=>io.observe(c));
   setTimeout(()=>cards.forEach(c=>c.classList.add('in')),1500); // safety
 }
-function init(){drawCmp();calcRisk();calcTrack();renderJ();renderCal();renderConsistency();renderReadiness();calcProj();setupReveal();}
+function init(){acctSummary();drawCmp();calcRisk();calcTrack();renderJ();renderCal();renderConsistency();renderReadiness();calcProj();setupReveal();}
 window.addEventListener('resize',()=>{drawCmp();renderJ();calcProj();});
 init();
 </script>
