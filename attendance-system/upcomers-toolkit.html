@@ -3,7 +3,19 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Upcomers Funding Toolkit</title>
+<title>Upcomers Funding Toolkit — risk, consistency, journal &amp; $100k planner</title>
+<meta name="description" content="A discipline toolkit for Upcomers prop-firm instant funding: risk &amp; consistency calculator, trade journal with edge tester, daily-march calendar, per-plan readiness and a path-to-$100k planner." />
+<meta name="color-scheme" content="dark" />
+<meta name="theme-color" content="#05080f" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Upcomers Toolkit" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Upcomers Funding Toolkit" />
+<meta property="og:description" content="Risk, consistency, journal, calendar and $100k planner for Upcomers funded accounts." />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Upcomers Funding Toolkit" />
+<meta name="twitter:description" content="Risk, consistency, journal, calendar and $100k planner for Upcomers funded accounts." />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
 <style>
@@ -86,6 +98,17 @@
   @media(max-width:680px){.acct-grid{grid-template-columns:1fr}}
   .acct-summary{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
   .acct-summary .spec{background:#0a1422;border-color:var(--line2)}
+  /* ---- standards: a11y + sticky nav ---- */
+  :focus-visible{outline:2px solid var(--cyan);outline-offset:2px;border-radius:6px}
+  .skip{position:fixed;left:-9999px;top:10px;z-index:200;background:var(--emer);color:#04140c;
+    padding:10px 16px;border-radius:9px;font-weight:700;text-decoration:none}
+  .skip:focus{left:12px}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+  .toc{position:sticky;top:0;z-index:60;background:rgba(5,8,15,.82);backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);padding:10px 2px;margin:14px -2px 22px;border-bottom:1px solid var(--line)}
+  .toc a{transition:background .2s,color .2s,border-color .2s}
+  .toc a.active{color:#04140c;background:var(--emer);border-color:var(--emer);font-weight:700}
+  @keyframes countPop{0%{transform:scale(1)}40%{transform:scale(1.06)}100%{transform:scale(1)}}
   /* table wrappers scroll smoothly on touch */
   .tscroll,div[style*="overflow-x"]{ -webkit-overflow-scrolling:touch }
   @media(max-width:680px){
@@ -177,6 +200,7 @@
 </style>
 </head>
 <body>
+  <a href="#acctBar" class="skip">Skip to toolkit</a>
   <div class="hero">
     <div>
       <h1>Upcomers <span>Funding Toolkit</span></h1>
@@ -221,9 +245,9 @@
     <p class="sub" style="margin-top:10px">Everything below — calculators, tracker, calendar, consistency, readiness — applies to this account. Expand "all plans" anywhere to compare.</p>
   </div>
 
-  <div class="toc">
+  <nav class="toc" aria-label="Toolkit sections">
     <a href="#cmp">Plans</a><a href="#calc">Risk calc</a><a href="#track">Live tracker</a><a href="#jrnl">Journal &amp; edge</a><a href="#cal">Calendar</a><a href="#cons">Consistency</a><a href="#ready">Readiness</a><a href="#proj">Path to $100k</a><a href="#rules">Rules reference</a><a href="#backup">Backup</a>
-  </div>
+  </nav>
 
   <!-- COMPARISON -->
   <div class="card" id="cmp">
@@ -307,6 +331,11 @@
       <div>
         <div id="jChart" class="chart"></div>
         <div class="legend"><span><i style="background:var(--emer)"></i>Equity (R)</span><span><i style="background:var(--red);opacity:.5"></i>Drawdown</span></div>
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+          <button class="btn btn-pri" id="eqShare" style="flex:1">📸 Share equity curve</button>
+          <button class="btn btn-gho" id="eqDownload">⬇ Save</button>
+        </div>
+        <div id="eqShareMsg" class="sub" style="margin-top:8px"></div>
       </div>
     </div>
     <div style="overflow-x:auto;margin-top:14px;max-height:220px;overflow-y:auto">
@@ -331,9 +360,9 @@
       </div>
       <div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <button class="btn btn-gho" id="calPrev">‹</button>
+          <button class="btn btn-gho" id="calPrev" aria-label="Previous month">‹</button>
           <b id="calMonth" class="mono"></b>
-          <button class="btn btn-gho" id="calNext">›</button>
+          <button class="btn btn-gho" id="calNext" aria-label="Next month">›</button>
         </div>
         <div id="calGrid"></div>
         <div class="legend"><span><i style="background:var(--emer)"></i>≥0.5% (counts)</span><span><i style="background:var(--amber)"></i>0–0.5%</span><span><i style="background:var(--red)"></i>loss</span></div>
@@ -359,6 +388,11 @@
     <h2>Challenge readiness — per plan</h2>
     <p class="sub" style="margin:4px 0 14px">Four gates from your logs: a <b>proven edge</b>, <b>drawdown</b> that fits the shield, <b>consistency</b> within cap, and enough <b>volume</b> (min trades / valid days). All four green = you've earned the right to risk the fee.</p>
     <div id="readyBody" class="ready-grid"></div>
+    <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+      <button class="btn btn-pri" id="readyShare">📸 Share readiness</button>
+      <button class="btn btn-gho" id="readyDownload">⬇ Save image</button>
+    </div>
+    <div id="readyShareMsg" class="sub" style="margin-top:8px"></div>
   </div>
 
   <!-- PROJECTION -->
@@ -716,12 +750,13 @@ function calcProj(){
   let cash=0,m=0; const rows=[],all=[];
   while(cash<goal&&m<240){m++;cash+=size*ret*split*acc;if(scale&&m%4===0)size*=1.35;all.push({m,size,cash});if(m<=12||m%6===0||cash>=goal)rows.push({m,size,cash});}
   const yrs=m/12;
-  let h=`<div class="big">${m<240?m+' months':'>20 yrs'}</div><span class="pill">to ${fmt(goal)} · ${yrs.toFixed(1)} yrs · ${acc} acct(s) @ ${(ret*100)}%/mo</span>`;
+  let h=`<div class="big"><span id="pjBigNum">${m<240?(window._pjLast||0):'>20 yrs'}</span>${m<240?' months':''}</div><span class="pill">to ${fmt(goal)} · ${yrs.toFixed(1)} yrs · ${acc} acct(s) @ ${(ret*100)}%/mo</span>`;
   h+=`<table style="margin-top:12px"><thead><tr><th>Mo</th><th class="mono">Acct</th><th class="mono">Cumulative</th></tr></thead><tbody>`;
   rows.forEach(r=>h+=`<tr><td>${r.m}</td><td class="mono">${fmt(r.size)}</td><td class="mono ok">${fmt(r.cash)}</td></tr>`);
   h+=`</tbody></table>`;
   if(m>=240)h+=`<p class="sub" style="margin-top:8px;color:var(--red)">20+ years at these inputs — raise return, size, or accounts (each adds real risk).</p>`;
   pjOut.innerHTML=h; drawProj(all,goal);
+  if(m<240){countUp($('pjBigNum'),m,(window._pjLast||0),650);window._pjLast=m;}
 }
 ['pjSize','pjRet','pjAcc','pjSplit','pjScale','pjGoal'].forEach(id=>$(id).addEventListener('input',calcProj));
 
@@ -839,25 +874,94 @@ function calImage(){
   x.textAlign='right';x.fillStyle='#3f4f66';x.fillText('Upcomers Funding Toolkit',W-60,H-54);
   return cv;
 }
-async function shareCal(forceDownload){
-  const msg=$('calShareMsg');
-  try{ if(document.fonts&&document.fonts.ready) await document.fonts.ready; }catch(e){}
-  const cv=calImage();
+async function shareCanvas(makeCanvas,baseName,forceDownload,msgEl){
+  try{if(document.fonts&&document.fonts.ready)await document.fonts.ready;}catch(e){}
+  const cv=makeCanvas();
   cv.toBlob(async(blob)=>{
-    if(!blob){msg.innerHTML='<span class="bad">Could not render image.</span>';return;}
-    const fname=`upcomers-calendar-${calView.getFullYear()}-${pad(calView.getMonth()+1)}.png`;
-    const file=new File([blob],fname,{type:'image/png'});
-    if(!forceDownload && navigator.canShare && navigator.canShare({files:[file]})){
-      try{ await navigator.share({files:[file],title:'My trading calendar',text:'Trading progress'}); msg.innerHTML='<span class="ok">Shared ✓</span>'; return; }
-      catch(e){ if(e&&e.name==='AbortError'){msg.innerHTML='';return;} }
+    if(!blob){if(msgEl)msgEl.innerHTML='<span class="bad">Could not render image.</span>';return;}
+    const fname=baseName+'.png',file=new File([blob],fname,{type:'image/png'});
+    if(!forceDownload&&navigator.canShare&&navigator.canShare({files:[file]})){
+      try{await navigator.share({files:[file],title:'Upcomers Funding Toolkit'});if(msgEl)msgEl.innerHTML='<span class="ok">Shared ✓</span>';return;}
+      catch(e){if(e&&e.name==='AbortError'){if(msgEl)msgEl.innerHTML='';return;}}
     }
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;document.body.appendChild(a);a.click();a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href),1500);
-    msg.innerHTML='<span class="ok">Image saved ✓</span> '+fname;
+    if(msgEl)msgEl.innerHTML='<span class="ok">Image saved ✓</span> '+fname;
   },'image/png');
 }
-if($('calShare'))$('calShare').onclick=()=>shareCal(false);
-if($('calDownload'))$('calDownload').onclick=()=>shareCal(true);
+function imgHead(x,W,title,glow){
+  const bg=x.createLinearGradient(0,0,0,1);
+  // caller fills bg already
+  x.textAlign='left';x.fillStyle='#fff';x.font='700 56px "Space Grotesk",sans-serif';x.fillText(title,60,116);
+  x.fillStyle='#00e58c';x.font='600 30px "JetBrains Mono",monospace';x.fillText(`${P().name} · ${ACTIVE.platform} · $${SZ().toLocaleString()}`,62,164);
+}
+function bgFill(x,W,H,glowCol){
+  const bg=x.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#0b1726');bg.addColorStop(1,'#05080f');x.fillStyle=bg;x.fillRect(0,0,W,H);
+  const rg=x.createRadialGradient(W*0.8,60,0,W*0.8,60,640);rg.addColorStop(0,glowCol||'rgba(0,229,140,.13)');rg.addColorStop(1,'transparent');x.fillStyle=rg;x.fillRect(0,0,W,H);
+}
+function readinessImage(){
+  const p=P(),r=readinessFor(p),W=1080,H=1080,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
+  const ov=r.overall[1]==='ok'?'rgba(0,229,140,.18)':r.overall[1]==='warn'?'rgba(246,181,61,.15)':'rgba(255,91,110,.15)';
+  bgFill(x,W,H,ov);imgHead(x,W,'Challenge Readiness');
+  const bc=r.overall[1]==='ok'?'#00e58c':r.overall[1]==='warn'?'#f6b53d':'#ff5b6e';
+  x.textAlign='center';x.font='800 120px "Space Grotesk",sans-serif';x.fillStyle=bc;x.fillText(r.overall[0],W/2,400);
+  const gates=[['Edge',r.gEdge,r.e?`exp ${r.e.exp>0?'+':''}${r.e.exp.toFixed(2)}R · PF ${r.e.pf===Infinity?'∞':r.e.pf.toFixed(2)} · n${r.e.n}`:'log ≥50 trades'],
+    ['Drawdown fit',r.gDD,r.e?`${r.ddPct.toFixed(1)}% ≤ ${r.ddCap.toFixed(1)}%`:'no data'],
+    ['Consistency',r.gCons,r.m.share!=null?`${r.m.share.toFixed(0)}% ≤ ${p.cons.pct}%`:'no profit yet'],
+    ['Volume',r.gVol,r.volLabel.replace('Volume: ','')]];
+  let gy=500;
+  gates.forEach(g=>{rRect(x,60,gy,W-120,100,16);x.fillStyle='#0a1422';x.fill();x.lineWidth=1.5;x.strokeStyle=g[1]?'rgba(0,229,140,.4)':'#28344a';x.stroke();
+    x.textAlign='left';x.fillStyle=g[1]?'#00e58c':'#ff5b6e';x.font='700 46px "JetBrains Mono",monospace';x.fillText(g[1]?'✓':'✗',92,gy+64);
+    x.fillStyle='#fff';x.font='600 34px "Space Grotesk",sans-serif';x.fillText(g[0],158,gy+48);
+    x.fillStyle='#8aa0bb';x.font='500 26px "JetBrains Mono",monospace';x.fillText(g[2],158,gy+84);gy+=118;});
+  x.textAlign='right';x.fillStyle='#3f4f66';x.font='500 24px "JetBrains Mono",monospace';x.fillText('Upcomers Funding Toolkit',W-60,H-46);
+  return cv;
+}
+function equityImage(){
+  const s=edge(journal),W=1080,H=900,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
+  bgFill(x,W,H);imgHead(x,W,'Equity Curve');
+  const ax=80,ay=220,aw=W-160,ah=380;
+  if(!s){x.textAlign='center';x.fillStyle='#6c7e96';x.font='500 34px "Space Grotesk",sans-serif';x.fillText('No trades logged yet',W/2,ay+ah/2);}
+  else{
+    const data=[0,...s.curve],lo=Math.min(0,...data),hi=Math.max(0,...data);
+    const X=i=>ax+i/((data.length-1)||1)*aw,Y=v=>ay+ah-(v-lo)/((hi-lo)||1)*ah;
+    x.strokeStyle='#1b2942';x.lineWidth=1;for(let g=0;g<=4;g++){const yy=ay+g/4*ah;x.beginPath();x.moveTo(ax,yy);x.lineTo(ax+aw,yy);x.stroke();}
+    let pk=-1e9;const peak=data.map(v=>{pk=Math.max(pk,v);return pk});
+    x.beginPath();peak.forEach((v,i)=>i?x.lineTo(X(i),Y(v)):x.moveTo(X(i),Y(v)));for(let i=data.length-1;i>=0;i--)x.lineTo(X(i),Y(data[i]));x.closePath();x.fillStyle='rgba(255,91,110,.16)';x.fill();
+    x.beginPath();data.forEach((v,i)=>i?x.lineTo(X(i),Y(v)):x.moveTo(X(i),Y(v)));x.strokeStyle='#00e58c';x.lineWidth=3;x.stroke();
+    x.strokeStyle='#28344a';x.lineWidth=1.5;x.beginPath();x.moveTo(ax,Y(0));x.lineTo(ax+aw,Y(0));x.stroke();
+    const stats=[['WIN RATE',(s.winRate*100).toFixed(0)+'%'],['EXPECTANCY',(s.exp>0?'+':'')+s.exp.toFixed(2)+'R'],['PROFIT FACTOR',s.pf===Infinity?'∞':s.pf.toFixed(2)],['MAX DD',s.maxDD.toFixed(1)+'R'],['NET',(s.total>=0?'+':'')+s.total.toFixed(1)+'R']];
+    const bw=(W-120-4*16)/5,fy=680;
+    stats.forEach((st,i)=>{const bx=60+i*(bw+16);rRect(x,bx,fy,bw,130,14);x.fillStyle='#0a1422';x.fill();x.lineWidth=1.5;x.strokeStyle='#1b2942';x.stroke();
+      x.textAlign='center';x.fillStyle='#6c7e96';x.font='600 17px "JetBrains Mono",monospace';x.fillText(st[0],bx+bw/2,fy+38);
+      x.fillStyle='#fff';x.font='700 36px "JetBrains Mono",monospace';x.fillText(st[1],bx+bw/2,fy+90);});
+  }
+  x.textAlign='right';x.fillStyle='#3f4f66';x.font='500 22px "JetBrains Mono",monospace';x.fillText('Upcomers Funding Toolkit',W-60,H-38);
+  return cv;
+}
+const monStamp=()=>`${calView.getFullYear()}-${pad(calView.getMonth()+1)}`;
+if($('calShare'))$('calShare').onclick=()=>shareCanvas(calImage,'upcomers-calendar-'+monStamp(),false,$('calShareMsg'));
+if($('calDownload'))$('calDownload').onclick=()=>shareCanvas(calImage,'upcomers-calendar-'+monStamp(),true,$('calShareMsg'));
+if($('readyShare'))$('readyShare').onclick=()=>shareCanvas(readinessImage,'upcomers-readiness-'+P().name.toLowerCase(),false,$('readyShareMsg'));
+if($('readyDownload'))$('readyDownload').onclick=()=>shareCanvas(readinessImage,'upcomers-readiness-'+P().name.toLowerCase(),true,$('readyShareMsg'));
+if($('eqShare'))$('eqShare').onclick=()=>shareCanvas(equityImage,'upcomers-equity',false,$('eqShareMsg'));
+if($('eqDownload'))$('eqDownload').onclick=()=>shareCanvas(equityImage,'upcomers-equity',true,$('eqShareMsg'));
+
+/* ---------- count-up + standards (scrollspy, installable) ---------- */
+function countUp(el,to,from,dur){from=from||0;dur=dur||600;if(!el)return;
+  if(RM){el.textContent=Math.round(to);return;}
+  el.style.display='inline-block';el.style.animation='countPop .45s ease';
+  const t0=performance.now();(function s(t){const k=Math.min((t-t0)/dur,1),e=1-Math.pow(1-k,3);el.textContent=Math.round(from+(to-from)*e);if(k<1)requestAnimationFrame(s);else el.style.animation='';})(performance.now());}
+function setupStandards(){
+  try{const mf={name:'Upcomers Funding Toolkit',short_name:'Upcomers Toolkit',display:'standalone',background_color:'#05080f',theme_color:'#05080f',start_url:'.'};
+    const l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(new Blob([JSON.stringify(mf)],{type:'application/json'}));document.head.appendChild(l);}catch(e){}
+  const links=new Map([...document.querySelectorAll('.toc a')].map(a=>[a.getAttribute('href').slice(1),a]));
+  const secs=[...document.querySelectorAll('.card[id]')].filter(c=>links.has(c.id));
+  if('IntersectionObserver'in window){
+    const sp=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.remove('active'));const a=links.get(e.target.id);if(a)a.classList.add('active');}}),{rootMargin:'-45% 0px -50% 0px',threshold:0});
+    secs.forEach(s=>sp.observe(s));
+  }
+}
 
 /* ---------- Consistency meters (from logs) ---------- */
 function planMetric(p){
@@ -966,7 +1070,7 @@ function setupReveal(){
   cards.forEach(c=>io.observe(c));
   setTimeout(()=>cards.forEach(c=>c.classList.add('in')),1500); // safety
 }
-function init(){acctSummary();drawCmp();calcRisk();calcTrack();renderJ();renderCal();renderConsistency();renderReadiness();calcProj();setupReveal();}
+function init(){acctSummary();drawCmp();calcRisk();calcTrack();renderJ();renderCal();renderConsistency();renderReadiness();calcProj();setupReveal();setupStandards();}
 window.addEventListener('resize',()=>{drawCmp();renderJ();calcProj();});
 init();
 </script>
