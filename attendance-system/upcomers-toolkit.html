@@ -86,6 +86,12 @@
   .cal-d b{font-size:.66rem;font-family:'JetBrains Mono',monospace}
   .cal-empty{visibility:hidden}
   .cal-today{outline:2px solid var(--cyan);outline-offset:-2px}
+  .meter{margin:14px 0}
+  .meter-top{display:flex;justify-content:space-between;align-items:center;font-size:.82rem;margin-bottom:6px;gap:10px}
+  .meter-bar{height:13px;border-radius:8px;background:#070d16;border:1px solid var(--line);position:relative;overflow:visible}
+  .meter-fill{height:100%;border-radius:8px;transition:width .35s ease}
+  .meter-cap{position:absolute;top:-4px;bottom:-4px;width:2px;background:#fff;opacity:.65}
+  .meter-cap small{position:absolute;top:-15px;left:50%;transform:translateX(-50%);font-size:.58rem;color:var(--muted);white-space:nowrap}
 </style>
 </head>
 <body>
@@ -107,7 +113,7 @@
   </div>
 
   <div class="toc">
-    <a href="#cmp">Plans</a><a href="#calc">Risk calc</a><a href="#track">Live tracker</a><a href="#jrnl">Journal &amp; edge</a><a href="#cal">Calendar</a><a href="#proj">Path to $100k</a>
+    <a href="#cmp">Plans</a><a href="#calc">Risk calc</a><a href="#track">Live tracker</a><a href="#jrnl">Journal &amp; edge</a><a href="#cal">Calendar</a><a href="#cons">Consistency</a><a href="#proj">Path to $100k</a>
   </div>
 
   <!-- COMPARISON -->
@@ -224,6 +230,14 @@
         <div class="legend"><span><i style="background:var(--emer)"></i>≥0.5% (counts)</span><span><i style="background:var(--amber)"></i>0–0.5%</span><span><i style="background:var(--red)"></i>loss</span></div>
       </div>
     </div>
+  </div>
+
+  <!-- CONSISTENCY METERS -->
+  <div class="card" id="cons">
+    <h2>Consistency meters — live from your logs</h2>
+    <p class="sub" style="margin:4px 0 14px"><b class="ok">Best-day rule</b> for march plans (largest day's share of net profit, from the calendar) · <b class="vio">best-trade / consistency rule</b> for sprints (largest trade's share of net profit, from the journal). Each bar must stay left of its cap line.</p>
+    <div id="consBody"></div>
+    <p class="sub" style="margin-top:10px">Share = biggest single day/trade ÷ net logged profit. Over the cap means one day/trade carries too much — spread profit across more of them.</p>
   </div>
 
   <!-- PROJECTION -->
@@ -433,6 +447,7 @@ function renderJ(){
   document.querySelectorAll('.jDel').forEach(b=>b.onclick=()=>{journal.splice(+b.dataset.i,1);saveJ();renderJ();});
   const s=edge(journal);
   drawEquity(s?s.curve:null);
+  if(typeof renderConsistency==='function')renderConsistency();
   if(!s){jStats.innerHTML='<p class="sub">No trades yet. Log 30–50 to read your edge; 100+ before trusting it.</p>';return;}
   const exC=s.exp>0.1?'ok':s.exp>0?'warn':'bad', pfC=s.pf>=1.3?'ok':s.pf>=1?'warn':'bad';
   const ready=s.n>=100&&s.exp>0.1&&s.pf>=1.3&&s.maxDD<=8, almost=s.n>=50&&s.exp>0&&s.pf>=1.1;
@@ -553,6 +568,7 @@ function renderCal(){
   if(need)h+=`<div class="row"><span>Valid days vs ${p.name} (need ${need})</span><b class="${totalValid>=need?'ok':'warn'}">${totalValid}/${need} ${totalValid>=need?'✓':''}</b></div>`;
   else h+=`<div class="row"><span>${p.name}</span><b class="vio">timed sprint — no march</b></div>`;
   calStats.innerHTML=h;
+  if(typeof renderConsistency==='function')renderConsistency();
 }
 calAdd.onclick=()=>{const v=parseFloat(calPct.value);if(!calDate.value||isNaN(v))return;cal[calDate.value]={v:+v.toFixed(2),auto:false};saveC();renderCal();};
 calDel.onclick=()=>{if(calDate.value&&cal[calDate.value]!=null){delete cal[calDate.value];saveC();renderCal();}};
@@ -563,9 +579,41 @@ calPlan.onchange=renderCal;
 calDate.value=todayStr();
 if($('jDate'))$('jDate').value=todayStr();
 
+/* ---------- Consistency meters (from logs) ---------- */
+function planMetric(p){
+  if(p.cons.type==='day'){
+    const days=Object.values(cal).map(calVal).filter(v=>v!=null);
+    const net=days.reduce((a,b)=>a+b,0), best=days.length?Math.max(0,...days.filter(v=>v>0)):0;
+    return {share:net>0?best/net*100:null, n:days.length, unit:'days', net};
+  }
+  const R=journal.map(t=>+t.r);
+  const net=R.reduce((a,b)=>a+b,0), best=R.length?Math.max(0,...R.filter(v=>v>0)):0;
+  return {share:net>0?best/net*100:null, n:R.length, unit:'trades', net};
+}
+function meterHTML(p){
+  const m=planMetric(p), cap=p.cons.pct;
+  const famTag=p.fam==='march'?`best-day ${cap}%${p.cons.soft?' soft':''}`:(p.cons.type==='score'?`consistency ${cap}%`:`best-trade ${cap}%`);
+  const tagCls=p.fam==='march'?'t-march':'t-sprint';
+  let body;
+  if(m.share==null){
+    body=`<div class="meter-bar"><div class="meter-fill" style="width:0"></div></div>
+      <div class="sub" style="margin-top:5px">No net profit logged yet (${m.n} ${m.unit}). Log ${p.fam==='march'?'green days on the calendar':'winning trades in the journal'}.</div>`;
+  } else {
+    const ok=m.share<=cap, scale=Math.max(cap*2, m.share*1.1);
+    const fillW=Math.min(m.share/scale*100,100), capL=cap/scale*100;
+    body=`<div class="meter-bar">
+        <div class="meter-fill" style="width:${fillW}%;background:${ok?'var(--emer)':'var(--red)'};box-shadow:0 0 10px ${ok?'rgba(0,229,140,.4)':'rgba(255,91,110,.4)'}"></div>
+        <div class="meter-cap" style="left:${capL}%"><small>cap ${cap}%</small></div>
+      </div>
+      <div class="sub" style="margin-top:5px"><b class="${ok?'ok':'bad'}">${m.share.toFixed(1)}%</b> of net profit in the biggest ${m.unit.slice(0,-1)} — <b class="${ok?'ok':'bad'}">${ok?'within cap ✓':'BREACH ✗'}</b> · ${m.n} ${m.unit}${ok?'':` · need ≥ ${Math.ceil(100/cap)} balanced ${m.unit}`}</div>`;
+  }
+  return `<div class="meter"><div class="meter-top"><b>${p.name} <span class="tag ${tagCls}" style="margin-left:6px">${famTag}</span></b><span class="muted">${m.unit} log</span></div>${body}</div>`;
+}
+function renderConsistency(){ if($('consBody')) $('consBody').innerHTML=PLANS.map(meterHTML).join(''); }
+
 /* ---------- clock + init ---------- */
 setInterval(()=>{$('liveClock').textContent=new Date().toLocaleTimeString('en-GB')},1000);
-function init(){drawCmp();calcRisk();calcTrack();renderJ();renderCal();calcProj();}
+function init(){drawCmp();calcRisk();calcTrack();renderJ();renderCal();renderConsistency();calcProj();}
 window.addEventListener('resize',()=>{drawCmp();renderJ();calcProj();});
 init();
 </script>
