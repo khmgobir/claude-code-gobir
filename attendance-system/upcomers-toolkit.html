@@ -122,7 +122,7 @@
   .cal-h{font-size:.6rem;color:var(--muted);text-align:center;text-transform:uppercase;letter-spacing:.04em;padding-bottom:2px}
   .cal-d{aspect-ratio:1;border-radius:9px;border:1px solid var(--line);background:#070d16;
     display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:.12s}
-  .cal-d:hover{border-color:var(--emer)}
+  .cal-d:hover{border-color:var(--emer);transform:translateY(-2px)}
   .cal-d small{font-size:.58rem;color:var(--muted);position:absolute;top:4px;left:6px}
   .cal-d b{font-size:.66rem;font-family:'JetBrains Mono',monospace}
   .cal-empty{visibility:hidden}
@@ -337,6 +337,11 @@
         </div>
         <div id="calGrid"></div>
         <div class="legend"><span><i style="background:var(--emer)"></i>≥0.5% (counts)</span><span><i style="background:var(--amber)"></i>0–0.5%</span><span><i style="background:var(--red)"></i>loss</span></div>
+        <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+          <button class="btn btn-pri" id="calShare" style="flex:1">📸 Share progress</button>
+          <button class="btn btn-gho" id="calDownload">⬇ Save image</button>
+        </div>
+        <div id="calShareMsg" class="sub" style="margin-top:8px"></div>
       </div>
     </div>
   </div>
@@ -758,7 +763,7 @@ function renderCal(){
   for(let i=0;i<startDow;i++)html+='<div class="cal-d cal-empty"></div>';
   for(let d=1;d<=days;d++){
     const k=`${y}-${pad(mo+1)}-${pad(d)}`, v=calVal(cal[k]), col=colDay(v), auto=cal[k]&&typeof cal[k]==='object'&&cal[k].auto;
-    const style=col?`background:color-mix(in srgb,${col} 14%,transparent);border-color:${col}`:'';
+    const style=col?`background:linear-gradient(155deg,color-mix(in srgb,${col} 26%,transparent),color-mix(in srgb,${col} 7%,transparent));border-color:${col};box-shadow:0 0 16px color-mix(in srgb,${col} 16%,transparent)`:'';
     const dot=auto?'<i style="position:absolute;bottom:4px;right:5px;width:5px;height:5px;border-radius:50%;background:var(--cyan)"></i>':'';
     const val=v!=null?`<b style="color:${col}">${v>0?'+':''}${v}%</b>`:'';
     html+=`<div class="cal-d ${k===todayK?'cal-today':''}" data-k="${k}" style="${style}" title="${auto?'auto from journal':'manual'}"><small>${d}</small>${val}${dot}</div>`;
@@ -787,6 +792,72 @@ calPrev.onclick=()=>{calView.setMonth(calView.getMonth()-1);renderCal();};
 calNext.onclick=()=>{calView.setMonth(calView.getMonth()+1);renderCal();};
 calDate.value=todayStr();
 if($('jDate'))$('jDate').value=todayStr();
+
+/* ---------- Calendar → shareable image (Canvas) ---------- */
+function rRect(x,X,Y,w,h,r){x.beginPath();x.moveTo(X+r,Y);x.arcTo(X+w,Y,X+w,Y+h,r);x.arcTo(X+w,Y+h,X,Y+h,r);x.arcTo(X,Y+h,X,Y,r);x.arcTo(X,Y,X+w,Y,r);x.closePath();}
+function calImage(){
+  const y=calView.getFullYear(),mo=calView.getMonth(),p=P();
+  const W=1080,H=1350,cv=document.createElement('canvas');cv.width=W;cv.height=H;const x=cv.getContext('2d');
+  const bg=x.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#0b1726');bg.addColorStop(1,'#05080f');x.fillStyle=bg;x.fillRect(0,0,W,H);
+  let rg=x.createRadialGradient(W*0.82,60,0,W*0.82,60,640);rg.addColorStop(0,'rgba(0,229,140,.14)');rg.addColorStop(1,'transparent');x.fillStyle=rg;x.fillRect(0,0,W,H);
+  // header
+  x.textAlign='left';x.fillStyle='#fff';x.font='700 56px "Space Grotesk",sans-serif';x.fillText('Trading Calendar',60,118);
+  x.fillStyle='#00e58c';x.font='600 30px "JetBrains Mono",monospace';x.fillText(`${p.name} · ${ACTIVE.platform} · $${SZ().toLocaleString()}`,62,166);
+  x.fillStyle='#8aa0bb';x.font='500 36px "Space Grotesk",sans-serif';x.fillText(calView.toLocaleString('en',{month:'long',year:'numeric'}),62,224);
+  // grid
+  const gx=60,gy=300,cw=(W-120)/7,ch=128,gap=10;
+  const dows=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  x.textAlign='center';x.font='600 24px "JetBrains Mono",monospace';
+  dows.forEach((d,i)=>{x.fillStyle='#6c7e96';x.fillText(d,gx+cw*i+cw/2,gy-18);});
+  const startDow=new Date(y,mo,1).getDay(),days=new Date(y,mo+1,0).getDate();let lastRow=0;
+  for(let d=1;d<=days;d++){
+    const cell=startDow+d-1,col=cell%7,row=Math.floor(cell/7);lastRow=row;
+    const k=`${y}-${pad(mo+1)}-${pad(d)}`,v=calVal(cal[k]);
+    const cx=gx+col*cw,cy=gy+row*(ch+gap);
+    let fill='#0c1726',bd='#1b2942',tc='#6c7e96';
+    if(v!=null){ if(v>=0.5){fill='rgba(0,229,140,.20)';bd='#00e58c';tc='#00e58c';}
+      else if(v>0){fill='rgba(246,181,61,.18)';bd='#f6b53d';tc='#f6b53d';}
+      else if(v<0){fill='rgba(255,91,110,.18)';bd='#ff5b6e';tc='#ff5b6e';}
+      else{fill='rgba(120,135,160,.14)';bd='#56657d';tc='#9fb0c6';} }
+    rRect(x,cx+4,cy+4,cw-8,ch-8,16);x.fillStyle=fill;x.fill();x.lineWidth=2;x.strokeStyle=bd;x.stroke();
+    x.textAlign='left';x.fillStyle='#9fb0c6';x.font='600 22px "JetBrains Mono",monospace';x.fillText(d,cx+18,cy+38);
+    if(v!=null){x.textAlign='center';x.fillStyle=tc;x.font='700 32px "JetBrains Mono",monospace';x.fillText((v>0?'+':'')+v+'%',cx+cw/2,cy+ch/2+26);}
+  }
+  // stats
+  const all=Object.entries(cal).map(([k,xx])=>[k,calVal(xx)]),pref=`${y}-${pad(mo+1)}`;
+  const month=all.filter(([k])=>k.startsWith(pref));
+  const valid=month.filter(([,v])=>v>=0.5).length,traded=month.length,net=month.reduce((a,[,v])=>a+(+v),0);
+  const totalValid=all.filter(([,v])=>v>=0.5).length,need=p.validDays||0;
+  const fy=gy+(lastRow+1)*(ch+gap)+30,bw=(W-120-3*16)/4;
+  const stats=[['VALID DAYS',need?`${valid}/${need}`:String(valid),'#00e58c'],['TRADING DAYS',String(traded),'#fff'],
+    ['NET MONTH',(net>0?'+':'')+net.toFixed(1)+'%',net>=0?'#00e58c':'#ff5b6e'],['VS TARGET',need?`${totalValid}/${need}`:'—',totalValid>=need&&need?'#00e58c':'#f6b53d']];
+  stats.forEach((s,i)=>{const bx=gx+i*(bw+16);rRect(x,bx,fy,bw,150,16);x.fillStyle='#0a1422';x.fill();x.lineWidth=1.5;x.strokeStyle='#1b2942';x.stroke();
+    x.textAlign='center';x.fillStyle='#6c7e96';x.font='600 19px "JetBrains Mono",monospace';x.fillText(s[0],bx+bw/2,fy+44);
+    x.fillStyle=s[2];x.font='700 46px "JetBrains Mono",monospace';x.fillText(s[1],bx+bw/2,fy+108);});
+  // footer
+  x.textAlign='left';x.fillStyle='#5a6b83';x.font='500 24px "JetBrains Mono",monospace';x.fillText('Daily march · +0.5% = valid day',60,H-54);
+  x.textAlign='right';x.fillStyle='#3f4f66';x.fillText('Upcomers Funding Toolkit',W-60,H-54);
+  return cv;
+}
+async function shareCal(forceDownload){
+  const msg=$('calShareMsg');
+  try{ if(document.fonts&&document.fonts.ready) await document.fonts.ready; }catch(e){}
+  const cv=calImage();
+  cv.toBlob(async(blob)=>{
+    if(!blob){msg.innerHTML='<span class="bad">Could not render image.</span>';return;}
+    const fname=`upcomers-calendar-${calView.getFullYear()}-${pad(calView.getMonth()+1)}.png`;
+    const file=new File([blob],fname,{type:'image/png'});
+    if(!forceDownload && navigator.canShare && navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file],title:'My trading calendar',text:'Trading progress'}); msg.innerHTML='<span class="ok">Shared ✓</span>'; return; }
+      catch(e){ if(e&&e.name==='AbortError'){msg.innerHTML='';return;} }
+    }
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1500);
+    msg.innerHTML='<span class="ok">Image saved ✓</span> '+fname;
+  },'image/png');
+}
+if($('calShare'))$('calShare').onclick=()=>shareCal(false);
+if($('calDownload'))$('calDownload').onclick=()=>shareCal(true);
 
 /* ---------- Consistency meters (from logs) ---------- */
 function planMetric(p){
