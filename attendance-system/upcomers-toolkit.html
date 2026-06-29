@@ -70,6 +70,31 @@
   .axis text{fill:var(--muted);font-size:10px;font-family:'JetBrains Mono',monospace}
   .axis path,.axis line{stroke:var(--line)}
   .grid-line{stroke:var(--line);stroke-dasharray:2 4;opacity:.5}
+  /* table wrappers scroll smoothly on touch */
+  .tscroll,div[style*="overflow-x"]{ -webkit-overflow-scrolling:touch }
+  @media(max-width:680px){
+    body{padding:14px}
+    h1{font-size:1.35rem}
+    .hero{flex-direction:column;align-items:flex-start;gap:10px}
+    .stats{gap:16px}.stat{text-align:left}
+    .card{padding:16px;border-radius:13px}
+    h2{font-size:.98rem}
+    .toc{gap:6px;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}
+    .toc a{font-size:.72rem;padding:5px 11px;white-space:nowrap}
+    table{font-size:.76rem}th,td{padding:7px 6px}
+    .big{font-size:1.55rem}
+    .row{font-size:.8rem;gap:8px}
+    label{font-size:.66rem;margin:9px 0 4px}
+    input,select{font-size:.85rem;padding:9px 10px}
+    .spec{font-size:.66rem;padding:4px 9px}
+    .btn{padding:10px 12px;font-size:.82rem}
+  }
+  @media(max-width:400px){
+    .cal-d small{font-size:.5rem;top:3px;left:4px}.cal-d b{font-size:.55rem}
+    .cal-grid{gap:3px}
+    .meter-top{font-size:.76rem}
+    .stat b{font-size:1rem}
+  }
   footer{color:var(--muted);font-size:.75rem;margin-top:22px;text-align:center}
   a{color:var(--cyan);text-decoration:none}
   .legend{display:flex;gap:14px;font-size:.72rem;color:var(--muted);margin-top:8px;flex-wrap:wrap}
