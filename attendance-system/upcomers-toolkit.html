@@ -171,11 +171,13 @@
     <p class="sub" style="margin:4px 0 12px">Log each trade as an <b>R-multiple</b> (+2 = 2× risk won, −1 = full stop, 0 = breakeven). Saved in this browser. Prove the edge here before paying a fee.</p>
     <div class="grid">
       <div>
+        <label>Date</label><input id="jDate" type="date" />
         <label>Instrument</label><input id="jInstr" type="text" placeholder="EURUSD, XAUUSD, BTCUSD…" />
         <label>Direction</label><select id="jDir"><option>Long</option><option>Short</option></select>
       </div>
       <div>
         <label>Result (R-multiple)</label><input id="jR" class="mono" type="number" step="0.1" placeholder="e.g. 2 or -1" />
+        <label>Risk per trade % (R→% for calendar)</label><input id="jRisk" class="mono" type="number" step="0.1" value="0.5" />
         <label>Note (optional)</label><input id="jNote" type="text" placeholder="setup / mistake / tag" />
       </div>
     </div>
@@ -192,23 +194,24 @@
       </div>
     </div>
     <div style="overflow-x:auto;margin-top:14px;max-height:220px;overflow-y:auto">
-      <table id="jTable"><thead><tr><th>#</th><th>Instrument</th><th>Dir</th><th class="mono">R</th><th>Note</th><th></th></tr></thead><tbody></tbody></table>
+      <table id="jTable"><thead><tr><th>#</th><th>Date</th><th>Instrument</th><th>Dir</th><th class="mono">R</th><th>Note</th><th></th></tr></thead><tbody></tbody></table>
     </div>
   </div>
 
   <!-- TRADING CALENDAR -->
   <div class="card" id="cal">
     <h2>Trading calendar — daily march tracker</h2>
-    <p class="sub" style="margin:4px 0 12px">Log each day's realized result as % of account. <b class="ok">Green ≥ +0.5%</b> = the day counts toward your valid days. <b class="warn">Amber</b> = positive but doesn't count. Click any day to edit.</p>
+    <p class="sub" style="margin:4px 0 12px"><b class="ok">Auto-fills from your journal</b> — each logged trade's date sums into that day (R × risk%). <b class="ok">Green ≥ +0.5%</b> counts toward valid days, <b class="warn">amber</b> = positive but short, <b class="bad">red</b> = loss. Click any day to edit manually.</p>
     <div class="grid">
       <div>
         <label>Plan (for valid-day target)</label><select id="calPlan"></select>
         <label>Date</label><input id="calDate" type="date" />
         <label>Day result (% of account)</label><input id="calPct" class="mono" type="number" step="0.1" placeholder="e.g. 0.8 or -0.4" />
-        <div style="display:flex;gap:10px;margin-top:12px">
-          <button class="btn btn-pri" id="calAdd" style="flex:1">Save day</button>
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+          <button class="btn btn-pri" id="calAdd" style="flex:1">Save day (manual)</button>
           <button class="btn btn-gho" id="calDel" style="color:var(--red)">Delete</button>
         </div>
+        <button class="btn btn-gho" id="calSync" style="width:100%;margin-top:10px">⟳ Rebuild calendar from journal</button>
         <div class="out" id="calStats" style="margin-top:14px"></div>
       </div>
       <div>
@@ -416,7 +419,7 @@ function drawEquity(curve){
 function renderJ(){
   const tb=document.querySelector('#jTable tbody'); tb.innerHTML='';
   journal.slice().reverse().forEach((t,ri)=>{const idx=journal.length-ri, c=(+t.r>0)?'ok':(+t.r<0)?'bad':'muted';
-    tb.insertAdjacentHTML('beforeend',`<tr><td>${idx}</td><td>${t.instr||'—'}</td><td>${t.dir||''}</td><td class="mono ${c}">${+t.r>0?'+':''}${t.r}R</td><td class="muted" style="font-size:.78rem">${t.note||''}</td><td><button data-i="${journal.length-1-ri}" class="jDel" style="background:none;border:none;color:var(--red);cursor:pointer">✕</button></td></tr>`);});
+    tb.insertAdjacentHTML('beforeend',`<tr><td>${idx}</td><td class="muted" style="font-size:.74rem">${t.date||'—'}</td><td>${t.instr||'—'}</td><td>${t.dir||''}</td><td class="mono ${c}">${+t.r>0?'+':''}${t.r}R</td><td class="muted" style="font-size:.78rem">${t.note||''}</td><td><button data-i="${journal.length-1-ri}" class="jDel" style="background:none;border:none;color:var(--red);cursor:pointer">✕</button></td></tr>`);});
   document.querySelectorAll('.jDel').forEach(b=>b.onclick=()=>{journal.splice(+b.dataset.i,1);saveJ();renderJ();});
   const s=edge(journal);
   drawEquity(s?s.curve:null);
@@ -437,9 +440,18 @@ function renderJ(){
     <div class="row" style="border-top:1px solid var(--line);margin-top:6px;padding-top:10px"><span>Verdict</span><b class="${v[1]}">${v[0]}</b></div>
     <p class="sub" style="margin-top:6px">${v[2]}</p>`;
 }
-jAdd.onclick=()=>{const r=parseFloat(jR.value);if(isNaN(r)){jR.focus();return;}journal.push({instr:jInstr.value.trim(),dir:jDir.value,r,note:jNote.value.trim()});saveJ();jR.value='';jNote.value='';jInstr.focus();renderJ();};
+jAdd.onclick=()=>{const r=parseFloat(jR.value);if(isNaN(r)){jR.focus();return;}
+  const date=jDate.value||todayStr();
+  journal.push({date,instr:jInstr.value.trim(),dir:jDir.value,r,note:jNote.value.trim()});
+  saveJ();jR.value='';jNote.value='';jInstr.focus();
+  syncDay(date); renderJ();};
 jClear.onclick=()=>{if(confirm('Delete all logged trades?')){journal=[];saveJ();renderJ();}};
-jSeed.onclick=()=>{const demo=[],ins=['EURUSD','XAUUSD','GBPJPY','BTCUSD','US100'];for(let i=0;i<60;i++){const win=Math.random()<0.46;const r=win?(1+Math.round(Math.random()*20)/10):(-1+(Math.random()<0.15?0.5:0));demo.push({instr:ins[i%5],dir:Math.random()<0.5?'Long':'Short',r:+r.toFixed(1),note:win?'A+ setup':'stopped'});}journal=journal.concat(demo);saveJ();renderJ();};
+jSeed.onclick=()=>{const ins=['EURUSD','XAUUSD','GBPJPY','BTCUSD','US100'];
+  const base=new Date(); base.setDate(1);
+  for(let i=0;i<60;i++){const win=Math.random()<0.46;const r=win?(1+Math.round(Math.random()*20)/10):(-1+(Math.random()<0.15?0.5:0));
+    const d=new Date(base); d.setDate(1+Math.floor(i*0.45));
+    journal.push({date:d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()),instr:ins[i%5],dir:Math.random()<0.5?'Long':'Short',r:+r.toFixed(1),note:win?'A+ setup':'stopped'});}
+  saveJ();rebuildCal();renderJ();};
 
 /* ---------- Projection + chart ---------- */
 function drawProj(rows,goal){
@@ -480,7 +492,28 @@ const saveC=()=>localStorage.setItem(CKEY,JSON.stringify(cal));
 let calView=new Date(); calView.setDate(1);
 PLANS.forEach((p,i)=>calPlan.insertAdjacentHTML('beforeend',`<option value="${i}">${p.name}</option>`));
 const pad=n=>String(n).padStart(2,'0');
+const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());};
 function colDay(v){ if(v==null)return null; if(v>=0.5)return'var(--emer)'; if(v>0)return'var(--amber)'; if(v===0)return'var(--muted)'; return'var(--red)'; }
+// Auto-fill: recompute one day's % from journal trades on that date (sum R × risk%)
+function syncDay(date){
+  const risk=parseFloat(($('jRisk')||{}).value)||0.5;
+  const todays=journal.filter(t=>t.date===date);
+  if(todays.length){ const sumR=todays.reduce((a,t)=>a+(+t.r),0); cal[date]={v:+(sumR*risk).toFixed(2),auto:true}; }
+  else if(cal[date]&&cal[date].auto){ delete cal[date]; }
+  saveC(); if(typeof renderCal==='function') renderCal();
+}
+// Rebuild every journal-derived day (preserves manual-only days)
+function rebuildCal(){
+  const risk=parseFloat(($('jRisk')||{}).value)||0.5;
+  // drop existing auto days, then re-derive
+  Object.keys(cal).forEach(k=>{ if(cal[k]&&cal[k].auto) delete cal[k]; });
+  const byDay={};
+  journal.forEach(t=>{ if(t.date){ byDay[t.date]=(byDay[t.date]||0)+(+t.r); } });
+  Object.entries(byDay).forEach(([d,sumR])=>{ cal[d]={v:+(sumR*risk).toFixed(2),auto:true}; });
+  saveC(); if(typeof renderCal==='function') renderCal();
+}
+// normalize stored value (supports legacy plain-number and {v,auto})
+const calVal=x=> x==null?null : (typeof x==='object'?x.v:x);
 function renderCal(){
   const y=calView.getFullYear(), mo=calView.getMonth();
   calMonth.textContent=calView.toLocaleString('en',{month:'long',year:'numeric'});
@@ -490,16 +523,17 @@ function renderCal(){
   ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d=>html+=`<div class="cal-h">${d}</div>`);
   for(let i=0;i<startDow;i++)html+='<div class="cal-d cal-empty"></div>';
   for(let d=1;d<=days;d++){
-    const k=`${y}-${pad(mo+1)}-${pad(d)}`, v=cal[k], col=colDay(v);
+    const k=`${y}-${pad(mo+1)}-${pad(d)}`, v=calVal(cal[k]), col=colDay(v), auto=cal[k]&&typeof cal[k]==='object'&&cal[k].auto;
     const style=col?`background:color-mix(in srgb,${col} 14%,transparent);border-color:${col}`:'';
+    const dot=auto?'<i style="position:absolute;bottom:4px;right:5px;width:5px;height:5px;border-radius:50%;background:var(--cyan)"></i>':'';
     const val=v!=null?`<b style="color:${col}">${v>0?'+':''}${v}%</b>`:'';
-    html+=`<div class="cal-d ${k===todayK?'cal-today':''}" data-k="${k}" style="${style}"><small>${d}</small>${val}</div>`;
+    html+=`<div class="cal-d ${k===todayK?'cal-today':''}" data-k="${k}" style="${style}" title="${auto?'auto from journal':'manual'}"><small>${d}</small>${val}${dot}</div>`;
   }
   html+='</div>'; calGrid.innerHTML=html;
-  calGrid.querySelectorAll('.cal-d[data-k]').forEach(el=>el.onclick=()=>{calDate.value=el.dataset.k;calPct.value=cal[el.dataset.k]??'';});
+  calGrid.querySelectorAll('.cal-d[data-k]').forEach(el=>el.onclick=()=>{calDate.value=el.dataset.k;calPct.value=calVal(cal[el.dataset.k])??'';});
   // stats
   const p=PLANS[+calPlan.value], pref=`${y}-${pad(mo+1)}`;
-  const all=Object.entries(cal), month=all.filter(([k])=>k.startsWith(pref));
+  const all=Object.entries(cal).map(([k,x])=>[k,calVal(x)]), month=all.filter(([k])=>k.startsWith(pref));
   const valid=month.filter(([,v])=>v>=0.5).length, traded=month.length;
   const net=month.reduce((a,[,v])=>a+(+v),0);
   const totalValid=all.filter(([,v])=>v>=0.5).length, need=p.validDays||0;
@@ -510,12 +544,14 @@ function renderCal(){
   else h+=`<div class="row"><span>${p.name}</span><b class="vio">timed sprint — no march</b></div>`;
   calStats.innerHTML=h;
 }
-calAdd.onclick=()=>{const v=parseFloat(calPct.value);if(!calDate.value||isNaN(v))return;cal[calDate.value]=+v.toFixed(2);saveC();renderCal();};
+calAdd.onclick=()=>{const v=parseFloat(calPct.value);if(!calDate.value||isNaN(v))return;cal[calDate.value]={v:+v.toFixed(2),auto:false};saveC();renderCal();};
 calDel.onclick=()=>{if(calDate.value&&cal[calDate.value]!=null){delete cal[calDate.value];saveC();renderCal();}};
+calSync.onclick=rebuildCal;
 calPrev.onclick=()=>{calView.setMonth(calView.getMonth()-1);renderCal();};
 calNext.onclick=()=>{calView.setMonth(calView.getMonth()+1);renderCal();};
 calPlan.onchange=renderCal;
-calDate.value=new Date().getFullYear()+'-'+pad(new Date().getMonth()+1)+'-'+pad(new Date().getDate());
+calDate.value=todayStr();
+if($('jDate'))$('jDate').value=todayStr();
 
 /* ---------- clock + init ---------- */
 setInterval(()=>{$('liveClock').textContent=new Date().toLocaleTimeString('en-GB')},1000);
