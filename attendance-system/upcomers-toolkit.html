@@ -70,6 +70,17 @@
   .axis text{fill:var(--muted);font-size:10px;font-family:'JetBrains Mono',monospace}
   .axis path,.axis line{stroke:var(--line)}
   .grid-line{stroke:var(--line);stroke-dasharray:2 4;opacity:.5}
+  .ready-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:12px}
+  .ready-card{background:#070d16;border:1px solid var(--line);border-radius:12px;padding:14px;transition:border-color .2s,transform .15s}
+  .ready-card:hover{transform:translateY(-2px)}
+  .ready-card.is-ready{border-color:rgba(0,229,140,.45)}
+  .ready-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .badge{font-family:'JetBrains Mono',monospace;font-size:.64rem;font-weight:700;padding:3px 9px;border-radius:100px;letter-spacing:.06em}
+  .badge.ok{background:rgba(0,229,140,.16);color:var(--emer);box-shadow:0 0 14px rgba(0,229,140,.3);animation:glowPulse 2.6s ease-in-out infinite}
+  .badge.warn{background:rgba(246,181,61,.16);color:var(--amber)}
+  .badge.bad{background:rgba(255,91,110,.16);color:var(--red)}
+  .ready-row{display:flex;gap:8px;align-items:flex-start;font-size:.75rem;color:var(--muted);padding:3px 0}
+  .ready-row .ok{color:var(--emer)}.ready-row .bad{color:var(--red)}
   /* table wrappers scroll smoothly on touch */
   .tscroll,div[style*="overflow-x"]{ -webkit-overflow-scrolling:touch }
   @media(max-width:680px){
@@ -190,7 +201,7 @@
   </div>
 
   <div class="toc">
-    <a href="#cmp">Plans</a><a href="#calc">Risk calc</a><a href="#track">Live tracker</a><a href="#jrnl">Journal &amp; edge</a><a href="#cal">Calendar</a><a href="#cons">Consistency</a><a href="#proj">Path to $100k</a><a href="#rules">Rules reference</a>
+    <a href="#cmp">Plans</a><a href="#calc">Risk calc</a><a href="#track">Live tracker</a><a href="#jrnl">Journal &amp; edge</a><a href="#cal">Calendar</a><a href="#cons">Consistency</a><a href="#ready">Readiness</a><a href="#proj">Path to $100k</a><a href="#rules">Rules reference</a><a href="#backup">Backup</a>
   </div>
 
   <!-- COMPARISON -->
@@ -317,6 +328,13 @@
     <p class="sub" style="margin-top:10px">Share = biggest single day/trade ÷ net logged profit. Over the cap means one day/trade carries too much — spread profit across more of them.</p>
   </div>
 
+  <!-- CHALLENGE READINESS -->
+  <div class="card" id="ready">
+    <h2>Challenge readiness — per plan</h2>
+    <p class="sub" style="margin:4px 0 14px">Four gates from your logs: a <b>proven edge</b>, <b>drawdown</b> that fits the shield, <b>consistency</b> within cap, and enough <b>volume</b> (min trades / valid days). All four green = you've earned the right to risk the fee.</p>
+    <div id="readyBody" class="ready-grid"></div>
+  </div>
+
   <!-- PROJECTION -->
   <div class="card" id="proj">
     <h2>Path to $100,000 (payouts)</h2>
@@ -382,6 +400,17 @@
       </div>
     </details>
     <p class="sub" style="margin-top:8px">Sources: Upcomers help center (Dynamic Risk Shield, Best Day Rule, Payout Structure), reviews. Verify before risking a fee.</p>
+  </div>
+
+  <!-- BACKUP -->
+  <div class="card" id="backup">
+    <h2>Backup — export / import</h2>
+    <p class="sub" style="margin:4px 0 14px">Your journal and calendar live only in this browser. Export a file to keep them safe or move to another device, then import to restore.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-pri" id="bkExport">⬇ Export backup (.json)</button>
+      <label class="btn btn-gho" style="cursor:pointer;display:inline-flex;align-items:center">⬆ Import backup<input id="bkImport" type="file" accept="application/json,.json" style="display:none" /></label>
+    </div>
+    <div id="bkMsg" class="sub" style="margin-top:10px"></div>
   </div>
 
   <footer>
@@ -579,6 +608,7 @@ function renderJ(){
   const s=edge(journal);
   drawEquity(s?s.curve:null);
   if(typeof renderConsistency==='function')renderConsistency();
+  if(typeof renderReadiness==='function')renderReadiness();
   if(!s){jStats.innerHTML='<p class="sub">No trades yet. Log 30–50 to read your edge; 100+ before trusting it.</p>';return;}
   const exC=s.exp>0.1?'ok':s.exp>0?'warn':'bad', pfC=s.pf>=1.3?'ok':s.pf>=1?'warn':'bad';
   const ready=s.n>=100&&s.exp>0.1&&s.pf>=1.3&&s.maxDD<=8, almost=s.n>=50&&s.exp>0&&s.pf>=1.1;
@@ -700,6 +730,7 @@ function renderCal(){
   else h+=`<div class="row"><span>${p.name}</span><b class="vio">timed sprint — no march</b></div>`;
   calStats.innerHTML=h;
   if(typeof renderConsistency==='function')renderConsistency();
+  if(typeof renderReadiness==='function')renderReadiness();
 }
 calAdd.onclick=()=>{const v=parseFloat(calPct.value);if(!calDate.value||isNaN(v))return;cal[calDate.value]={v:+v.toFixed(2),auto:false};saveC();renderCal();};
 calDel.onclick=()=>{if(calDate.value&&cal[calDate.value]!=null){delete cal[calDate.value];saveC();renderCal();}};
@@ -748,6 +779,62 @@ function renderConsistency(){
   else requestAnimationFrame(()=>fills.forEach((el,i)=>{el.style.transitionDelay=(i*40)+'ms';el.style.width=el.dataset.w+'%';}));
 }
 
+/* ---------- Challenge readiness ---------- */
+function readinessFor(p){
+  const e=edge(journal), risk=parseFloat(($('jRisk')||{}).value)||0.5, m=planMetric(p);
+  const gEdge=!!(e&&e.n>=50&&e.exp>0&&e.pf>=1.2);
+  const ddPct=e?e.maxDD*risk:null, ddCap=p.shield*0.8;
+  const gDD=!!(e&&ddPct<=ddCap);
+  const gCons=!!(m.share!=null&&m.share<=p.cons.pct);
+  let gVol,volLabel;
+  if(p.fam==='sprint'){gVol=journal.length>=p.minTrades;volLabel=`Volume: ${journal.length}/${p.minTrades} trades`;}
+  else{const vd=Object.values(cal).map(calVal).filter(v=>v!=null&&v>=0.5).length;gVol=vd>=p.validDays;volLabel=`Volume: ${vd}/${p.validDays} valid days`;}
+  const pass=[gEdge,gDD,gCons,gVol].filter(Boolean).length;
+  const overall=pass===4?['READY','ok']:pass>=3?['ALMOST','warn']:['NOT READY','bad'];
+  return{p,e,m,risk,gEdge,gDD,gCons,gVol,volLabel,ddPct,ddCap,overall,pass};
+}
+function renderReadiness(){
+  if(!$('readyBody'))return;
+  $('readyBody').innerHTML=PLANS.map(p=>{
+    const r=readinessFor(p);
+    const row=(ok,txt)=>`<div class="ready-row"><span class="${ok?'ok':'bad'}">${ok?'✓':'✗'}</span><span>${txt}</span></div>`;
+    const edgeTxt=r.e?`Edge: ${r.e.exp>0?'+':''}${r.e.exp.toFixed(2)}R · PF ${r.e.pf===Infinity?'∞':r.e.pf.toFixed(2)} · n${r.e.n}`:'Edge: log ≥50 trades';
+    const ddTxt=r.e?`Drawdown: ${r.ddPct.toFixed(1)}% ≤ ${r.ddCap.toFixed(1)}% shield-fit`:'Drawdown: no data';
+    const consTxt=r.m.share!=null?`Consistency: ${r.m.share.toFixed(0)}% ≤ ${p.cons.pct}%`:'Consistency: no profit yet';
+    const fam=p.fam==='march'?'t-march':'t-sprint';
+    return `<div class="ready-card ${r.overall[0]==='READY'?'is-ready':''}">
+      <div class="ready-head"><b>${p.name}</b><span class="badge ${r.overall[1]}">${r.overall[0]}</span></div>
+      <span class="tag ${fam}" style="margin-bottom:8px;display:inline-block">${p.fam==='march'?'daily-march':'timed sprint'}</span>
+      ${row(r.gEdge,edgeTxt)}${row(r.gDD,ddTxt)}${row(r.gCons,consTxt)}${row(r.gVol,r.volLabel)}
+    </div>`;
+  }).join('');
+}
+
+/* ---------- Backup: export / import ---------- */
+if($('bkExport'))$('bkExport').onclick=()=>{
+  const data={app:'upcomers-toolkit',version:1,exportedAt:new Date().toISOString(),journal,cal};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='upcomers-backup-'+todayStr()+'.json';document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  $('bkMsg').innerHTML=`<span class="ok">Exported ✓</span> ${journal.length} trades · ${Object.keys(cal).length} calendar days.`;
+};
+if($('bkImport'))$('bkImport').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{try{
+    const d=JSON.parse(rd.result);
+    if(!d||(!('journal'in d)&&!('cal'in d)))throw new Error('not a toolkit backup');
+    if(confirm('Replace current journal + calendar with this backup?')){
+      journal=Array.isArray(d.journal)?d.journal:[];
+      cal=(d.cal&&typeof d.cal==='object')?d.cal:{};
+      saveJ();saveC();renderJ();renderCal();renderConsistency();renderReadiness();
+      $('bkMsg').innerHTML=`<span class="ok">Imported ✓</span> ${journal.length} trades · ${Object.keys(cal).length} days restored.`;
+    }
+  }catch(err){$('bkMsg').innerHTML=`<span class="bad">Import failed:</span> ${err.message}`;}
+  e.target.value='';};
+  rd.readAsText(f);
+};
+
 /* ---------- clock + init ---------- */
 setInterval(()=>{$('liveClock').textContent=new Date().toLocaleTimeString('en-GB')},1000);
 function setupReveal(){
@@ -758,7 +845,7 @@ function setupReveal(){
   cards.forEach(c=>io.observe(c));
   setTimeout(()=>cards.forEach(c=>c.classList.add('in')),1500); // safety
 }
-function init(){drawCmp();calcRisk();calcTrack();renderJ();renderCal();renderConsistency();calcProj();setupReveal();}
+function init(){drawCmp();calcRisk();calcTrack();renderJ();renderCal();renderConsistency();renderReadiness();calcProj();setupReveal();}
 window.addEventListener('resize',()=>{drawCmp();renderJ();calcProj();});
 init();
 </script>
