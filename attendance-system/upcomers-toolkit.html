@@ -92,6 +92,19 @@
   .meter-fill{height:100%;border-radius:8px;transition:width .35s ease}
   .meter-cap{position:absolute;top:-4px;bottom:-4px;width:2px;background:#fff;opacity:.65}
   .meter-cap small{position:absolute;top:-15px;left:50%;transform:translateX(-50%);font-size:.58rem;color:var(--muted);white-space:nowrap}
+  .specs{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 2px}
+  .spec{font-size:.72rem;font-family:'JetBrains Mono',monospace;color:var(--muted);background:#0a1422;
+    border:1px solid var(--line);border-radius:100px;padding:5px 12px}
+  .spec b{color:var(--txt)}
+  details.rule{border:1px solid var(--line);border-radius:11px;margin-bottom:10px;background:#070d16;overflow:hidden}
+  details.rule>summary{cursor:pointer;padding:13px 15px;font-weight:600;font-size:.9rem;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  details.rule>summary::-webkit-details-marker{display:none}
+  details.rule>summary::after{content:'+';color:var(--muted);font-family:'JetBrains Mono',monospace}
+  details.rule[open]>summary::after{content:'−'}
+  details.rule[open]>summary{border-bottom:1px solid var(--line);color:#fff}
+  .rule-body{padding:13px 15px;font-size:.85rem;color:var(--txt)}
+  .rule-body p{margin-bottom:8px}.rule-body b{color:#fff}
+  .rule-body .flag{color:var(--red);font-weight:600}
 </style>
 </head>
 <body>
@@ -112,8 +125,19 @@
     Fees are non-refundable risk capital, most accounts fail, and nothing here guarantees profit. This tool enforces discipline — it cannot predict the market.
   </div>
 
+  <div class="specs" id="specsStrip">
+    <span class="spec"><b>Platforms</b> MT5 · TradeLocker · Bybit · Match-Trader · cTrader</span>
+    <span class="spec"><b>1,300+</b> instruments</span>
+    <span class="spec"><b>1:100</b> leverage</span>
+    <span class="spec"><b>EAs</b> allowed</span>
+    <span class="spec"><b>News + weekend</b> holding</span>
+    <span class="spec"><b>Scale</b> to $4M (+35%/4mo)</span>
+    <span class="spec"><b>Payout</b> ~12h · 99% split</span>
+    <span class="spec"><b>$100k Vanguard</b> ≈ $239.9 (code spring90)</span>
+  </div>
+
   <div class="toc">
-    <a href="#cmp">Plans</a><a href="#calc">Risk calc</a><a href="#track">Live tracker</a><a href="#jrnl">Journal &amp; edge</a><a href="#cal">Calendar</a><a href="#cons">Consistency</a><a href="#proj">Path to $100k</a>
+    <a href="#cmp">Plans</a><a href="#calc">Risk calc</a><a href="#track">Live tracker</a><a href="#jrnl">Journal &amp; edge</a><a href="#cal">Calendar</a><a href="#cons">Consistency</a><a href="#proj">Path to $100k</a><a href="#rules">Rules reference</a>
   </div>
 
   <!-- COMPARISON -->
@@ -261,6 +285,52 @@
     </div>
   </div>
 
+  <!-- RULES REFERENCE -->
+  <div class="card" id="rules">
+    <h2>Rules reference — verified from Upcomers' help center</h2>
+    <p class="sub" style="margin:4px 0 14px">The mechanics that actually decide payouts and breaches. Read these before trading a funded account.</p>
+
+    <details class="rule" open><summary>Dynamic Risk Shield™ (trailing drawdown)</summary>
+      <div class="rule-body">
+        <p>A drawdown that follows your <b>highest equity</b> (high-water mark) in real time, sitting the plan's % below it (Vanguard 7%, Oracle 5%, Ember 4%, Nova sprints 3%). Calculated on <b>equity, not balance</b> — open trades count.</p>
+        <p>It <b>locks at your initial balance</b> once your profit reaches the shield %, then becomes static and stops trailing — you can run profits freely after that.</p>
+        <p class="flag">⚠ Withdrawal trap: taking out profits does NOT reset the shield. After it locks, if you withdraw down to your shield floor, balance = drawdown limit and the account can breach instantly. Leave a buffer above the floor.</p>
+      </div>
+    </details>
+
+    <details class="rule"><summary>Best Day Rule / consistency (soft)</summary>
+      <div class="rule-body">
+        <p><b>Best Day % = highest single-day profit ÷ total profit × 100.</b> Cap is 20% (some accounts 15%). Tracked live in your dashboard — and in this tool's Consistency meters.</p>
+        <p>This is a <b>soft rule</b>: exceeding it <b>delays your payout</b> until profit is spread more evenly across days. It does <b>not</b> breach the account.</p>
+        <p>Sprints use a <b>Best Trade Rule</b> instead (Supernova/Hypernova 15%, Ultranova 25% consistency) on a single trade rather than a day.</p>
+      </div>
+    </details>
+
+    <details class="rule"><summary>Hard breaches (these end the account)</summary>
+      <div class="rule-body">
+        <p><b>Single-trade-loss</b> over the cap (Vanguard/Oracle 2%, Ember 1.5%) is a <b>hard breach</b>. So is hitting the <b>Risk Shield floor</b> or a <b>daily-loss</b> limit (4% on Vanguard/Oracle/Supernova/Hypernova; none on Ember/Ultranova).</p>
+        <p>The daily-march rule (each valid day must close ≥ +0.5% realized) is a <b>counting</b> rule, not a breach — a flat/negative day just doesn't count toward your valid-day total.</p>
+      </div>
+    </details>
+
+    <details class="rule"><summary>Payouts &amp; cap progression</summary>
+      <div class="rule-body">
+        <p><b>99% profit split</b> (accounts after 13 Dec 2025), paid from the first payout. Request anytime; processing ~12h, often under an hour.</p>
+        <p>Every payout needs <b>≥ 1% profit</b> on the funded balance first ($1,000 on a $100k account), and it resets each time.</p>
+        <p>Payout cap rises step-by-step: a <b>fully approved</b> withdrawal bumps the cap up a level; partial/declined leaves it unchanged. After the <b>8th payout</b>, unlimited cap by individual agreement. The Nova sprints are single-session — one payout on the final result, no tiered cap.</p>
+      </div>
+    </details>
+
+    <details class="rule"><summary>Scaling, platforms &amp; trading conditions</summary>
+      <div class="rule-body">
+        <p><b>Scaling:</b> +35% capital every 4 months when you hit 15% cumulative growth, ≥2 payouts, and end positive — up to $4M from a $100k start.</p>
+        <p><b>Platforms:</b> MT5, TradeLocker, Bybit, Match-Trader, cTrader. <b>1,300+ instruments</b> (forex, indices, commodities, crypto, stocks). <b>Leverage up to 1:100</b>, swap-free on request.</p>
+        <p><b>Allowed:</b> EAs (MT5/cTrader), news trading and weekend/overnight holding — though some programs block a 2-minute window around high-impact news. Always confirm per program.</p>
+      </div>
+    </details>
+    <p class="sub" style="margin-top:8px">Sources: Upcomers help center (Dynamic Risk Shield, Best Day Rule, Payout Structure), reviews. Verify before risking a fee.</p>
+  </div>
+
   <footer>
     Discipline aid, not financial advice. Verify every rule at
     <a href="https://help.upcomers.com" target="_blank" rel="noopener">help.upcomers.com</a> before risking a fee. Charts by D3.
@@ -272,8 +342,8 @@ const PLANS=[
   {name:'Vanguard', fam:'march', target:null, window:null, validDays:6, march:0.5, dailyDD:4, shield:7, single:2,   cons:{type:'day', pct:20, soft:true},  minTrades:null, payoutReq:null, note:'Most room, unlimited time'},
   {name:'Oracle',   fam:'march', target:null, window:null, validDays:5, march:0.5, dailyDD:4, shield:5, single:2,   cons:{type:'day', pct:20, soft:false}, minTrades:null, payoutReq:null, note:'Tighter shield, hard best-day'},
   {name:'Ember',    fam:'march', target:null, window:null, validDays:5, march:0.5, dailyDD:null, shield:4, single:1.5, cons:{type:'day', pct:20, soft:true}, minTrades:null, payoutReq:1, note:'No daily DD; needs 1% total profit to pay'},
-  {name:'Supernova',fam:'sprint',target:3, window:'24h', windowH:24, validDays:null, march:null, dailyDD:2, shield:3, single:null, cons:{type:'trade', pct:15}, minTrades:7, minVerify:true, maxRisk:null, payoutReq:null, note:'24h single session · min 7 trades (verify)'},
-  {name:'Hypernova',fam:'sprint',target:2, window:'4h',  windowH:4,  validDays:null, march:null, dailyDD:2, shield:3, single:null, cons:{type:'trade', pct:15}, minTrades:7, minVerify:true, maxRisk:null, payoutReq:null, note:'4h single session · min 7 trades (verify)'},
+  {name:'Supernova',fam:'sprint',target:3, window:'24h', windowH:24, validDays:null, march:null, dailyDD:2, shield:3, single:null, cons:{type:'trade', pct:15}, minTrades:7, minVerify:false, maxRisk:null, payoutReq:null, note:'24h single session · min 7 trades'},
+  {name:'Hypernova',fam:'sprint',target:2, window:'4h',  windowH:4,  validDays:null, march:null, dailyDD:2, shield:3, single:null, cons:{type:'trade', pct:15}, minTrades:7, minVerify:false, maxRisk:null, payoutReq:null, note:'4h single session · min 7 trades'},
   {name:'Ultranova',fam:'sprint',target:2, window:'1h',  windowH:1,  validDays:null, march:null, dailyDD:null, shield:3, single:null, cons:{type:'score', pct:25}, minTrades:5, minVerify:false, maxRisk:0.5, payoutReq:null, note:'1h · min 5 trades · 0.5% risk · 25% consistency'},
 ];
 const $=id=>document.getElementById(id);
@@ -350,6 +420,7 @@ function calcRisk(){
   h+=`<div class="row"><span>Max daily loss</span><b class="${p.dailyDD?'':'muted'}">${p.dailyDD?fmt(dailyCap)+' ('+p.dailyDD+'%)':'no daily rule'}</b></div>`;
   h+=`<div class="row"><span>Suggested daily stop</span><b class="warn">${fmt(dayStop)}</b></div>`;
   h+=`<div class="row"><span>Dynamic Risk Shield (trailing)</span><b class="bad">${fmt(shieldCap)} (${p.shield}%)</b></div>`;
+  h+=`<div class="row"><span>Shield locks at breakeven after</span><b class="ok">+${p.shield}% = ${fmt(size*p.shield/100)} profit</b></div>`;
   h+=`<div class="row"><span>Losers in a row to blow shield</span><b>${Math.floor(shieldCap/riskUsd)}</b></div>`;
   if(lots)h+=`<div class="row"><span>Position size</span><b class="ok">${lots.toFixed(2)} lots</b></div>`;
   if(p.fam==='march'){
@@ -373,14 +444,18 @@ function calcRisk(){
 function calcTrack(){
   const p=PLANS[+trPlan.value], start=+trStart.value, peak=+trPeak.value, ds=+trDayStart.value,
         eq=+trEquity.value, days=+trDays.value, bigDay=+trBigDay.value;
-  const shieldFloor=peak*(1-p.shield/100), shieldRoom=eq-shieldFloor;
+  // Dynamic Risk Shield: trails peak at shield% below; LOCKS at initial balance once peak profit ≥ shield%
+  const peakProfitPct=(peak-start)/start*100, locked=peakProfitPct>=p.shield;
+  const shieldFloor=locked?start:peak*(1-p.shield/100), shieldRoom=eq-shieldFloor;
   const dailyFloor=p.dailyDD?ds*(1-p.dailyDD/100):null;
   const dailyRoom=dailyFloor!==null?eq-dailyFloor:null;
   const profit=eq-start, todayPL=eq-ds, marchTarget=ds*0.005;
   let h='';
+  h+=`<div class="row"><span>Risk Shield status</span><b class="${locked?'ok':'warn'}">${locked?'LOCKED @ breakeven':'trailing '+p.shield+'%'}</b></div>`;
+  h+=`<div class="row"><span>Shield floor</span><b>${fmt(shieldFloor)}${locked?' (= initial)':''}</b></div>`;
   const sc=shieldRoom>start*0.02?'ok':shieldRoom>0?'warn':'bad';
-  h+=`<div class="row"><span>Risk Shield floor (trailing ${p.shield}%)</span><b>${fmt(shieldFloor)}</b></div>`;
   h+=`<div class="row"><span>Room before reset</span><b class="${sc}">${fmt(shieldRoom)}</b></div>`;
+  if(locked)h+=`<div class="row"><span class="bad">⚠ Withdrawal trap</span><b class="bad">don't withdraw to ≤ ${fmt(shieldFloor)}</b></div>`;
   if(dailyFloor!==null){const dc=dailyRoom>ds*0.015?'ok':dailyRoom>0?'warn':'bad';
     h+=`<div class="row"><span>Daily loss floor</span><b>${fmt(dailyFloor)}</b></div>`;
     h+=`<div class="row"><span>Room before daily breach</span><b class="${dc}">${fmt(dailyRoom)}</b></div>`;}
