@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Upcomers Funding Toolkit</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#070b12; --panel:#0e1622; --panel2:#0b1320; --line:#1c2a3d;
+    --txt:#dce7f5; --muted:#7d8ea6; --emer:#00e08a; --cyan:#38bdf8;
+    --amber:#f5b53d; --red:#ff5d5d; --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Space Grotesk',system-ui,sans-serif;background:
+    radial-gradient(900px 500px at 80% -10%,#0c2030 0,transparent 60%),var(--bg);
+    color:var(--txt);line-height:1.5;padding:24px;max-width:1080px;margin:0 auto}
+  h1{font-size:1.5rem;letter-spacing:.02em}
+  h2{font-size:1.05rem;margin-bottom:12px;color:#fff;display:flex;align-items:center;gap:8px}
+  h2::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--emer);box-shadow:0 0 10px var(--emer)}
+  .sub{color:var(--muted);font-size:.85rem;margin-top:4px}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .disc{background:rgba(245,93,93,.08);border:1px solid rgba(245,93,93,.35);color:#ffb4b4;
+    padding:12px 14px;border-radius:10px;font-size:.82rem;margin:16px 0}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);
+    border-radius:var(--radius);padding:20px;margin-bottom:20px}
+  table{width:100%;border-collapse:collapse;font-size:.84rem}
+  th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;font-size:.74rem;text-transform:uppercase;letter-spacing:.05em}
+  td.mono,th.mono{font-family:'JetBrains Mono',monospace}
+  .tag{font-size:.68rem;padding:2px 7px;border-radius:100px;font-family:'JetBrains Mono',monospace}
+  .t-inst{background:rgba(56,189,248,.15);color:var(--cyan)}
+  .t-eval{background:rgba(0,224,138,.15);color:var(--emer)}
+  .t-other{background:rgba(245,181,61,.15);color:var(--amber)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:720px){.grid{grid-template-columns:1fr}}
+  label{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:10px 0 4px}
+  input,select{width:100%;padding:10px 12px;background:#0a121d;border:1px solid var(--line);
+    border-radius:9px;color:#fff;font-family:'JetBrains Mono',monospace;font-size:.9rem;outline:none}
+  input:focus,select:focus{border-color:var(--emer);box-shadow:0 0 0 3px rgba(0,224,138,.15)}
+  .out{background:#0a121d;border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:14px}
+  .row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line);font-size:.86rem}
+  .row:last-child{border-bottom:none}
+  .row b{font-family:'JetBrains Mono',monospace}
+  .ok{color:var(--emer)} .warn{color:var(--amber)} .bad{color:var(--red)}
+  .big{font-size:1.7rem;font-family:'JetBrains Mono',monospace;color:var(--emer)}
+  .pill{display:inline-block;font-size:.7rem;color:var(--muted);border:1px solid var(--line);
+    border-radius:100px;padding:3px 10px;margin-top:6px}
+  footer{color:var(--muted);font-size:.75rem;margin-top:24px;text-align:center}
+  a{color:var(--cyan)}
+</style>
+</head>
+<body>
+  <h1>Upcomers Funding Toolkit</h1>
+  <p class="sub">Plan comparison · risk calculator · rules tracker · path-to-$100k model. MT5 / Instant focus.</p>
+
+  <div class="disc">
+    Reality check: Upcomers accounts are a <b>simulated</b> evaluation (Royal Flow FZCO / Upcomers Ltd; their own disclaimer
+    calls results "hypothetical"). Fees are non-refundable risk capital, most challenge accounts fail, and nothing here
+    guarantees profit. This tool enforces discipline — it does not predict the market.
+  </div>
+
+  <!-- PLAN COMPARISON -->
+  <div class="card">
+    <h2>All plans — side by side</h2>
+    <p class="sub" style="margin-bottom:12px">Numbers exactly as listed on the MT5 page. "Type" is inferred from the drawdown profile — confirm in the dashboard.</p>
+    <div style="overflow-x:auto">
+    <table id="cmp">
+      <thead><tr>
+        <th>Plan</th><th>Type (likely)</th><th class="mono">Profit target</th>
+        <th class="mono">Max daily loss</th><th class="mono">Max overall</th><th>DD style</th><th>Best when…</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="grid">
+    <!-- RISK CALCULATOR -->
+    <div class="card">
+      <h2>Risk & position calculator</h2>
+      <label>Plan</label>
+      <select id="rcPlan"></select>
+      <label>Account size (USD)</label>
+      <input id="rcSize" class="mono" type="number" value="100000" />
+      <label>Risk per trade (% of account)</label>
+      <input id="rcRisk" class="mono" type="number" value="0.5" step="0.1" />
+      <label>Stop-loss distance (pips, optional)</label>
+      <input id="rcPips" class="mono" type="number" value="20" />
+      <label>Pip value per 1.00 lot (USD, e.g. 10 for EURUSD)</label>
+      <input id="rcPipVal" class="mono" type="number" value="10" />
+      <div class="out" id="rcOut"></div>
+    </div>
+
+    <!-- RULES TRACKER -->
+    <div class="card">
+      <h2>Live rules tracker</h2>
+      <label>Plan</label>
+      <select id="trPlan"></select>
+      <label>Starting / initial balance (USD)</label>
+      <input id="trStart" class="mono" type="number" value="100000" />
+      <label>Highest equity reached (for trailing DD)</label>
+      <input id="trPeak" class="mono" type="number" value="100000" />
+      <label>Balance at start of today</label>
+      <input id="trDayStart" class="mono" type="number" value="100000" />
+      <label>Current equity (USD)</label>
+      <input id="trEquity" class="mono" type="number" value="100500" />
+      <label>Trading days completed</label>
+      <input id="trDays" class="mono" type="number" value="3" />
+      <div class="out" id="trOut"></div>
+    </div>
+  </div>
+
+  <!-- PROJECTION -->
+  <div class="card">
+    <h2>Path to $100,000 (payouts)</h2>
+    <div class="grid">
+      <div>
+        <label>Account size per account (USD)</label>
+        <input id="pjSize" class="mono" type="number" value="100000" />
+        <label>Expected monthly return (% of account)</label>
+        <input id="pjRet" class="mono" type="number" value="4" step="0.5" />
+        <label>Number of parallel accounts</label>
+        <input id="pjAcc" class="mono" type="number" value="1" />
+      </div>
+      <div>
+        <label>Profit split (%)</label>
+        <input id="pjSplit" class="mono" type="number" value="99" />
+        <label>Apply scaling (+35% capital / 4 months)?</label>
+        <select id="pjScale"><option value="no">No</option><option value="yes">Yes</option></select>
+        <label>Goal (USD)</label>
+        <input id="pjGoal" class="mono" type="number" value="100000" />
+      </div>
+    </div>
+    <div class="out" id="pjOut"></div>
+  </div>
+
+  <!-- TRADE JOURNAL & EDGE TESTER -->
+  <div class="card">
+    <h2>Trade journal &amp; edge tester</h2>
+    <p class="sub" style="margin-bottom:12px">Log every trade as an <b>R-multiple</b> (+2 = won twice your risk, −1 = full stop, +0.5, 0 = breakeven). Saved in this browser. Prove the edge here before paying a fee.</p>
+    <div class="grid">
+      <div>
+        <label>Instrument</label>
+        <input id="jInstr" type="text" placeholder="EURUSD, XAUUSD, BTCUSD…" />
+        <label>Direction</label>
+        <select id="jDir"><option>Long</option><option>Short</option></select>
+      </div>
+      <div>
+        <label>Result (R-multiple)</label>
+        <input id="jR" class="mono" type="number" step="0.1" placeholder="e.g. 2 or -1" />
+        <label>Note (optional)</label>
+        <input id="jNote" type="text" placeholder="setup / mistake / tag" />
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+      <button id="jAdd" style="flex:1;padding:11px;border:none;border-radius:9px;cursor:pointer;font-family:'Space Grotesk';font-weight:700;background:linear-gradient(135deg,#00c46b,#00e08a);color:#04140c">+ Log trade</button>
+      <button id="jSeed" style="padding:11px 14px;border:1px solid var(--line);border-radius:9px;cursor:pointer;background:#0a121d;color:var(--muted)">Load demo set</button>
+      <button id="jClear" style="padding:11px 14px;border:1px solid var(--line);border-radius:9px;cursor:pointer;background:#0a121d;color:var(--red)">Clear all</button>
+    </div>
+
+    <div class="out" id="jStats" style="margin-top:16px"></div>
+
+    <div style="overflow-x:auto;margin-top:14px;max-height:260px;overflow-y:auto">
+      <table id="jTable"><thead><tr>
+        <th>#</th><th>Instrument</th><th>Dir</th><th class="mono">R</th><th>Note</th><th></th>
+      </tr></thead><tbody></tbody></table>
+    </div>
+  </div>
+
+  <footer>
+    Built as a discipline aid, not financial advice. Verify every rule against
+    <a href="https://help.upcomers.com" target="_blank" rel="noopener">help.upcomers.com</a> before risking a fee.
+  </footer>
+
+<script>
+const PLANS = [
+  {name:'Vanguard', type:'Instant', cls:'t-inst', target:null, daily:4, max:7, dd:'Trailing', note:'Fast to payout, most room'},
+  {name:'Oracle',   type:'Reward+/Instant', cls:'t-other', target:null, daily:4, max:5, dd:'Trailing', note:'Funded fast, tighter cap'},
+  {name:'Supernova',type:'3+ Step', cls:'t-eval', target:3, daily:2, max:3, dd:'Static', note:'Cheap funding, prove consistency'},
+  {name:'Hypernova',type:'2 Step', cls:'t-eval', target:2, daily:2, max:3, dd:'Static', note:'Balanced eval'},
+  {name:'Ultranova',type:'1 Step', cls:'t-eval', target:2, daily:null, max:3, dd:'Static', note:'One phase, no daily cap'},
+  {name:'Ember',    type:'Limited Drop', cls:'t-other', target:null, daily:null, max:4, dd:'Static', note:'Single static cap, no target'},
+];
+const fmt = n => '$'+Math.round(n).toLocaleString();
+const pct = n => n===null ? '—' : n+'%';
+
+// Comparison table
+const tb = document.querySelector('#cmp tbody');
+PLANS.forEach(p=>{
+  tb.insertAdjacentHTML('beforeend',
+   `<tr><td><b>${p.name}</b></td>
+        <td><span class="tag ${p.cls}">${p.type}</span></td>
+        <td class="mono">${pct(p.target)}</td>
+        <td class="mono">${pct(p.daily)}</td>
+        <td class="mono">${pct(p.max)}</td>
+        <td>${p.dd}</td><td style="color:var(--muted)">${p.note}</td></tr>`);
+});
+
+// Populate selects
+['rcPlan','trPlan'].forEach(id=>{
+  const s=document.getElementById(id);
+  PLANS.forEach((p,i)=>s.insertAdjacentHTML('beforeend',`<option value="${i}">${p.name} — ${p.type}</option>`));
+});
+
+// Risk calculator
+function calcRisk(){
+  const p=PLANS[+rcPlan.value], size=+rcSize.value, risk=+rcRisk.value/100;
+  const pips=+rcPips.value, pipVal=+rcPipVal.value;
+  const riskUsd=size*risk;
+  const dailyCap = p.daily ? size*p.daily/100 : null;
+  const maxCap = size*p.max/100;
+  // suggested daily stop = half the daily limit (or 1.5% if no daily rule)
+  const dayStop = p.daily ? dailyCap/2 : size*0.015;
+  const lots = (pips>0 && pipVal>0) ? riskUsd/(pips*pipVal) : null;
+  let html = `<div class="row"><span>Risk per trade</span><b>${fmt(riskUsd)} <span class="pill">${(risk*100)}%</span></b></div>`;
+  html += `<div class="row"><span>Max daily loss (rule)</span><b class="${p.daily?'':'muted'}">${p.daily?fmt(dailyCap):'no daily rule'}</b></div>`;
+  html += `<div class="row"><span>Suggested daily stop</span><b class="warn">${fmt(dayStop)}</b></div>`;
+  html += `<div class="row"><span>Max overall loss (rule)</span><b class="bad">${fmt(maxCap)} (${p.max}%)</b></div>`;
+  html += `<div class="row"><span>Trades to overall blowout @ this risk</span><b>${Math.floor(maxCap/riskUsd)}</b></div>`;
+  if(lots) html += `<div class="row"><span>Position size</span><b class="ok">${lots.toFixed(2)} lots</b></div>`;
+  if(p.target!==null) html += `<div class="row"><span>Profit target to pass</span><b class="ok">${fmt(size*p.target/100)} (${p.target}%)</b></div>`;
+  rcOut.innerHTML=html;
+}
+['rcPlan','rcSize','rcRisk','rcPips','rcPipVal'].forEach(id=>document.getElementById(id).addEventListener('input',calcRisk));
+
+// Rules tracker
+function calcTrack(){
+  const p=PLANS[+trPlan.value], start=+trStart.value, peak=+trPeak.value,
+        dayStart=+trDayStart.value, eq=+trEquity.value, days=+trDays.value;
+  // daily floor
+  const dailyFloor = p.daily ? dayStart*(1-p.daily/100) : null;
+  // max loss floor: static from start, or trailing from peak
+  const maxFloor = p.dd==='Trailing' ? peak*(1-p.max/100) : start*(1-p.max/100);
+  const dailyRoom = dailyFloor!==null ? eq-dailyFloor : null;
+  const maxRoom = eq-maxFloor;
+  const minPayout = start*0.01;
+  const profit = eq-start;
+  let html='';
+  if(dailyFloor!==null){
+    const c = dailyRoom>dayStart*0.015 ? 'ok' : dailyRoom>0 ? 'warn' : 'bad';
+    html+=`<div class="row"><span>Daily loss floor today</span><b>${fmt(dailyFloor)}</b></div>`;
+    html+=`<div class="row"><span>Room before daily breach</span><b class="${c}">${fmt(dailyRoom)}</b></div>`;
+  } else {
+    html+=`<div class="row"><span>Daily rule</span><b class="muted">none on this plan</b></div>`;
+  }
+  const cm = maxRoom>start*0.02 ? 'ok' : maxRoom>0 ? 'warn' : 'bad';
+  html+=`<div class="row"><span>Max-loss floor (${p.dd})</span><b>${fmt(maxFloor)}</b></div>`;
+  html+=`<div class="row"><span>Room before account reset</span><b class="${cm}">${fmt(maxRoom)}</b></div>`;
+  html+=`<div class="row"><span>Net profit so far</span><b class="${profit>=0?'ok':'bad'}">${fmt(profit)}</b></div>`;
+  if(p.target!==null){
+    const tgt=start*p.target/100, done=profit>=tgt;
+    html+=`<div class="row"><span>Target progress</span><b class="${done?'ok':'warn'}">${fmt(Math.max(0,profit))} / ${fmt(tgt)} ${done?'✓':''}</b></div>`;
+  }
+  html+=`<div class="row"><span>Min days (need 6)</span><b class="${days>=6?'ok':'warn'}">${days}/6</b></div>`;
+  html+=`<div class="row"><span>Payout eligible (≥1% = ${fmt(minPayout)})</span><b class="${profit>=minPayout&&days>=6?'ok':'warn'}">${profit>=minPayout&&days>=6?'YES':'not yet'}</b></div>`;
+  trOut.innerHTML=html;
+}
+['trPlan','trStart','trPeak','trDayStart','trEquity','trDays'].forEach(id=>document.getElementById(id).addEventListener('input',calcTrack));
+
+// Projection to 100k
+function calcProj(){
+  let size=+pjSize.value; const ret=+pjRet.value/100, acc=+pjAcc.value,
+      split=+pjSplit.value/100, scale=pjScale.value==='yes', goal=+pjGoal.value;
+  let cash=0, m=0; const rows=[];
+  while(cash<goal && m<240){
+    m++;
+    const monthly = size*ret*split*acc;
+    cash+=monthly;
+    if(scale && m%4===0) size*=1.35;
+    if(m<=12 || m%6===0 || cash>=goal) rows.push({m,size,cash});
+  }
+  const yrs=(m/12);
+  let html=`<div class="big">${m<240?m+' months':'>20 yrs'}</div>
+    <span class="pill">to ${fmt(goal)} in payouts · ${yrs.toFixed(1)} yrs · ${acc} acct(s) @ ${(ret*100)}%/mo</span>`;
+  html+=`<table style="margin-top:12px"><thead><tr><th>Month</th><th class="mono">Acct size</th><th class="mono">Cumulative payouts</th></tr></thead><tbody>`;
+  rows.forEach(r=>html+=`<tr><td>${r.m}</td><td class="mono">${fmt(r.size)}</td><td class="mono ok">${fmt(r.cash)}</td></tr>`);
+  html+=`</tbody></table>`;
+  if(m>=240) html+=`<p class="sub" style="margin-top:8px;color:var(--red)">At these inputs the goal takes 20+ years — raise return, size, or account count (each adds real risk).</p>`;
+  pjOut.innerHTML=html;
+}
+['pjSize','pjRet','pjAcc','pjSplit','pjScale','pjGoal'].forEach(id=>document.getElementById(id).addEventListener('input',calcProj));
+
+// Trade journal & edge tester
+const JKEY='upc_journal_v1';
+let journal=[];
+try{journal=JSON.parse(localStorage.getItem(JKEY)||'[]')}catch(e){journal=[]}
+function saveJ(){localStorage.setItem(JKEY,JSON.stringify(journal))}
+
+function edgeStats(trades){
+  const n=trades.length;
+  if(!n) return null;
+  const R=trades.map(t=>+t.r);
+  const wins=R.filter(x=>x>0), losses=R.filter(x=>x<0);
+  const sumPos=wins.reduce((a,b)=>a+b,0), sumNeg=losses.reduce((a,b)=>a+b,0);
+  const expectancy=R.reduce((a,b)=>a+b,0)/n;
+  const winRate=wins.length/n;
+  const avgWin=wins.length?sumPos/wins.length:0;
+  const avgLoss=losses.length?sumNeg/losses.length:0;
+  const pf=sumNeg!==0?sumPos/Math.abs(sumNeg):(sumPos>0?Infinity:0);
+  // equity curve in R + max drawdown
+  let eq=0,peak=0,maxDD=0,streak=0,worstStreak=0;
+  R.forEach(x=>{eq+=x; if(eq>peak)peak=eq; const dd=peak-eq; if(dd>maxDD)maxDD=dd;
+    if(x<0){streak++; if(streak>worstStreak)worstStreak=streak;} else streak=0;});
+  return {n,winRate,avgWin,avgLoss,expectancy,pf,maxDD,worstStreak,totalR:eq};
+}
+
+function renderJournal(){
+  const tb=document.querySelector('#jTable tbody');
+  tb.innerHTML='';
+  journal.slice().reverse().forEach((t,ri)=>{
+    const idx=journal.length-ri;
+    const c=(+t.r>0)?'ok':(+t.r<0)?'bad':'muted';
+    tb.insertAdjacentHTML('beforeend',
+     `<tr><td>${idx}</td><td>${t.instr||'—'}</td><td>${t.dir||''}</td>
+          <td class="mono ${c}">${(+t.r>0?'+':'')}${t.r}R</td>
+          <td style="color:var(--muted);font-size:.78rem">${t.note||''}</td>
+          <td><button data-i="${journal.length-1-ri}" class="jDel" style="background:none;border:none;color:var(--red);cursor:pointer">✕</button></td></tr>`);
+  });
+  document.querySelectorAll('.jDel').forEach(b=>b.onclick=()=>{journal.splice(+b.dataset.i,1);saveJ();renderJournal();});
+
+  const s=edgeStats(journal);
+  if(!s){jStats.innerHTML='<p class="sub">No trades yet. Log at least 30–50 to read your edge; 100+ before trusting it.</p>';return;}
+  const exC=s.expectancy>0.1?'ok':s.expectancy>0?'warn':'bad';
+  const pfC=s.pf>=1.3?'ok':s.pf>=1?'warn':'bad';
+  // readiness verdict
+  const ready = s.n>=100 && s.expectancy>0.1 && s.pf>=1.3 && s.maxDD<=8;
+  const almost= s.n>=50 && s.expectancy>0 && s.pf>=1.1;
+  const verdict = ready?['READY','ok','Edge looks real with a usable sample. A challenge is a reasonable bet — keep risk ≤0.5%/trade.']
+                : almost?['PROMISING','warn','Positive but thin. Keep logging to 100+ trades and tighten max drawdown before paying a fee.']
+                : ['NOT READY','bad','No proven edge yet (or sample too small). Do not buy a challenge on this — fix the strategy on demo first.'];
+  // translate maxDD in R to account % at 0.5% risk/trade
+  const ddPctHalf=(s.maxDD*0.5).toFixed(1);
+  jStats.innerHTML=
+   `<div class="row"><span>Trades logged</span><b>${s.n}</b></div>
+    <div class="row"><span>Win rate</span><b>${(s.winRate*100).toFixed(1)}%</b></div>
+    <div class="row"><span>Avg win / avg loss</span><b class="mono">+${s.avgWin.toFixed(2)}R / ${s.avgLoss.toFixed(2)}R</b></div>
+    <div class="row"><span>Expectancy (per trade)</span><b class="${exC}">${(s.expectancy>0?'+':'')}${s.expectancy.toFixed(3)}R</b></div>
+    <div class="row"><span>Profit factor</span><b class="${pfC}">${s.pf===Infinity?'∞':s.pf.toFixed(2)}</b></div>
+    <div class="row"><span>Max drawdown</span><b class="warn">${s.maxDD.toFixed(1)}R ≈ ${ddPctHalf}% acct @0.5% risk</b></div>
+    <div class="row"><span>Worst losing streak</span><b>${s.worstStreak} in a row</b></div>
+    <div class="row"><span>Net result</span><b class="${s.totalR>=0?'ok':'bad'}">${(s.totalR>=0?'+':'')}${s.totalR.toFixed(1)}R</b></div>
+    <div class="row" style="border-top:1px solid var(--line);margin-top:6px;padding-top:10px">
+      <span>Verdict</span><b class="${verdict[1]}">${verdict[0]}</b></div>
+    <p class="sub" style="margin-top:6px">${verdict[2]}</p>`;
+}
+
+jAdd.onclick=()=>{
+  const r=parseFloat(jR.value);
+  if(isNaN(r)){jR.focus();return;}
+  journal.push({instr:jInstr.value.trim(),dir:jDir.value,r:r,note:jNote.value.trim()});
+  saveJ();jR.value='';jNote.value='';jInstr.focus();renderJournal();
+};
+jClear.onclick=()=>{ if(confirm('Delete all logged trades?')){journal=[];saveJ();renderJournal();} };
+jSeed.onclick=()=>{
+  // realistic ~45% win, ~1.8R avg win, -1R loss => positive expectancy
+  const demo=[];const instr=['EURUSD','XAUUSD','GBPJPY','BTCUSD','US100'];
+  for(let i=0;i<60;i++){
+    const win=Math.random()<0.46;
+    const r=win?(1+Math.round(Math.random()*20)/10):(-1+ (Math.random()<0.15?0.5:0));
+    demo.push({instr:instr[i%5],dir:Math.random()<0.5?'Long':'Short',r:+r.toFixed(1),note:win?'A+ setup':'stopped'});
+  }
+  journal=journal.concat(demo);saveJ();renderJournal();
+};
+renderJournal();
+
+calcRisk();calcTrack();calcProj();
+</script>
+</body>
+</html>
