@@ -4,367 +4,524 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Upcomers Funding Toolkit</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
 <style>
   :root{
-    --bg:#070b12; --panel:#0e1622; --panel2:#0b1320; --line:#1c2a3d;
-    --txt:#dce7f5; --muted:#7d8ea6; --emer:#00e08a; --cyan:#38bdf8;
-    --amber:#f5b53d; --red:#ff5d5d; --radius:14px;
+    --bg:#05080f; --panel:#0d1521; --panel2:#0a111c; --line:#1a2740; --line2:#22324f;
+    --txt:#e3edfb; --muted:#74879f; --emer:#00e58c; --cyan:#3fbdf8; --amber:#f6b53d;
+    --red:#ff5b6e; --violet:#9b8cff; --radius:16px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Space Grotesk',system-ui,sans-serif;background:
-    radial-gradient(900px 500px at 80% -10%,#0c2030 0,transparent 60%),var(--bg);
-    color:var(--txt);line-height:1.5;padding:24px;max-width:1080px;margin:0 auto}
-  h1{font-size:1.5rem;letter-spacing:.02em}
-  h2{font-size:1.05rem;margin-bottom:12px;color:#fff;display:flex;align-items:center;gap:8px}
-  h2::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--emer);box-shadow:0 0 10px var(--emer)}
-  .sub{color:var(--muted);font-size:.85rem;margin-top:4px}
+  html{scroll-behavior:smooth}
+  body{font-family:'Space Grotesk',system-ui,sans-serif;color:var(--txt);
+    background:
+      radial-gradient(1100px 600px at 85% -15%,#0b2236 0,transparent 55%),
+      radial-gradient(900px 500px at 0% 10%,#0a1a18 0,transparent 50%),
+      var(--bg);
+    padding:22px;max-width:1140px;margin:0 auto;line-height:1.5}
+  .hero{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;margin-bottom:6px}
+  h1{font-size:1.7rem;letter-spacing:.01em;font-weight:700}
+  h1 span{color:var(--emer)}
+  .sub{color:var(--muted);font-size:.86rem}
+  .stats{display:flex;gap:18px;flex-wrap:wrap}
+  .stat{text-align:right}
+  .stat b{font-family:'JetBrains Mono',monospace;font-size:1.15rem;display:block;color:#fff}
+  .stat small{color:var(--muted);font-size:.66rem;text-transform:uppercase;letter-spacing:.08em}
   .mono{font-family:'JetBrains Mono',monospace}
-  .disc{background:rgba(245,93,93,.08);border:1px solid rgba(245,93,93,.35);color:#ffb4b4;
-    padding:12px 14px;border-radius:10px;font-size:.82rem;margin:16px 0}
+  h2{font-size:1.06rem;margin-bottom:4px;color:#fff;display:flex;align-items:center;gap:9px}
+  h2::before{content:'';width:9px;height:9px;border-radius:2px;transform:rotate(45deg);
+    background:var(--emer);box-shadow:0 0 12px var(--emer)}
+  .disc{background:linear-gradient(90deg,rgba(255,91,110,.10),transparent);
+    border:1px solid rgba(255,91,110,.32);color:#ffc2c9;padding:12px 15px;border-radius:12px;font-size:.82rem;margin:16px 0}
   .card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--line);
-    border-radius:var(--radius);padding:20px;margin-bottom:20px}
-  table{width:100%;border-collapse:collapse;font-size:.84rem}
-  th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line)}
-  th{color:var(--muted);font-weight:600;font-size:.74rem;text-transform:uppercase;letter-spacing:.05em}
+    border-radius:var(--radius);padding:22px;margin-bottom:20px;position:relative;overflow:hidden}
+  .card::after{content:'';position:absolute;inset:0 0 auto 0;height:1px;
+    background:linear-gradient(90deg,transparent,var(--line2),transparent)}
+  table{width:100%;border-collapse:collapse;font-size:.82rem}
+  th,td{padding:9px 9px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{color:var(--muted);font-weight:600;font-size:.68rem;text-transform:uppercase;letter-spacing:.05em}
   td.mono,th.mono{font-family:'JetBrains Mono',monospace}
-  .tag{font-size:.68rem;padding:2px 7px;border-radius:100px;font-family:'JetBrains Mono',monospace}
-  .t-inst{background:rgba(56,189,248,.15);color:var(--cyan)}
-  .t-eval{background:rgba(0,224,138,.15);color:var(--emer)}
-  .t-other{background:rgba(245,181,61,.15);color:var(--amber)}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-  @media(max-width:720px){.grid{grid-template-columns:1fr}}
-  label{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:10px 0 4px}
-  input,select{width:100%;padding:10px 12px;background:#0a121d;border:1px solid var(--line);
-    border-radius:9px;color:#fff;font-family:'JetBrains Mono',monospace;font-size:.9rem;outline:none}
-  input:focus,select:focus{border-color:var(--emer);box-shadow:0 0 0 3px rgba(0,224,138,.15)}
-  .out{background:#0a121d;border:1px solid var(--line);border-radius:10px;padding:14px;margin-top:14px}
-  .row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line);font-size:.86rem}
+  tr:hover td{background:rgba(63,189,248,.04)}
+  .tag{font-size:.66rem;padding:2px 8px;border-radius:100px;font-family:'JetBrains Mono',monospace;font-weight:600}
+  .t-march{background:rgba(0,229,140,.14);color:var(--emer)}
+  .t-sprint{background:rgba(155,140,255,.16);color:var(--violet)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.grid,.grid3{grid-template-columns:1fr}}
+  label{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:11px 0 4px}
+  input,select{width:100%;padding:10px 12px;background:#070d16;border:1px solid var(--line);
+    border-radius:9px;color:#fff;font-family:'JetBrains Mono',monospace;font-size:.9rem;outline:none;transition:.15s}
+  input:focus,select:focus{border-color:var(--emer);box-shadow:0 0 0 3px rgba(0,229,140,.14)}
+  .out{background:#070d16;border:1px solid var(--line);border-radius:12px;padding:15px;margin-top:14px}
+  .row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px dashed var(--line);font-size:.85rem;gap:12px}
   .row:last-child{border-bottom:none}
-  .row b{font-family:'JetBrains Mono',monospace}
-  .ok{color:var(--emer)} .warn{color:var(--amber)} .bad{color:var(--red)}
-  .big{font-size:1.7rem;font-family:'JetBrains Mono',monospace;color:var(--emer)}
-  .pill{display:inline-block;font-size:.7rem;color:var(--muted);border:1px solid var(--line);
-    border-radius:100px;padding:3px 10px;margin-top:6px}
-  footer{color:var(--muted);font-size:.75rem;margin-top:24px;text-align:center}
-  a{color:var(--cyan)}
+  .row b{font-family:'JetBrains Mono',monospace;text-align:right}
+  .ok{color:var(--emer)} .warn{color:var(--amber)} .bad{color:var(--red)} .vio{color:var(--violet)}
+  .muted{color:var(--muted)}
+  .big{font-size:1.9rem;font-family:'JetBrains Mono',monospace;color:var(--emer);font-weight:600}
+  .pill{display:inline-block;font-size:.68rem;color:var(--muted);border:1px solid var(--line2);border-radius:100px;padding:3px 10px}
+  .btn{padding:11px 14px;border:none;border-radius:10px;cursor:pointer;font-family:'Space Grotesk';font-weight:700;font-size:.85rem;transition:.15s}
+  .btn-pri{background:linear-gradient(135deg,#00c46e,#00e58c);color:#04140c}
+  .btn-pri:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,229,140,.3)}
+  .btn-gho{background:#070d16;border:1px solid var(--line2);color:var(--muted)}
+  .btn-gho:hover{color:#fff;border-color:var(--emer)}
+  .chart{width:100%}
+  .axis text{fill:var(--muted);font-size:10px;font-family:'JetBrains Mono',monospace}
+  .axis path,.axis line{stroke:var(--line)}
+  .grid-line{stroke:var(--line);stroke-dasharray:2 4;opacity:.5}
+  footer{color:var(--muted);font-size:.75rem;margin-top:22px;text-align:center}
+  a{color:var(--cyan);text-decoration:none}
+  .legend{display:flex;gap:14px;font-size:.72rem;color:var(--muted);margin-top:8px;flex-wrap:wrap}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:middle}
+  .toc{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 22px}
+  .toc a{font-size:.78rem;background:#0a1422;border:1px solid var(--line);padding:6px 12px;border-radius:100px;color:var(--muted)}
+  .toc a:hover{color:#fff;border-color:var(--emer)}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+  .cal-h{font-size:.6rem;color:var(--muted);text-align:center;text-transform:uppercase;letter-spacing:.04em;padding-bottom:2px}
+  .cal-d{aspect-ratio:1;border-radius:9px;border:1px solid var(--line);background:#070d16;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:.12s}
+  .cal-d:hover{border-color:var(--emer)}
+  .cal-d small{font-size:.58rem;color:var(--muted);position:absolute;top:4px;left:6px}
+  .cal-d b{font-size:.66rem;font-family:'JetBrains Mono',monospace}
+  .cal-empty{visibility:hidden}
+  .cal-today{outline:2px solid var(--cyan);outline-offset:-2px}
 </style>
 </head>
 <body>
-  <h1>Upcomers Funding Toolkit</h1>
-  <p class="sub">Plan comparison · risk calculator · rules tracker · path-to-$100k model. MT5 / Instant focus.</p>
-
-  <div class="disc">
-    Reality check: Upcomers accounts are a <b>simulated</b> evaluation (Royal Flow FZCO / Upcomers Ltd; their own disclaimer
-    calls results "hypothetical"). Fees are non-refundable risk capital, most challenge accounts fail, and nothing here
-    guarantees profit. This tool enforces discipline — it does not predict the market.
+  <div class="hero">
+    <div>
+      <h1>Upcomers <span>Funding Toolkit</span></h1>
+      <p class="sub">Instant Funding rules · risk &amp; consistency calculator · live tracker · edge tester · path to $100k</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>99%</b><small>Profit split</small></div>
+      <div class="stat"><b>12h</b><small>Fastest payout</small></div>
+      <div class="stat"><b id="liveClock">--:--:--</b><small>Session clock</small></div>
+    </div>
   </div>
 
-  <!-- PLAN COMPARISON -->
-  <div class="card">
-    <h2>All plans — side by side</h2>
-    <p class="sub" style="margin-bottom:12px">Numbers exactly as listed on the MT5 page. "Type" is inferred from the drawdown profile — confirm in the dashboard.</p>
+  <div class="disc">
+    <b>Reality check.</b> Upcomers accounts are a <b>simulated</b> evaluation (Royal Flow FZCO / Upcomers Ltd; their disclaimer calls results "hypothetical").
+    Fees are non-refundable risk capital, most accounts fail, and nothing here guarantees profit. This tool enforces discipline — it cannot predict the market.
+  </div>
+
+  <div class="toc">
+    <a href="#cmp">Plans</a><a href="#calc">Risk calc</a><a href="#track">Live tracker</a><a href="#jrnl">Journal &amp; edge</a><a href="#cal">Calendar</a><a href="#proj">Path to $100k</a>
+  </div>
+
+  <!-- COMPARISON -->
+  <div class="card" id="cmp">
+    <h2>Instant Funding — full comparison</h2>
+    <p class="sub" style="margin:4px 0 14px">
+      Two families. <b class="ok">Daily-march</b> products need N valid days each closing ≥ +0.5% realized.
+      <b class="vio">Timed sprints</b> give a short window from your first trade to hit a target. All: 99% split, no profit target on march products.
+    </p>
     <div style="overflow-x:auto">
-    <table id="cmp">
+    <table id="cmpTbl">
       <thead><tr>
-        <th>Plan</th><th>Type (likely)</th><th class="mono">Profit target</th>
-        <th class="mono">Max daily loss</th><th class="mono">Max overall</th><th>DD style</th><th>Best when…</th>
-      </tr></thead>
-      <tbody></tbody>
+        <th>Plan</th><th>Family</th><th class="mono">Target / Window</th><th class="mono">Valid days</th>
+        <th class="mono">Daily march</th><th class="mono">Daily DD</th><th class="mono">Risk Shield</th>
+        <th class="mono">Single trade</th><th class="mono">Consistency</th><th class="mono">Min trades</th><th>Notes</th>
+      </tr></thead><tbody></tbody>
     </table>
     </div>
+    <h2 style="margin-top:22px;font-size:.95rem">Drawdown room per plan (Dynamic Risk Shield)</h2>
+    <div id="cmpChart" class="chart"></div>
+    <div class="legend"><span><i style="background:var(--emer)"></i>Daily-march</span><span><i style="background:var(--violet)"></i>Timed sprint</span><span><i style="background:var(--red)"></i>Daily DD cap</span></div>
   </div>
 
   <div class="grid">
     <!-- RISK CALCULATOR -->
-    <div class="card">
-      <h2>Risk & position calculator</h2>
-      <label>Plan</label>
-      <select id="rcPlan"></select>
-      <label>Account size (USD)</label>
-      <input id="rcSize" class="mono" type="number" value="100000" />
-      <label>Risk per trade (% of account)</label>
-      <input id="rcRisk" class="mono" type="number" value="0.5" step="0.1" />
-      <label>Stop-loss distance (pips, optional)</label>
-      <input id="rcPips" class="mono" type="number" value="20" />
-      <label>Pip value per 1.00 lot (USD, e.g. 10 for EURUSD)</label>
-      <input id="rcPipVal" class="mono" type="number" value="10" />
+    <div class="card" id="calc">
+      <h2>Risk &amp; consistency calculator</h2>
+      <label>Plan</label><select id="rcPlan"></select>
+      <label>Account size (USD)</label><input id="rcSize" class="mono" type="number" value="100000" />
+      <label>Risk per trade (% of account)</label><input id="rcRisk" class="mono" type="number" value="0.5" step="0.1" />
+      <div class="grid3">
+        <div><label>Stop distance (pips)</label><input id="rcPips" class="mono" type="number" value="20" /></div>
+        <div><label>Pip value / 1.0 lot ($)</label><input id="rcPipVal" class="mono" type="number" value="10" /></div>
+      </div>
       <div class="out" id="rcOut"></div>
     </div>
 
     <!-- RULES TRACKER -->
-    <div class="card">
+    <div class="card" id="track">
       <h2>Live rules tracker</h2>
-      <label>Plan</label>
-      <select id="trPlan"></select>
-      <label>Starting / initial balance (USD)</label>
-      <input id="trStart" class="mono" type="number" value="100000" />
-      <label>Highest equity reached (for trailing DD)</label>
-      <input id="trPeak" class="mono" type="number" value="100000" />
-      <label>Balance at start of today</label>
-      <input id="trDayStart" class="mono" type="number" value="100000" />
-      <label>Current equity (USD)</label>
-      <input id="trEquity" class="mono" type="number" value="100500" />
-      <label>Trading days completed</label>
-      <input id="trDays" class="mono" type="number" value="3" />
+      <label>Plan</label><select id="trPlan"></select>
+      <div class="grid3">
+        <div><label>Initial balance</label><input id="trStart" class="mono" type="number" value="100000" /></div>
+        <div><label>Highest equity (peak)</label><input id="trPeak" class="mono" type="number" value="100000" /></div>
+      </div>
+      <div class="grid3">
+        <div><label>Balance at day start</label><input id="trDayStart" class="mono" type="number" value="100000" /></div>
+        <div><label>Current equity</label><input id="trEquity" class="mono" type="number" value="100600" /></div>
+      </div>
+      <div class="grid3">
+        <div><label>Valid days done</label><input id="trDays" class="mono" type="number" value="3" /></div>
+        <div><label>Biggest day's profit ($)</label><input id="trBigDay" class="mono" type="number" value="900" /></div>
+      </div>
       <div class="out" id="trOut"></div>
     </div>
   </div>
 
-  <!-- PROJECTION -->
-  <div class="card">
-    <h2>Path to $100,000 (payouts)</h2>
-    <div class="grid">
-      <div>
-        <label>Account size per account (USD)</label>
-        <input id="pjSize" class="mono" type="number" value="100000" />
-        <label>Expected monthly return (% of account)</label>
-        <input id="pjRet" class="mono" type="number" value="4" step="0.5" />
-        <label>Number of parallel accounts</label>
-        <input id="pjAcc" class="mono" type="number" value="1" />
-      </div>
-      <div>
-        <label>Profit split (%)</label>
-        <input id="pjSplit" class="mono" type="number" value="99" />
-        <label>Apply scaling (+35% capital / 4 months)?</label>
-        <select id="pjScale"><option value="no">No</option><option value="yes">Yes</option></select>
-        <label>Goal (USD)</label>
-        <input id="pjGoal" class="mono" type="number" value="100000" />
-      </div>
-    </div>
-    <div class="out" id="pjOut"></div>
-  </div>
-
-  <!-- TRADE JOURNAL & EDGE TESTER -->
-  <div class="card">
+  <!-- JOURNAL -->
+  <div class="card" id="jrnl">
     <h2>Trade journal &amp; edge tester</h2>
-    <p class="sub" style="margin-bottom:12px">Log every trade as an <b>R-multiple</b> (+2 = won twice your risk, −1 = full stop, +0.5, 0 = breakeven). Saved in this browser. Prove the edge here before paying a fee.</p>
+    <p class="sub" style="margin:4px 0 12px">Log each trade as an <b>R-multiple</b> (+2 = 2× risk won, −1 = full stop, 0 = breakeven). Saved in this browser. Prove the edge here before paying a fee.</p>
     <div class="grid">
       <div>
-        <label>Instrument</label>
-        <input id="jInstr" type="text" placeholder="EURUSD, XAUUSD, BTCUSD…" />
-        <label>Direction</label>
-        <select id="jDir"><option>Long</option><option>Short</option></select>
+        <label>Instrument</label><input id="jInstr" type="text" placeholder="EURUSD, XAUUSD, BTCUSD…" />
+        <label>Direction</label><select id="jDir"><option>Long</option><option>Short</option></select>
       </div>
       <div>
-        <label>Result (R-multiple)</label>
-        <input id="jR" class="mono" type="number" step="0.1" placeholder="e.g. 2 or -1" />
-        <label>Note (optional)</label>
-        <input id="jNote" type="text" placeholder="setup / mistake / tag" />
+        <label>Result (R-multiple)</label><input id="jR" class="mono" type="number" step="0.1" placeholder="e.g. 2 or -1" />
+        <label>Note (optional)</label><input id="jNote" type="text" placeholder="setup / mistake / tag" />
       </div>
     </div>
     <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
-      <button id="jAdd" style="flex:1;padding:11px;border:none;border-radius:9px;cursor:pointer;font-family:'Space Grotesk';font-weight:700;background:linear-gradient(135deg,#00c46b,#00e08a);color:#04140c">+ Log trade</button>
-      <button id="jSeed" style="padding:11px 14px;border:1px solid var(--line);border-radius:9px;cursor:pointer;background:#0a121d;color:var(--muted)">Load demo set</button>
-      <button id="jClear" style="padding:11px 14px;border:1px solid var(--line);border-radius:9px;cursor:pointer;background:#0a121d;color:var(--red)">Clear all</button>
+      <button class="btn btn-pri" id="jAdd" style="flex:1">+ Log trade</button>
+      <button class="btn btn-gho" id="jSeed">Load demo set</button>
+      <button class="btn btn-gho" id="jClear" style="color:var(--red)">Clear</button>
     </div>
+    <div class="grid" style="margin-top:16px;align-items:start">
+      <div class="out" id="jStats"></div>
+      <div>
+        <div id="jChart" class="chart"></div>
+        <div class="legend"><span><i style="background:var(--emer)"></i>Equity (R)</span><span><i style="background:var(--red);opacity:.5"></i>Drawdown</span></div>
+      </div>
+    </div>
+    <div style="overflow-x:auto;margin-top:14px;max-height:220px;overflow-y:auto">
+      <table id="jTable"><thead><tr><th>#</th><th>Instrument</th><th>Dir</th><th class="mono">R</th><th>Note</th><th></th></tr></thead><tbody></tbody></table>
+    </div>
+  </div>
 
-    <div class="out" id="jStats" style="margin-top:16px"></div>
+  <!-- TRADING CALENDAR -->
+  <div class="card" id="cal">
+    <h2>Trading calendar — daily march tracker</h2>
+    <p class="sub" style="margin:4px 0 12px">Log each day's realized result as % of account. <b class="ok">Green ≥ +0.5%</b> = the day counts toward your valid days. <b class="warn">Amber</b> = positive but doesn't count. Click any day to edit.</p>
+    <div class="grid">
+      <div>
+        <label>Plan (for valid-day target)</label><select id="calPlan"></select>
+        <label>Date</label><input id="calDate" type="date" />
+        <label>Day result (% of account)</label><input id="calPct" class="mono" type="number" step="0.1" placeholder="e.g. 0.8 or -0.4" />
+        <div style="display:flex;gap:10px;margin-top:12px">
+          <button class="btn btn-pri" id="calAdd" style="flex:1">Save day</button>
+          <button class="btn btn-gho" id="calDel" style="color:var(--red)">Delete</button>
+        </div>
+        <div class="out" id="calStats" style="margin-top:14px"></div>
+      </div>
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <button class="btn btn-gho" id="calPrev">‹</button>
+          <b id="calMonth" class="mono"></b>
+          <button class="btn btn-gho" id="calNext">›</button>
+        </div>
+        <div id="calGrid"></div>
+        <div class="legend"><span><i style="background:var(--emer)"></i>≥0.5% (counts)</span><span><i style="background:var(--amber)"></i>0–0.5%</span><span><i style="background:var(--red)"></i>loss</span></div>
+      </div>
+    </div>
+  </div>
 
-    <div style="overflow-x:auto;margin-top:14px;max-height:260px;overflow-y:auto">
-      <table id="jTable"><thead><tr>
-        <th>#</th><th>Instrument</th><th>Dir</th><th class="mono">R</th><th>Note</th><th></th>
-      </tr></thead><tbody></tbody></table>
+  <!-- PROJECTION -->
+  <div class="card" id="proj">
+    <h2>Path to $100,000 (payouts)</h2>
+    <div class="grid">
+      <div>
+        <label>Account size per account (USD)</label><input id="pjSize" class="mono" type="number" value="100000" />
+        <label>Expected monthly return (% of account)</label><input id="pjRet" class="mono" type="number" value="4" step="0.5" />
+        <label>Parallel accounts</label><input id="pjAcc" class="mono" type="number" value="1" />
+      </div>
+      <div>
+        <label>Profit split (%)</label><input id="pjSplit" class="mono" type="number" value="99" />
+        <label>Scaling (+35% capital / 4 months)?</label><select id="pjScale"><option value="no">No</option><option value="yes">Yes</option></select>
+        <label>Goal (USD)</label><input id="pjGoal" class="mono" type="number" value="100000" />
+      </div>
+    </div>
+    <div class="grid" style="margin-top:14px;align-items:start">
+      <div class="out" id="pjOut"></div>
+      <div id="pjChart" class="chart"></div>
     </div>
   </div>
 
   <footer>
-    Built as a discipline aid, not financial advice. Verify every rule against
-    <a href="https://help.upcomers.com" target="_blank" rel="noopener">help.upcomers.com</a> before risking a fee.
+    Discipline aid, not financial advice. Verify every rule at
+    <a href="https://help.upcomers.com" target="_blank" rel="noopener">help.upcomers.com</a> before risking a fee. Charts by D3.
   </footer>
 
 <script>
-const PLANS = [
-  {name:'Vanguard', type:'Instant', cls:'t-inst', target:null, daily:4, max:7, dd:'Trailing', note:'Fast to payout, most room'},
-  {name:'Oracle',   type:'Reward+/Instant', cls:'t-other', target:null, daily:4, max:5, dd:'Trailing', note:'Funded fast, tighter cap'},
-  {name:'Supernova',type:'3+ Step', cls:'t-eval', target:3, daily:2, max:3, dd:'Static', note:'Cheap funding, prove consistency'},
-  {name:'Hypernova',type:'2 Step', cls:'t-eval', target:2, daily:2, max:3, dd:'Static', note:'Balanced eval'},
-  {name:'Ultranova',type:'1 Step', cls:'t-eval', target:2, daily:null, max:3, dd:'Static', note:'One phase, no daily cap'},
-  {name:'Ember',    type:'Limited Drop', cls:'t-other', target:null, daily:null, max:4, dd:'Static', note:'Single static cap, no target'},
+/* ---------- PLAN DATA (updated rules) ---------- */
+const PLANS=[
+  {name:'Vanguard', fam:'march', target:null, window:null, validDays:6, march:0.5, dailyDD:4, shield:7, single:2,   cons:{type:'day', pct:20, soft:true},  minTrades:null, payoutReq:null, note:'Most room, unlimited time'},
+  {name:'Oracle',   fam:'march', target:null, window:null, validDays:5, march:0.5, dailyDD:4, shield:5, single:2,   cons:{type:'day', pct:20, soft:false}, minTrades:null, payoutReq:null, note:'Tighter shield, hard best-day'},
+  {name:'Ember',    fam:'march', target:null, window:null, validDays:5, march:0.5, dailyDD:null, shield:4, single:1.5, cons:{type:'day', pct:20, soft:true}, minTrades:null, payoutReq:1, note:'No daily DD; needs 1% total profit to pay'},
+  {name:'Supernova',fam:'sprint',target:3, window:'24h', windowH:24, validDays:null, march:null, dailyDD:2, shield:3, single:null, cons:{type:'trade', pct:15}, minTrades:null, payoutReq:null, note:'24h window from first trade'},
+  {name:'Hypernova',fam:'sprint',target:2, window:'4h',  windowH:4,  validDays:null, march:null, dailyDD:2, shield:3, single:null, cons:{type:'trade', pct:15}, minTrades:null, payoutReq:null, note:'4h window from first trade'},
+  {name:'Ultranova',fam:'sprint',target:2, window:'1h',  windowH:1,  validDays:null, march:null, dailyDD:null, shield:3, single:null, cons:{type:'trade', pct:25}, minTrades:5, payoutReq:null, note:'1h window, min 5 trades'},
 ];
-const fmt = n => '$'+Math.round(n).toLocaleString();
-const pct = n => n===null ? '—' : n+'%';
+const $=id=>document.getElementById(id);
+const fmt=n=>'$'+Math.round(n).toLocaleString();
+const pc=n=>n===null||n===undefined?'—':n+'%';
 
-// Comparison table
-const tb = document.querySelector('#cmp tbody');
+/* ---------- Comparison table ---------- */
+const ctb=document.querySelector('#cmpTbl tbody');
 PLANS.forEach(p=>{
-  tb.insertAdjacentHTML('beforeend',
-   `<tr><td><b>${p.name}</b></td>
-        <td><span class="tag ${p.cls}">${p.type}</span></td>
-        <td class="mono">${pct(p.target)}</td>
-        <td class="mono">${pct(p.daily)}</td>
-        <td class="mono">${pct(p.max)}</td>
-        <td>${p.dd}</td><td style="color:var(--muted)">${p.note}</td></tr>`);
+  const fam = p.fam==='march'?'<span class="tag t-march">Daily-march</span>':'<span class="tag t-sprint">Timed sprint</span>';
+  const cons = p.cons.type==='day'?`Best day ${p.cons.pct}%${p.cons.soft?' (soft)':''}`:`Best trade ${p.cons.pct}%`;
+  ctb.insertAdjacentHTML('beforeend',
+   `<tr><td><b>${p.name}</b></td><td>${fam}</td>
+        <td class="mono ${p.fam==='sprint'?'vio':''}">${p.target?p.target+'% / '+p.window:'— / unlimited'}</td>
+        <td class="mono">${p.validDays?p.validDays+' days':'—'}</td>
+        <td class="mono">${p.march?'+'+p.march+'%':'—'}</td>
+        <td class="mono">${pc(p.dailyDD)}</td>
+        <td class="mono ok">${pc(p.shield)}</td>
+        <td class="mono">${pc(p.single)}</td>
+        <td class="mono">${cons}</td>
+        <td class="mono">${p.minTrades||'—'}</td>
+        <td class="muted">${p.note}</td></tr>`);
 });
 
-// Populate selects
-['rcPlan','trPlan'].forEach(id=>{
-  const s=document.getElementById(id);
-  PLANS.forEach((p,i)=>s.insertAdjacentHTML('beforeend',`<option value="${i}">${p.name} — ${p.type}</option>`));
-});
+/* ---------- D3: comparison bar chart ---------- */
+function drawCmp(){
+  const el=$('cmpChart'); el.innerHTML='';
+  const W=el.clientWidth||700, rowH=34, H=PLANS.length*rowH+30, m={l:78,r:60,t:6,b:20};
+  const svg=d3.select(el).append('svg').attr('width',W).attr('height',H).attr('class','chart');
+  const x=d3.scaleLinear().domain([0,8]).range([m.l,W-m.r]);
+  const y=d3.scaleBand().domain(PLANS.map(p=>p.name)).range([m.t,H-m.b]).padding(.35);
+  // gridlines
+  svg.append('g').selectAll('line').data(x.ticks(8)).join('line')
+    .attr('class','grid-line').attr('x1',d=>x(d)).attr('x2',d=>x(d)).attr('y1',m.t).attr('y2',H-m.b);
+  // shield bars
+  svg.selectAll('.bar').data(PLANS).join('rect')
+    .attr('x',x(0)).attr('y',d=>y(d.name)).attr('height',y.bandwidth())
+    .attr('width',d=>x(d.shield)-x(0)).attr('rx',4)
+    .attr('fill',d=>d.fam==='march'?'var(--emer)':'var(--violet)').attr('opacity',.85);
+  // daily DD markers
+  svg.selectAll('.dd').data(PLANS.filter(p=>p.dailyDD)).join('line')
+    .attr('x1',d=>x(d.dailyDD)).attr('x2',d=>x(d.dailyDD)).attr('y1',d=>y(d.name)-3).attr('y2',d=>y(d.name)+y.bandwidth()+3)
+    .attr('stroke','var(--red)').attr('stroke-width',2);
+  // value labels
+  svg.selectAll('.lbl').data(PLANS).join('text')
+    .attr('x',d=>x(d.shield)+6).attr('y',d=>y(d.name)+y.bandwidth()/2+4)
+    .attr('fill','#fff').style('font','11px JetBrains Mono').text(d=>d.shield+'%');
+  // names
+  svg.selectAll('.nm').data(PLANS).join('text')
+    .attr('x',m.l-8).attr('y',d=>y(d.name)+y.bandwidth()/2+4).attr('text-anchor','end')
+    .attr('fill','var(--muted)').style('font','11px JetBrains Mono').text(d=>d.name);
+  svg.append('g').attr('class','axis').attr('transform',`translate(0,${H-m.b})`).call(d3.axisBottom(x).ticks(8).tickFormat(d=>d+'%'));
+}
 
-// Risk calculator
+/* ---------- selects ---------- */
+['rcPlan','trPlan'].forEach(id=>{const s=$(id);PLANS.forEach((p,i)=>s.insertAdjacentHTML('beforeend',`<option value="${i}">${p.name} — ${p.fam==='march'?'march':'sprint'}</option>`));});
+
+/* ---------- Risk calculator ---------- */
 function calcRisk(){
-  const p=PLANS[+rcPlan.value], size=+rcSize.value, risk=+rcRisk.value/100;
-  const pips=+rcPips.value, pipVal=+rcPipVal.value;
+  const p=PLANS[+rcPlan.value], size=+rcSize.value, risk=+rcRisk.value/100, pips=+rcPips.value, pv=+rcPipVal.value;
   const riskUsd=size*risk;
-  const dailyCap = p.daily ? size*p.daily/100 : null;
-  const maxCap = size*p.max/100;
-  // suggested daily stop = half the daily limit (or 1.5% if no daily rule)
-  const dayStop = p.daily ? dailyCap/2 : size*0.015;
-  const lots = (pips>0 && pipVal>0) ? riskUsd/(pips*pipVal) : null;
-  let html = `<div class="row"><span>Risk per trade</span><b>${fmt(riskUsd)} <span class="pill">${(risk*100)}%</span></b></div>`;
-  html += `<div class="row"><span>Max daily loss (rule)</span><b class="${p.daily?'':'muted'}">${p.daily?fmt(dailyCap):'no daily rule'}</b></div>`;
-  html += `<div class="row"><span>Suggested daily stop</span><b class="warn">${fmt(dayStop)}</b></div>`;
-  html += `<div class="row"><span>Max overall loss (rule)</span><b class="bad">${fmt(maxCap)} (${p.max}%)</b></div>`;
-  html += `<div class="row"><span>Trades to overall blowout @ this risk</span><b>${Math.floor(maxCap/riskUsd)}</b></div>`;
-  if(lots) html += `<div class="row"><span>Position size</span><b class="ok">${lots.toFixed(2)} lots</b></div>`;
-  if(p.target!==null) html += `<div class="row"><span>Profit target to pass</span><b class="ok">${fmt(size*p.target/100)} (${p.target}%)</b></div>`;
-  rcOut.innerHTML=html;
-}
-['rcPlan','rcSize','rcRisk','rcPips','rcPipVal'].forEach(id=>document.getElementById(id).addEventListener('input',calcRisk));
-
-// Rules tracker
-function calcTrack(){
-  const p=PLANS[+trPlan.value], start=+trStart.value, peak=+trPeak.value,
-        dayStart=+trDayStart.value, eq=+trEquity.value, days=+trDays.value;
-  // daily floor
-  const dailyFloor = p.daily ? dayStart*(1-p.daily/100) : null;
-  // max loss floor: static from start, or trailing from peak
-  const maxFloor = p.dd==='Trailing' ? peak*(1-p.max/100) : start*(1-p.max/100);
-  const dailyRoom = dailyFloor!==null ? eq-dailyFloor : null;
-  const maxRoom = eq-maxFloor;
-  const minPayout = start*0.01;
-  const profit = eq-start;
-  let html='';
-  if(dailyFloor!==null){
-    const c = dailyRoom>dayStart*0.015 ? 'ok' : dailyRoom>0 ? 'warn' : 'bad';
-    html+=`<div class="row"><span>Daily loss floor today</span><b>${fmt(dailyFloor)}</b></div>`;
-    html+=`<div class="row"><span>Room before daily breach</span><b class="${c}">${fmt(dailyRoom)}</b></div>`;
+  const shieldCap=size*p.shield/100;
+  const dailyCap=p.dailyDD?size*p.dailyDD/100:null;
+  const dayStop=p.dailyDD?dailyCap/2:size*0.015;
+  const lots=(pips>0&&pv>0)?riskUsd/(pips*pv):null;
+  let h=`<div class="row"><span>Risk per trade</span><b>${fmt(riskUsd)} <span class="pill">${(risk*100)}%</span></b></div>`;
+  if(p.single){
+    const cap=size*p.single/100, ok=riskUsd<=cap;
+    h+=`<div class="row"><span>Single-trade-loss cap (${p.single}%)</span><b class="${ok?'ok':'bad'}">${fmt(cap)} ${ok?'✓':'✗ over!'}</b></div>`;
+  }
+  h+=`<div class="row"><span>Max daily loss</span><b class="${p.dailyDD?'':'muted'}">${p.dailyDD?fmt(dailyCap)+' ('+p.dailyDD+'%)':'no daily rule'}</b></div>`;
+  h+=`<div class="row"><span>Suggested daily stop</span><b class="warn">${fmt(dayStop)}</b></div>`;
+  h+=`<div class="row"><span>Dynamic Risk Shield (trailing)</span><b class="bad">${fmt(shieldCap)} (${p.shield}%)</b></div>`;
+  h+=`<div class="row"><span>Losers in a row to blow shield</span><b>${Math.floor(shieldCap/riskUsd)}</b></div>`;
+  if(lots)h+=`<div class="row"><span>Position size</span><b class="ok">${lots.toFixed(2)} lots</b></div>`;
+  if(p.fam==='march'){
+    h+=`<div class="row"><span>Daily march (+${p.march}% to count)</span><b class="ok">≥ ${fmt(size*p.march/100)}/day × ${p.validDays} days</b></div>`;
+    const need=Math.ceil(100/p.cons.pct);
+    h+=`<div class="row"><span>Best-day ${p.cons.pct}% rule</span><b>spread profit over ≥ ${need} days</b></div>`;
   } else {
-    html+=`<div class="row"><span>Daily rule</span><b class="muted">none on this plan</b></div>`;
+    h+=`<div class="row"><span>Profit target (${p.window})</span><b class="vio">${fmt(size*p.target/100)} (${p.target}%)</b></div>`;
+    h+=`<div class="row"><span>Best-trade ${p.cons.pct}% rule</span><b>no trade > ${p.cons.pct}% of total profit</b></div>`;
+    if(p.minTrades)h+=`<div class="row"><span>Minimum trades</span><b>${p.minTrades}</b></div>`;
   }
-  const cm = maxRoom>start*0.02 ? 'ok' : maxRoom>0 ? 'warn' : 'bad';
-  html+=`<div class="row"><span>Max-loss floor (${p.dd})</span><b>${fmt(maxFloor)}</b></div>`;
-  html+=`<div class="row"><span>Room before account reset</span><b class="${cm}">${fmt(maxRoom)}</b></div>`;
-  html+=`<div class="row"><span>Net profit so far</span><b class="${profit>=0?'ok':'bad'}">${fmt(profit)}</b></div>`;
-  if(p.target!==null){
-    const tgt=start*p.target/100, done=profit>=tgt;
-    html+=`<div class="row"><span>Target progress</span><b class="${done?'ok':'warn'}">${fmt(Math.max(0,profit))} / ${fmt(tgt)} ${done?'✓':''}</b></div>`;
-  }
-  html+=`<div class="row"><span>Min days (need 6)</span><b class="${days>=6?'ok':'warn'}">${days}/6</b></div>`;
-  html+=`<div class="row"><span>Payout eligible (≥1% = ${fmt(minPayout)})</span><b class="${profit>=minPayout&&days>=6?'ok':'warn'}">${profit>=minPayout&&days>=6?'YES':'not yet'}</b></div>`;
-  trOut.innerHTML=html;
+  rcOut.innerHTML=h;
 }
-['trPlan','trStart','trPeak','trDayStart','trEquity','trDays'].forEach(id=>document.getElementById(id).addEventListener('input',calcTrack));
+['rcPlan','rcSize','rcRisk','rcPips','rcPipVal'].forEach(id=>$(id).addEventListener('input',calcRisk));
 
-// Projection to 100k
-function calcProj(){
-  let size=+pjSize.value; const ret=+pjRet.value/100, acc=+pjAcc.value,
-      split=+pjSplit.value/100, scale=pjScale.value==='yes', goal=+pjGoal.value;
-  let cash=0, m=0; const rows=[];
-  while(cash<goal && m<240){
-    m++;
-    const monthly = size*ret*split*acc;
-    cash+=monthly;
-    if(scale && m%4===0) size*=1.35;
-    if(m<=12 || m%6===0 || cash>=goal) rows.push({m,size,cash});
+/* ---------- Rules tracker ---------- */
+function calcTrack(){
+  const p=PLANS[+trPlan.value], start=+trStart.value, peak=+trPeak.value, ds=+trDayStart.value,
+        eq=+trEquity.value, days=+trDays.value, bigDay=+trBigDay.value;
+  const shieldFloor=peak*(1-p.shield/100), shieldRoom=eq-shieldFloor;
+  const dailyFloor=p.dailyDD?ds*(1-p.dailyDD/100):null;
+  const dailyRoom=dailyFloor!==null?eq-dailyFloor:null;
+  const profit=eq-start, todayPL=eq-ds, marchTarget=ds*0.005;
+  let h='';
+  const sc=shieldRoom>start*0.02?'ok':shieldRoom>0?'warn':'bad';
+  h+=`<div class="row"><span>Risk Shield floor (trailing ${p.shield}%)</span><b>${fmt(shieldFloor)}</b></div>`;
+  h+=`<div class="row"><span>Room before reset</span><b class="${sc}">${fmt(shieldRoom)}</b></div>`;
+  if(dailyFloor!==null){const dc=dailyRoom>ds*0.015?'ok':dailyRoom>0?'warn':'bad';
+    h+=`<div class="row"><span>Daily loss floor</span><b>${fmt(dailyFloor)}</b></div>`;
+    h+=`<div class="row"><span>Room before daily breach</span><b class="${dc}">${fmt(dailyRoom)}</b></div>`;}
+  else h+=`<div class="row"><span>Daily DD</span><b class="muted">none on ${p.name}</b></div>`;
+  h+=`<div class="row"><span>Net profit</span><b class="${profit>=0?'ok':'bad'}">${fmt(profit)}</b></div>`;
+  if(p.fam==='march'){
+    const counts=todayPL>=marchTarget;
+    h+=`<div class="row"><span>Today's march (need ≥ ${fmt(marchTarget)})</span><b class="${counts?'ok':'warn'}">${fmt(todayPL)} ${counts?'✓ counts':'✗ no count'}</b></div>`;
+    h+=`<div class="row"><span>Valid days</span><b class="${days>=p.validDays?'ok':'warn'}">${days}/${p.validDays}</b></div>`;
+    // best-day consistency
+    if(profit>0){const share=bigDay/profit*100, ok=share<=p.cons.pct;
+      h+=`<div class="row"><span>Best-day share (cap ${p.cons.pct}%)</span><b class="${ok?'ok':(p.cons.soft?'warn':'bad')}">${share.toFixed(1)}% ${ok?'✓':(p.cons.soft?'⚠ soft':'✗ hard')}</b></div>`;}
+  } else {
+    h+=`<div class="row"><span>Profit target (${p.window})</span><b class="${profit>=start*p.target/100?'ok':'vio'}">${fmt(Math.max(0,profit))} / ${fmt(start*p.target/100)}</b></div>`;
+    h+=`<div class="row"><span>Window</span><b class="vio">${p.window} from first trade</b></div>`;
+    if(p.minTrades)h+=`<div class="row"><span>Min trades</span><b>${p.minTrades} required</b></div>`;
   }
-  const yrs=(m/12);
-  let html=`<div class="big">${m<240?m+' months':'>20 yrs'}</div>
-    <span class="pill">to ${fmt(goal)} in payouts · ${yrs.toFixed(1)} yrs · ${acc} acct(s) @ ${(ret*100)}%/mo</span>`;
-  html+=`<table style="margin-top:12px"><thead><tr><th>Month</th><th class="mono">Acct size</th><th class="mono">Cumulative payouts</th></tr></thead><tbody>`;
-  rows.forEach(r=>html+=`<tr><td>${r.m}</td><td class="mono">${fmt(r.size)}</td><td class="mono ok">${fmt(r.cash)}</td></tr>`);
-  html+=`</tbody></table>`;
-  if(m>=240) html+=`<p class="sub" style="margin-top:8px;color:var(--red)">At these inputs the goal takes 20+ years — raise return, size, or account count (each adds real risk).</p>`;
-  pjOut.innerHTML=html;
+  const payReq=p.payoutReq?start*p.payoutReq/100:start*0.01;
+  const eligible=profit>=payReq && (p.fam!=='march'||days>=p.validDays);
+  h+=`<div class="row"><span>Payout eligible (≥ ${fmt(payReq)}${p.fam==='march'?' + '+p.validDays+'d':''})</span><b class="${eligible?'ok':'warn'}">${eligible?'YES':'not yet'}</b></div>`;
+  trOut.innerHTML=h;
 }
-['pjSize','pjRet','pjAcc','pjSplit','pjScale','pjGoal'].forEach(id=>document.getElementById(id).addEventListener('input',calcProj));
+['trPlan','trStart','trPeak','trDayStart','trEquity','trDays','trBigDay'].forEach(id=>$(id).addEventListener('input',calcTrack));
 
-// Trade journal & edge tester
-const JKEY='upc_journal_v1';
-let journal=[];
+/* ---------- Journal + edge tester ---------- */
+const JKEY='upc_journal_v1'; let journal=[];
 try{journal=JSON.parse(localStorage.getItem(JKEY)||'[]')}catch(e){journal=[]}
-function saveJ(){localStorage.setItem(JKEY,JSON.stringify(journal))}
-
-function edgeStats(trades){
-  const n=trades.length;
-  if(!n) return null;
-  const R=trades.map(t=>+t.r);
-  const wins=R.filter(x=>x>0), losses=R.filter(x=>x<0);
-  const sumPos=wins.reduce((a,b)=>a+b,0), sumNeg=losses.reduce((a,b)=>a+b,0);
-  const expectancy=R.reduce((a,b)=>a+b,0)/n;
-  const winRate=wins.length/n;
-  const avgWin=wins.length?sumPos/wins.length:0;
-  const avgLoss=losses.length?sumNeg/losses.length:0;
-  const pf=sumNeg!==0?sumPos/Math.abs(sumNeg):(sumPos>0?Infinity:0);
-  // equity curve in R + max drawdown
-  let eq=0,peak=0,maxDD=0,streak=0,worstStreak=0;
-  R.forEach(x=>{eq+=x; if(eq>peak)peak=eq; const dd=peak-eq; if(dd>maxDD)maxDD=dd;
-    if(x<0){streak++; if(streak>worstStreak)worstStreak=streak;} else streak=0;});
-  return {n,winRate,avgWin,avgLoss,expectancy,pf,maxDD,worstStreak,totalR:eq};
+const saveJ=()=>localStorage.setItem(JKEY,JSON.stringify(journal));
+function edge(t){
+  const n=t.length; if(!n)return null;
+  const R=t.map(x=>+x.r), wins=R.filter(x=>x>0), los=R.filter(x=>x<0);
+  const sp=wins.reduce((a,b)=>a+b,0), sn=los.reduce((a,b)=>a+b,0);
+  let eq=0,peak=0,maxDD=0,st=0,worst=0; const curve=[];
+  R.forEach(x=>{eq+=x;curve.push(eq);if(eq>peak)peak=eq;const dd=peak-eq;if(dd>maxDD)maxDD=dd;if(x<0){st++;if(st>worst)worst=st}else st=0});
+  return{n,winRate:wins.length/n,avgWin:wins.length?sp/wins.length:0,avgLoss:los.length?sn/los.length:0,
+    exp:R.reduce((a,b)=>a+b,0)/n,pf:sn!==0?sp/Math.abs(sn):(sp>0?Infinity:0),maxDD,worst,total:eq,curve};
 }
-
-function renderJournal(){
-  const tb=document.querySelector('#jTable tbody');
-  tb.innerHTML='';
-  journal.slice().reverse().forEach((t,ri)=>{
-    const idx=journal.length-ri;
-    const c=(+t.r>0)?'ok':(+t.r<0)?'bad':'muted';
-    tb.insertAdjacentHTML('beforeend',
-     `<tr><td>${idx}</td><td>${t.instr||'—'}</td><td>${t.dir||''}</td>
-          <td class="mono ${c}">${(+t.r>0?'+':'')}${t.r}R</td>
-          <td style="color:var(--muted);font-size:.78rem">${t.note||''}</td>
-          <td><button data-i="${journal.length-1-ri}" class="jDel" style="background:none;border:none;color:var(--red);cursor:pointer">✕</button></td></tr>`);
-  });
-  document.querySelectorAll('.jDel').forEach(b=>b.onclick=()=>{journal.splice(+b.dataset.i,1);saveJ();renderJournal();});
-
-  const s=edgeStats(journal);
-  if(!s){jStats.innerHTML='<p class="sub">No trades yet. Log at least 30–50 to read your edge; 100+ before trusting it.</p>';return;}
-  const exC=s.expectancy>0.1?'ok':s.expectancy>0?'warn':'bad';
-  const pfC=s.pf>=1.3?'ok':s.pf>=1?'warn':'bad';
-  // readiness verdict
-  const ready = s.n>=100 && s.expectancy>0.1 && s.pf>=1.3 && s.maxDD<=8;
-  const almost= s.n>=50 && s.expectancy>0 && s.pf>=1.1;
-  const verdict = ready?['READY','ok','Edge looks real with a usable sample. A challenge is a reasonable bet — keep risk ≤0.5%/trade.']
-                : almost?['PROMISING','warn','Positive but thin. Keep logging to 100+ trades and tighten max drawdown before paying a fee.']
-                : ['NOT READY','bad','No proven edge yet (or sample too small). Do not buy a challenge on this — fix the strategy on demo first.'];
-  // translate maxDD in R to account % at 0.5% risk/trade
-  const ddPctHalf=(s.maxDD*0.5).toFixed(1);
+function drawEquity(curve){
+  const el=$('jChart'); el.innerHTML='';
+  const W=el.clientWidth||440, H=190, m={l:34,r:10,t:10,b:20};
+  const svg=d3.select(el).append('svg').attr('width',W).attr('height',H);
+  if(!curve||!curve.length){svg.append('text').attr('x',W/2).attr('y',H/2).attr('text-anchor','middle').attr('fill','var(--muted)').style('font','12px JetBrains Mono').text('No trades yet');return;}
+  const data=[0,...curve], x=d3.scaleLinear().domain([0,data.length-1]).range([m.l,W-m.r]);
+  const lo=Math.min(0,d3.min(data)), hi=Math.max(0,d3.max(data));
+  const y=d3.scaleLinear().domain([lo,hi]).nice().range([H-m.b,m.t]);
+  svg.append('g').selectAll('line').data(y.ticks(4)).join('line').attr('class','grid-line')
+    .attr('x1',m.l).attr('x2',W-m.r).attr('y1',d=>y(d)).attr('y2',d=>y(d));
+  // running peak for drawdown band
+  let pk=-1e9; const peak=data.map(v=>{pk=Math.max(pk,v);return pk});
+  const ddArea=d3.area().x((d,i)=>x(i)).y0((d,i)=>y(peak[i])).y1((d,i)=>y(d));
+  svg.append('path').datum(data).attr('d',ddArea).attr('fill','var(--red)').attr('opacity',.18);
+  const line=d3.line().x((d,i)=>x(i)).y(d=>y(d)).curve(d3.curveMonotoneX);
+  svg.append('path').datum(data).attr('d',line).attr('fill','none').attr('stroke','var(--emer)').attr('stroke-width',2);
+  svg.append('line').attr('x1',m.l).attr('x2',W-m.r).attr('y1',y(0)).attr('y2',y(0)).attr('stroke','var(--line2)');
+  svg.append('g').attr('class','axis').attr('transform',`translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickFormat(d=>d+'R'));
+}
+function renderJ(){
+  const tb=document.querySelector('#jTable tbody'); tb.innerHTML='';
+  journal.slice().reverse().forEach((t,ri)=>{const idx=journal.length-ri, c=(+t.r>0)?'ok':(+t.r<0)?'bad':'muted';
+    tb.insertAdjacentHTML('beforeend',`<tr><td>${idx}</td><td>${t.instr||'—'}</td><td>${t.dir||''}</td><td class="mono ${c}">${+t.r>0?'+':''}${t.r}R</td><td class="muted" style="font-size:.78rem">${t.note||''}</td><td><button data-i="${journal.length-1-ri}" class="jDel" style="background:none;border:none;color:var(--red);cursor:pointer">✕</button></td></tr>`);});
+  document.querySelectorAll('.jDel').forEach(b=>b.onclick=()=>{journal.splice(+b.dataset.i,1);saveJ();renderJ();});
+  const s=edge(journal);
+  drawEquity(s?s.curve:null);
+  if(!s){jStats.innerHTML='<p class="sub">No trades yet. Log 30–50 to read your edge; 100+ before trusting it.</p>';return;}
+  const exC=s.exp>0.1?'ok':s.exp>0?'warn':'bad', pfC=s.pf>=1.3?'ok':s.pf>=1?'warn':'bad';
+  const ready=s.n>=100&&s.exp>0.1&&s.pf>=1.3&&s.maxDD<=8, almost=s.n>=50&&s.exp>0&&s.pf>=1.1;
+  const v=ready?['READY','ok','Edge looks real on a usable sample. A challenge is a reasonable bet — keep risk ≤ single-trade cap.']
+    :almost?['PROMISING','warn','Positive but thin. Push to 100+ trades and tighten drawdown before paying a fee.']
+    :['NOT READY','bad','No proven edge yet (or sample too small). Fix the strategy on demo first — do not buy a challenge.'];
   jStats.innerHTML=
-   `<div class="row"><span>Trades logged</span><b>${s.n}</b></div>
+   `<div class="row"><span>Trades</span><b>${s.n}</b></div>
     <div class="row"><span>Win rate</span><b>${(s.winRate*100).toFixed(1)}%</b></div>
-    <div class="row"><span>Avg win / avg loss</span><b class="mono">+${s.avgWin.toFixed(2)}R / ${s.avgLoss.toFixed(2)}R</b></div>
-    <div class="row"><span>Expectancy (per trade)</span><b class="${exC}">${(s.expectancy>0?'+':'')}${s.expectancy.toFixed(3)}R</b></div>
+    <div class="row"><span>Avg win / loss</span><b class="mono">+${s.avgWin.toFixed(2)}R / ${s.avgLoss.toFixed(2)}R</b></div>
+    <div class="row"><span>Expectancy / trade</span><b class="${exC}">${s.exp>0?'+':''}${s.exp.toFixed(3)}R</b></div>
     <div class="row"><span>Profit factor</span><b class="${pfC}">${s.pf===Infinity?'∞':s.pf.toFixed(2)}</b></div>
-    <div class="row"><span>Max drawdown</span><b class="warn">${s.maxDD.toFixed(1)}R ≈ ${ddPctHalf}% acct @0.5% risk</b></div>
-    <div class="row"><span>Worst losing streak</span><b>${s.worstStreak} in a row</b></div>
-    <div class="row"><span>Net result</span><b class="${s.totalR>=0?'ok':'bad'}">${(s.totalR>=0?'+':'')}${s.totalR.toFixed(1)}R</b></div>
-    <div class="row" style="border-top:1px solid var(--line);margin-top:6px;padding-top:10px">
-      <span>Verdict</span><b class="${verdict[1]}">${verdict[0]}</b></div>
-    <p class="sub" style="margin-top:6px">${verdict[2]}</p>`;
+    <div class="row"><span>Max drawdown</span><b class="warn">${s.maxDD.toFixed(1)}R ≈ ${(s.maxDD*0.5).toFixed(1)}% acct @0.5%</b></div>
+    <div class="row"><span>Worst streak</span><b>${s.worst} losses</b></div>
+    <div class="row" style="border-top:1px solid var(--line);margin-top:6px;padding-top:10px"><span>Verdict</span><b class="${v[1]}">${v[0]}</b></div>
+    <p class="sub" style="margin-top:6px">${v[2]}</p>`;
 }
+jAdd.onclick=()=>{const r=parseFloat(jR.value);if(isNaN(r)){jR.focus();return;}journal.push({instr:jInstr.value.trim(),dir:jDir.value,r,note:jNote.value.trim()});saveJ();jR.value='';jNote.value='';jInstr.focus();renderJ();};
+jClear.onclick=()=>{if(confirm('Delete all logged trades?')){journal=[];saveJ();renderJ();}};
+jSeed.onclick=()=>{const demo=[],ins=['EURUSD','XAUUSD','GBPJPY','BTCUSD','US100'];for(let i=0;i<60;i++){const win=Math.random()<0.46;const r=win?(1+Math.round(Math.random()*20)/10):(-1+(Math.random()<0.15?0.5:0));demo.push({instr:ins[i%5],dir:Math.random()<0.5?'Long':'Short',r:+r.toFixed(1),note:win?'A+ setup':'stopped'});}journal=journal.concat(demo);saveJ();renderJ();};
 
-jAdd.onclick=()=>{
-  const r=parseFloat(jR.value);
-  if(isNaN(r)){jR.focus();return;}
-  journal.push({instr:jInstr.value.trim(),dir:jDir.value,r:r,note:jNote.value.trim()});
-  saveJ();jR.value='';jNote.value='';jInstr.focus();renderJournal();
-};
-jClear.onclick=()=>{ if(confirm('Delete all logged trades?')){journal=[];saveJ();renderJournal();} };
-jSeed.onclick=()=>{
-  // realistic ~45% win, ~1.8R avg win, -1R loss => positive expectancy
-  const demo=[];const instr=['EURUSD','XAUUSD','GBPJPY','BTCUSD','US100'];
-  for(let i=0;i<60;i++){
-    const win=Math.random()<0.46;
-    const r=win?(1+Math.round(Math.random()*20)/10):(-1+ (Math.random()<0.15?0.5:0));
-    demo.push({instr:instr[i%5],dir:Math.random()<0.5?'Long':'Short',r:+r.toFixed(1),note:win?'A+ setup':'stopped'});
+/* ---------- Projection + chart ---------- */
+function drawProj(rows,goal){
+  const el=$('pjChart'); el.innerHTML='';
+  const W=el.clientWidth||440,H=210,m={l:46,r:12,t:12,b:22};
+  const svg=d3.select(el).append('svg').attr('width',W).attr('height',H);
+  if(!rows.length)return;
+  const x=d3.scaleLinear().domain([0,rows[rows.length-1].m]).range([m.l,W-m.r]);
+  const y=d3.scaleLinear().domain([0,Math.max(goal,rows[rows.length-1].cash)]).nice().range([H-m.b,m.t]);
+  svg.append('g').selectAll('line').data(y.ticks(4)).join('line').attr('class','grid-line').attr('x1',m.l).attr('x2',W-m.r).attr('y1',d=>y(d)).attr('y2',d=>y(d));
+  const area=d3.area().x(d=>x(d.m)).y0(H-m.b).y1(d=>y(d.cash)).curve(d3.curveMonotoneX);
+  const line=d3.line().x(d=>x(d.m)).y(d=>y(d.cash)).curve(d3.curveMonotoneX);
+  svg.append('path').datum(rows).attr('d',area).attr('fill','var(--cyan)').attr('opacity',.13);
+  svg.append('path').datum(rows).attr('d',line).attr('fill','none').attr('stroke','var(--cyan)').attr('stroke-width',2);
+  svg.append('line').attr('x1',m.l).attr('x2',W-m.r).attr('y1',y(goal)).attr('y2',y(goal)).attr('stroke','var(--emer)').attr('stroke-dasharray','4 4');
+  svg.append('text').attr('x',W-m.r).attr('y',y(goal)-5).attr('text-anchor','end').attr('fill','var(--emer)').style('font','10px JetBrains Mono').text('goal '+fmt(goal));
+  svg.append('g').attr('class','axis').attr('transform',`translate(0,${H-m.b})`).call(d3.axisBottom(x).ticks(6).tickFormat(d=>d+'m'));
+  svg.append('g').attr('class','axis').attr('transform',`translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickFormat(d=>'$'+d3.format('.2s')(d)));
+}
+function calcProj(){
+  let size=+pjSize.value; const ret=+pjRet.value/100,acc=+pjAcc.value,split=+pjSplit.value/100,scale=pjScale.value==='yes',goal=+pjGoal.value;
+  let cash=0,m=0; const rows=[],all=[];
+  while(cash<goal&&m<240){m++;cash+=size*ret*split*acc;if(scale&&m%4===0)size*=1.35;all.push({m,size,cash});if(m<=12||m%6===0||cash>=goal)rows.push({m,size,cash});}
+  const yrs=m/12;
+  let h=`<div class="big">${m<240?m+' months':'>20 yrs'}</div><span class="pill">to ${fmt(goal)} · ${yrs.toFixed(1)} yrs · ${acc} acct(s) @ ${(ret*100)}%/mo</span>`;
+  h+=`<table style="margin-top:12px"><thead><tr><th>Mo</th><th class="mono">Acct</th><th class="mono">Cumulative</th></tr></thead><tbody>`;
+  rows.forEach(r=>h+=`<tr><td>${r.m}</td><td class="mono">${fmt(r.size)}</td><td class="mono ok">${fmt(r.cash)}</td></tr>`);
+  h+=`</tbody></table>`;
+  if(m>=240)h+=`<p class="sub" style="margin-top:8px;color:var(--red)">20+ years at these inputs — raise return, size, or accounts (each adds real risk).</p>`;
+  pjOut.innerHTML=h; drawProj(all,goal);
+}
+['pjSize','pjRet','pjAcc','pjSplit','pjScale','pjGoal'].forEach(id=>$(id).addEventListener('input',calcProj));
+
+/* ---------- Trading calendar ---------- */
+const CKEY='upc_caldays_v1'; let cal={};
+try{cal=JSON.parse(localStorage.getItem(CKEY)||'{}')}catch(e){cal={}}
+const saveC=()=>localStorage.setItem(CKEY,JSON.stringify(cal));
+let calView=new Date(); calView.setDate(1);
+PLANS.forEach((p,i)=>calPlan.insertAdjacentHTML('beforeend',`<option value="${i}">${p.name}</option>`));
+const pad=n=>String(n).padStart(2,'0');
+function colDay(v){ if(v==null)return null; if(v>=0.5)return'var(--emer)'; if(v>0)return'var(--amber)'; if(v===0)return'var(--muted)'; return'var(--red)'; }
+function renderCal(){
+  const y=calView.getFullYear(), mo=calView.getMonth();
+  calMonth.textContent=calView.toLocaleString('en',{month:'long',year:'numeric'});
+  const startDow=new Date(y,mo,1).getDay(), days=new Date(y,mo+1,0).getDate();
+  const todayK=new Date().getFullYear()+'-'+pad(new Date().getMonth()+1)+'-'+pad(new Date().getDate());
+  let html='<div class="cal-grid">';
+  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d=>html+=`<div class="cal-h">${d}</div>`);
+  for(let i=0;i<startDow;i++)html+='<div class="cal-d cal-empty"></div>';
+  for(let d=1;d<=days;d++){
+    const k=`${y}-${pad(mo+1)}-${pad(d)}`, v=cal[k], col=colDay(v);
+    const style=col?`background:color-mix(in srgb,${col} 14%,transparent);border-color:${col}`:'';
+    const val=v!=null?`<b style="color:${col}">${v>0?'+':''}${v}%</b>`:'';
+    html+=`<div class="cal-d ${k===todayK?'cal-today':''}" data-k="${k}" style="${style}"><small>${d}</small>${val}</div>`;
   }
-  journal=journal.concat(demo);saveJ();renderJournal();
-};
-renderJournal();
+  html+='</div>'; calGrid.innerHTML=html;
+  calGrid.querySelectorAll('.cal-d[data-k]').forEach(el=>el.onclick=()=>{calDate.value=el.dataset.k;calPct.value=cal[el.dataset.k]??'';});
+  // stats
+  const p=PLANS[+calPlan.value], pref=`${y}-${pad(mo+1)}`;
+  const all=Object.entries(cal), month=all.filter(([k])=>k.startsWith(pref));
+  const valid=month.filter(([,v])=>v>=0.5).length, traded=month.length;
+  const net=month.reduce((a,[,v])=>a+(+v),0);
+  const totalValid=all.filter(([,v])=>v>=0.5).length, need=p.validDays||0;
+  let h=`<div class="row"><span>This month · valid days (≥0.5%)</span><b class="ok">${valid}</b></div>
+    <div class="row"><span>Trading days</span><b>${traded}</b></div>
+    <div class="row"><span>Net this month</span><b class="${net>=0?'ok':'bad'}">${net>0?'+':''}${net.toFixed(2)}%</b></div>`;
+  if(need)h+=`<div class="row"><span>Valid days vs ${p.name} (need ${need})</span><b class="${totalValid>=need?'ok':'warn'}">${totalValid}/${need} ${totalValid>=need?'✓':''}</b></div>`;
+  else h+=`<div class="row"><span>${p.name}</span><b class="vio">timed sprint — no march</b></div>`;
+  calStats.innerHTML=h;
+}
+calAdd.onclick=()=>{const v=parseFloat(calPct.value);if(!calDate.value||isNaN(v))return;cal[calDate.value]=+v.toFixed(2);saveC();renderCal();};
+calDel.onclick=()=>{if(calDate.value&&cal[calDate.value]!=null){delete cal[calDate.value];saveC();renderCal();}};
+calPrev.onclick=()=>{calView.setMonth(calView.getMonth()-1);renderCal();};
+calNext.onclick=()=>{calView.setMonth(calView.getMonth()+1);renderCal();};
+calPlan.onchange=renderCal;
+calDate.value=new Date().getFullYear()+'-'+pad(new Date().getMonth()+1)+'-'+pad(new Date().getDate());
 
-calcRisk();calcTrack();calcProj();
+/* ---------- clock + init ---------- */
+setInterval(()=>{$('liveClock').textContent=new Date().toLocaleTimeString('en-GB')},1000);
+function init(){drawCmp();calcRisk();calcTrack();renderJ();renderCal();calcProj();}
+window.addEventListener('resize',()=>{drawCmp();renderJ();calcProj();});
+init();
 </script>
 </body>
 </html>
