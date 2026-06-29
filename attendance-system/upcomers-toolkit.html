@@ -258,9 +258,9 @@ const PLANS=[
   {name:'Vanguard', fam:'march', target:null, window:null, validDays:6, march:0.5, dailyDD:4, shield:7, single:2,   cons:{type:'day', pct:20, soft:true},  minTrades:null, payoutReq:null, note:'Most room, unlimited time'},
   {name:'Oracle',   fam:'march', target:null, window:null, validDays:5, march:0.5, dailyDD:4, shield:5, single:2,   cons:{type:'day', pct:20, soft:false}, minTrades:null, payoutReq:null, note:'Tighter shield, hard best-day'},
   {name:'Ember',    fam:'march', target:null, window:null, validDays:5, march:0.5, dailyDD:null, shield:4, single:1.5, cons:{type:'day', pct:20, soft:true}, minTrades:null, payoutReq:1, note:'No daily DD; needs 1% total profit to pay'},
-  {name:'Supernova',fam:'sprint',target:3, window:'24h', windowH:24, validDays:null, march:null, dailyDD:2, shield:3, single:null, cons:{type:'trade', pct:15}, minTrades:null, payoutReq:null, note:'24h window from first trade'},
-  {name:'Hypernova',fam:'sprint',target:2, window:'4h',  windowH:4,  validDays:null, march:null, dailyDD:2, shield:3, single:null, cons:{type:'trade', pct:15}, minTrades:null, payoutReq:null, note:'4h window from first trade'},
-  {name:'Ultranova',fam:'sprint',target:2, window:'1h',  windowH:1,  validDays:null, march:null, dailyDD:null, shield:3, single:null, cons:{type:'trade', pct:25}, minTrades:5, payoutReq:null, note:'1h window, min 5 trades'},
+  {name:'Supernova',fam:'sprint',target:3, window:'24h', windowH:24, validDays:null, march:null, dailyDD:2, shield:3, single:null, cons:{type:'trade', pct:15}, minTrades:7, minVerify:true, maxRisk:null, payoutReq:null, note:'24h single session · min 7 trades (verify)'},
+  {name:'Hypernova',fam:'sprint',target:2, window:'4h',  windowH:4,  validDays:null, march:null, dailyDD:2, shield:3, single:null, cons:{type:'trade', pct:15}, minTrades:7, minVerify:true, maxRisk:null, payoutReq:null, note:'4h single session · min 7 trades (verify)'},
+  {name:'Ultranova',fam:'sprint',target:2, window:'1h',  windowH:1,  validDays:null, march:null, dailyDD:null, shield:3, single:null, cons:{type:'score', pct:25}, minTrades:5, minVerify:false, maxRisk:0.5, payoutReq:null, note:'1h · min 5 trades · 0.5% risk · 25% consistency'},
 ];
 const $=id=>document.getElementById(id);
 const fmt=n=>'$'+Math.round(n).toLocaleString();
@@ -270,7 +270,10 @@ const pc=n=>n===null||n===undefined?'—':n+'%';
 const ctb=document.querySelector('#cmpTbl tbody');
 PLANS.forEach(p=>{
   const fam = p.fam==='march'?'<span class="tag t-march">Daily-march</span>':'<span class="tag t-sprint">Timed sprint</span>';
-  const cons = p.cons.type==='day'?`Best day ${p.cons.pct}%${p.cons.soft?' (soft)':''}`:`Best trade ${p.cons.pct}%`;
+  const cons = p.cons.type==='day'?`Best day ${p.cons.pct}%${p.cons.soft?' (soft)':''}`
+             : p.cons.type==='score'?`Consistency ${p.cons.pct}%`
+             : `Best trade ${p.cons.pct}%`;
+  const mt = p.minTrades?`${p.minTrades}${p.minVerify?' <span class="warn" title="sources vary — verify">⚠</span>':''}`:'—';
   ctb.insertAdjacentHTML('beforeend',
    `<tr><td><b>${p.name}</b></td><td>${fam}</td>
         <td class="mono ${p.fam==='sprint'?'vio':''}">${p.target?p.target+'% / '+p.window:'— / unlimited'}</td>
@@ -280,7 +283,7 @@ PLANS.forEach(p=>{
         <td class="mono ok">${pc(p.shield)}</td>
         <td class="mono">${pc(p.single)}</td>
         <td class="mono">${cons}</td>
-        <td class="mono">${p.minTrades||'—'}</td>
+        <td class="mono">${mt}</td>
         <td class="muted">${p.note}</td></tr>`);
 });
 
@@ -341,8 +344,12 @@ function calcRisk(){
     h+=`<div class="row"><span>Best-day ${p.cons.pct}% rule</span><b>spread profit over ≥ ${need} days</b></div>`;
   } else {
     h+=`<div class="row"><span>Profit target (${p.window})</span><b class="vio">${fmt(size*p.target/100)} (${p.target}%)</b></div>`;
-    h+=`<div class="row"><span>Best-trade ${p.cons.pct}% rule</span><b>no trade > ${p.cons.pct}% of total profit</b></div>`;
-    if(p.minTrades)h+=`<div class="row"><span>Minimum trades</span><b>${p.minTrades}</b></div>`;
+    const clabel=p.cons.type==='score'?`Consistency score ≥ ${p.cons.pct}%`:`No single trade > ${p.cons.pct}% of total profit`;
+    h+=`<div class="row"><span>Consistency rule</span><b>${clabel}</b></div>`;
+    if(p.minTrades)h+=`<div class="row"><span>Minimum trades${p.minVerify?' (verify)':''}</span><b>${p.minTrades}</b></div>`;
+    if(p.maxRisk){const ok=(+rcRisk.value)<=p.maxRisk;h+=`<div class="row"><span>Max risk/trade rule (${p.maxRisk}%)</span><b class="${ok?'ok':'bad'}">${ok?'within ✓':'OVER ✗'}</b></div>`;}
+    // best-trade dollar cap once target hit
+    if(p.cons.type==='trade'){h+=`<div class="row"><span>Best-trade cap @ target</span><b>≤ ${fmt(size*p.target/100*p.cons.pct/100)}/trade</b></div>`;}
   }
   rcOut.innerHTML=h;
 }
@@ -375,7 +382,10 @@ function calcTrack(){
   } else {
     h+=`<div class="row"><span>Profit target (${p.window})</span><b class="${profit>=start*p.target/100?'ok':'vio'}">${fmt(Math.max(0,profit))} / ${fmt(start*p.target/100)}</b></div>`;
     h+=`<div class="row"><span>Window</span><b class="vio">${p.window} from first trade</b></div>`;
-    if(p.minTrades)h+=`<div class="row"><span>Min trades</span><b>${p.minTrades} required</b></div>`;
+    const cl=p.cons.type==='score'?`Consistency ≥ ${p.cons.pct}%`:`Best-trade ≤ ${p.cons.pct}%`;
+    h+=`<div class="row"><span>Consistency</span><b>${cl}</b></div>`;
+    if(p.minTrades)h+=`<div class="row"><span>Min trades${p.minVerify?' (verify)':''}</span><b>${p.minTrades} required</b></div>`;
+    if(p.maxRisk)h+=`<div class="row"><span>Max risk/trade</span><b>${p.maxRisk}%</b></div>`;
   }
   const payReq=p.payoutReq?start*p.payoutReq/100:start*0.01;
   const eligible=profit>=payReq && (p.fam!=='march'||days>=p.validDays);
