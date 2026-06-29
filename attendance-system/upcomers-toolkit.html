@@ -130,6 +130,34 @@
   .rule-body{padding:13px 15px;font-size:.85rem;color:var(--txt)}
   .rule-body p{margin-bottom:8px}.rule-body b{color:#fff}
   .rule-body .flag{color:var(--red);font-weight:600}
+  /* ---- animations ---- */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+  @keyframes glowPulse{0%,100%{opacity:.45}50%{opacity:1}}
+  @keyframes floatY{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  @keyframes sheen{0%{background-position:-180% 0}60%,100%{background-position:180% 0}}
+  body::before{content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background:radial-gradient(620px 320px at 50% -40px,rgba(0,229,140,.07),transparent 70%);
+    animation:glowPulse 7s ease-in-out infinite}
+  .hero h1 span{background:linear-gradient(90deg,var(--emer),#7df9c4,var(--emer));
+    background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+    animation:sheen 6s linear infinite}
+  h2::before{animation:glowPulse 2.6s ease-in-out infinite}
+  .stat b{transition:color .3s}
+  .reveal{opacity:0;transform:translateY(22px)}
+  .reveal.in{opacity:1;transform:none;transition:opacity .6s ease,transform .65s cubic-bezier(.22,1,.36,1)}
+  .card{will-change:opacity,transform}
+  .btn{transition:transform .15s,box-shadow .2s,background .2s}
+  .btn:active{transform:scale(.96)}
+  .cal-d{animation:fadeUp .4s both}
+  .spec{transition:transform .15s,border-color .2s}
+  .spec:hover{transform:translateY(-2px);border-color:var(--emer)}
+  details.rule{transition:border-color .2s}
+  details.rule[open]{border-color:var(--line2)}
+  .lp-logo-ring{animation:floatY 4s ease-in-out infinite}
+  @media(prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+    .reveal{opacity:1!important;transform:none!important}
+  }
 </style>
 </head>
 <body>
@@ -372,6 +400,7 @@ const PLANS=[
   {name:'Ultranova',fam:'sprint',target:2, window:'1h',  windowH:1,  validDays:null, march:null, dailyDD:null, shield:3, single:null, cons:{type:'score', pct:25}, minTrades:5, minVerify:false, maxRisk:0.5, payoutReq:null, note:'1h · min 5 trades · 0.5% risk · 25% consistency'},
 ];
 const $=id=>document.getElementById(id);
+const RM=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 const fmt=n=>'$'+Math.round(n).toLocaleString();
 const pc=n=>n===null||n===undefined?'—':n+'%';
 
@@ -406,11 +435,12 @@ function drawCmp(){
   // gridlines
   svg.append('g').selectAll('line').data(x.ticks(8)).join('line')
     .attr('class','grid-line').attr('x1',d=>x(d)).attr('x2',d=>x(d)).attr('y1',m.t).attr('y2',H-m.b);
-  // shield bars
-  svg.selectAll('.bar').data(PLANS).join('rect')
-    .attr('x',x(0)).attr('y',d=>y(d.name)).attr('height',y.bandwidth())
-    .attr('width',d=>x(d.shield)-x(0)).attr('rx',4)
+  // shield bars (grow-in)
+  const bars=svg.selectAll('.bar').data(PLANS).join('rect')
+    .attr('x',x(0)).attr('y',d=>y(d.name)).attr('height',y.bandwidth()).attr('rx',4)
     .attr('fill',d=>d.fam==='march'?'var(--emer)':'var(--violet)').attr('opacity',.85);
+  if(RM) bars.attr('width',d=>x(d.shield)-x(0));
+  else bars.attr('width',0).transition().duration(700).delay((d,i)=>i*80).ease(d3.easeCubicOut).attr('width',d=>x(d.shield)-x(0));
   // daily DD markers
   svg.selectAll('.dd').data(PLANS.filter(p=>p.dailyDD)).join('line')
     .attr('x1',d=>x(d.dailyDD)).attr('x2',d=>x(d.dailyDD)).attr('y1',d=>y(d.name)-3).attr('y2',d=>y(d.name)+y.bandwidth()+3)
@@ -536,7 +566,8 @@ function drawEquity(curve){
   const ddArea=d3.area().x((d,i)=>x(i)).y0((d,i)=>y(peak[i])).y1((d,i)=>y(d));
   svg.append('path').datum(data).attr('d',ddArea).attr('fill','var(--red)').attr('opacity',.18);
   const line=d3.line().x((d,i)=>x(i)).y(d=>y(d)).curve(d3.curveMonotoneX);
-  svg.append('path').datum(data).attr('d',line).attr('fill','none').attr('stroke','var(--emer)').attr('stroke-width',2);
+  const lp=svg.append('path').datum(data).attr('d',line).attr('fill','none').attr('stroke','var(--emer)').attr('stroke-width',2);
+  if(!RM){const L=lp.node().getTotalLength();lp.attr('stroke-dasharray',L).attr('stroke-dashoffset',L).transition().duration(850).ease(d3.easeCubicInOut).attr('stroke-dashoffset',0);}
   svg.append('line').attr('x1',m.l).attr('x2',W-m.r).attr('y1',y(0)).attr('y2',y(0)).attr('stroke','var(--line2)');
   svg.append('g').attr('class','axis').attr('transform',`translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickFormat(d=>d+'R'));
 }
@@ -702,18 +733,32 @@ function meterHTML(p){
     const ok=m.share<=cap, scale=Math.max(cap*2, m.share*1.1);
     const fillW=Math.min(m.share/scale*100,100), capL=cap/scale*100;
     body=`<div class="meter-bar">
-        <div class="meter-fill" style="width:${fillW}%;background:${ok?'var(--emer)':'var(--red)'};box-shadow:0 0 10px ${ok?'rgba(0,229,140,.4)':'rgba(255,91,110,.4)'}"></div>
+        <div class="meter-fill" style="width:0;background:${ok?'var(--emer)':'var(--red)'};box-shadow:0 0 10px ${ok?'rgba(0,229,140,.4)':'rgba(255,91,110,.4)'}" data-w="${fillW}"></div>
         <div class="meter-cap" style="left:${capL}%"><small>cap ${cap}%</small></div>
       </div>
       <div class="sub" style="margin-top:5px"><b class="${ok?'ok':'bad'}">${m.share.toFixed(1)}%</b> of net profit in the biggest ${m.unit.slice(0,-1)} — <b class="${ok?'ok':'bad'}">${ok?'within cap ✓':'BREACH ✗'}</b> · ${m.n} ${m.unit}${ok?'':` · need ≥ ${Math.ceil(100/cap)} balanced ${m.unit}`}</div>`;
   }
   return `<div class="meter"><div class="meter-top"><b>${p.name} <span class="tag ${tagCls}" style="margin-left:6px">${famTag}</span></b><span class="muted">${m.unit} log</span></div>${body}</div>`;
 }
-function renderConsistency(){ if($('consBody')) $('consBody').innerHTML=PLANS.map(meterHTML).join(''); }
+function renderConsistency(){
+  if(!$('consBody'))return;
+  $('consBody').innerHTML=PLANS.map(meterHTML).join('');
+  const fills=$('consBody').querySelectorAll('.meter-fill[data-w]');
+  if(RM) fills.forEach(el=>el.style.width=el.dataset.w+'%');
+  else requestAnimationFrame(()=>fills.forEach((el,i)=>{el.style.transitionDelay=(i*40)+'ms';el.style.width=el.dataset.w+'%';}));
+}
 
 /* ---------- clock + init ---------- */
 setInterval(()=>{$('liveClock').textContent=new Date().toLocaleTimeString('en-GB')},1000);
-function init(){drawCmp();calcRisk();calcTrack();renderJ();renderCal();renderConsistency();calcProj();}
+function setupReveal(){
+  const cards=document.querySelectorAll('.card');
+  if(RM||!('IntersectionObserver'in window)){cards.forEach(c=>c.classList.add('in'));return;}
+  cards.forEach(c=>c.classList.add('reveal'));
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:.06,rootMargin:'0px 0px -40px 0px'});
+  cards.forEach(c=>io.observe(c));
+  setTimeout(()=>cards.forEach(c=>c.classList.add('in')),1500); // safety
+}
+function init(){drawCmp();calcRisk();calcTrack();renderJ();renderCal();renderConsistency();calcProj();setupReveal();}
 window.addEventListener('resize',()=>{drawCmp();renderJ();calcProj();});
 init();
 </script>
