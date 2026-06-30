@@ -17,6 +17,7 @@
 <meta name="twitter:title" content="Upcomers Funding Toolkit" />
 <meta name="twitter:description" content="Risk, consistency, journal, calendar and $100k planner for Upcomers funded accounts." />
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
 <style>
   :root{
@@ -125,6 +126,22 @@
   .toast b{display:block;font-weight:600;margin-bottom:1px;color:#fff}
   .toast small{color:var(--muted);line-height:1.35;word-break:break-word}
   .toast:nth-last-child(n+4){opacity:.55;transform:translateY(0) scale(.96)}
+  /* ---- sweeping light ray + journal glow-up ---- */
+  .card.beam{position:relative;overflow:hidden}
+  .card.beam>*{position:relative;z-index:1}
+  .card.beam::before{content:'';position:absolute;top:-60%;left:-45%;width:42%;height:220%;z-index:0;pointer-events:none;
+    background:linear-gradient(100deg,transparent,rgba(0,229,140,.13),rgba(63,189,248,.08),transparent);
+    transform:rotate(9deg);filter:blur(3px);animation:rayMove 5.5s ease-in-out infinite}
+  @keyframes rayMove{0%{left:-45%}55%,100%{left:135%}}
+  .card.beam{border-color:var(--line2);box-shadow:0 0 0 1px rgba(0,229,140,.05),0 22px 60px rgba(0,229,140,.05)}
+  h2 .bi{color:var(--emer);font-size:.95em;margin-right:2px}
+  label .bi{color:var(--muted);margin-right:5px;font-size:.9em}
+  .row .ri{display:inline-flex;align-items:center;gap:7px}
+  .row .ri .bi{color:var(--muted);font-size:.95em;width:16px;text-align:center}
+  #jTable td .bi{font-size:.95em}
+  .btn .bi{margin-right:5px}
+  .out.statsbox{background:linear-gradient(180deg,#0b1422,#070d16)}
+  @media(prefers-reduced-motion:reduce){.card.beam::before{display:none}}
   /* table wrappers scroll smoothly on touch */
   .tscroll,div[style*="overflow-x"]{ -webkit-overflow-scrolling:touch }
   @media(max-width:680px){
@@ -322,40 +339,40 @@
   </div>
 
   <!-- JOURNAL -->
-  <div class="card" id="jrnl">
-    <h2>Trade journal &amp; edge tester</h2>
+  <div class="card beam" id="jrnl">
+    <h2><i class="bi bi-journal-richtext"></i> Trade journal &amp; edge tester</h2>
     <p class="sub" style="margin:4px 0 12px">Log each trade as an <b>R-multiple</b> (+2 = 2× risk won, −1 = full stop, 0 = breakeven). Saved in this browser. Prove the edge here before paying a fee.</p>
     <div class="grid">
       <div>
-        <label>Date</label><input id="jDate" type="date" />
-        <label>Instrument</label><input id="jInstr" type="text" placeholder="EURUSD, XAUUSD, BTCUSD…" />
-        <label>Direction</label><select id="jDir"><option>Long</option><option>Short</option></select>
+        <label><i class="bi bi-calendar3"></i>Date</label><input id="jDate" type="date" />
+        <label><i class="bi bi-bar-chart-line"></i>Instrument</label><input id="jInstr" type="text" placeholder="EURUSD, XAUUSD, BTCUSD…" />
+        <label><i class="bi bi-arrow-down-up"></i>Direction</label><select id="jDir"><option>Long</option><option>Short</option></select>
       </div>
       <div>
-        <label>Result (R-multiple)</label><input id="jR" class="mono" type="number" step="0.1" placeholder="e.g. 2 or -1" />
-        <label>Risk per trade % (R→% for calendar)</label><input id="jRisk" class="mono" type="number" step="0.1" value="0.5" />
-        <label>Note (optional)</label><input id="jNote" type="text" placeholder="setup / mistake / tag" />
+        <label><i class="bi bi-bullseye"></i>Result (R-multiple)</label><input id="jR" class="mono" type="number" step="0.1" placeholder="e.g. 2 or -1" />
+        <label><i class="bi bi-shield-shaded"></i>Risk per trade % (R→% for calendar)</label><input id="jRisk" class="mono" type="number" step="0.1" value="0.5" />
+        <label><i class="bi bi-tag"></i>Note (optional)</label><input id="jNote" type="text" placeholder="setup / mistake / tag" />
       </div>
     </div>
     <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
-      <button class="btn btn-pri" id="jAdd" style="flex:1">+ Log trade</button>
-      <button class="btn btn-gho" id="jSeed">Load demo set</button>
-      <button class="btn btn-gho" id="jClear" style="color:var(--red)">Clear</button>
+      <button class="btn btn-pri" id="jAdd" style="flex:1"><i class="bi bi-plus-lg"></i>Log trade</button>
+      <button class="btn btn-gho" id="jSeed"><i class="bi bi-database-add"></i>Demo set</button>
+      <button class="btn btn-gho" id="jClear" style="color:var(--red)"><i class="bi bi-trash3"></i>Clear</button>
     </div>
     <div class="grid" style="margin-top:16px;align-items:start">
-      <div class="out" id="jStats"></div>
+      <div class="out statsbox" id="jStats"></div>
       <div>
         <div id="jChart" class="chart"></div>
         <div class="legend"><span><i style="background:var(--emer)"></i>Equity (R)</span><span><i style="background:var(--red);opacity:.5"></i>Drawdown</span></div>
         <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
-          <button class="btn btn-pri" id="eqShare" style="flex:1">📸 Share equity curve</button>
-          <button class="btn btn-gho" id="eqDownload">⬇ Save</button>
+          <button class="btn btn-pri" id="eqShare" style="flex:1"><i class="bi bi-share-fill"></i>Share equity curve</button>
+          <button class="btn btn-gho" id="eqDownload"><i class="bi bi-download"></i>Save</button>
         </div>
         <div id="eqShareMsg" class="sub" style="margin-top:8px"></div>
       </div>
     </div>
-    <div style="overflow-x:auto;margin-top:14px;max-height:220px;overflow-y:auto">
-      <table id="jTable"><thead><tr><th>#</th><th>Date</th><th>Instrument</th><th>Dir</th><th class="mono">R</th><th>Note</th><th></th></tr></thead><tbody></tbody></table>
+    <div style="overflow-x:auto;margin-top:14px;max-height:240px;overflow-y:auto">
+      <table id="jTable"><thead><tr><th>#</th><th><i class="bi bi-calendar3"></i></th><th>Instrument</th><th>Dir</th><th class="mono">R</th><th>Note</th><th></th></tr></thead><tbody></tbody></table>
     </div>
   </div>
 
@@ -729,7 +746,9 @@ function drawEquity(curve){
 function renderJ(){
   const tb=document.querySelector('#jTable tbody'); tb.innerHTML='';
   journal.slice().reverse().forEach((t,ri)=>{const idx=journal.length-ri, c=(+t.r>0)?'ok':(+t.r<0)?'bad':'muted';
-    tb.insertAdjacentHTML('beforeend',`<tr><td>${idx}</td><td class="muted" style="font-size:.74rem">${t.date||'—'}</td><td>${t.instr||'—'}</td><td>${t.dir||''}</td><td class="mono ${c}">${+t.r>0?'+':''}${t.r}R</td><td class="muted" style="font-size:.78rem">${t.note||''}</td><td><button data-i="${journal.length-1-ri}" class="jDel" style="background:none;border:none;color:var(--red);cursor:pointer">✕</button></td></tr>`);});
+    const dirIco=t.dir==='Short'?'<i class="bi bi-arrow-down-right" style="color:var(--red)"></i>':'<i class="bi bi-arrow-up-right" style="color:var(--emer)"></i>';
+    const rIco=(+t.r>0)?'<i class="bi bi-caret-up-fill"></i>':(+t.r<0)?'<i class="bi bi-caret-down-fill"></i>':'<i class="bi bi-dash"></i>';
+    tb.insertAdjacentHTML('beforeend',`<tr><td>${idx}</td><td class="muted" style="font-size:.74rem">${t.date||'—'}</td><td>${t.instr||'—'}</td><td>${t.dir?dirIco+' '+t.dir:''}</td><td class="mono ${c}">${rIco} ${+t.r>0?'+':''}${t.r}R</td><td class="muted" style="font-size:.78rem">${t.note||''}</td><td><button data-i="${journal.length-1-ri}" class="jDel" aria-label="Delete" style="background:none;border:none;color:var(--red);cursor:pointer"><i class="bi bi-x-lg"></i></button></td></tr>`);});
   document.querySelectorAll('.jDel').forEach(b=>b.onclick=()=>{journal.splice(+b.dataset.i,1);saveJ();renderJ();});
   const s=edge(journal);
   drawEquity(s?s.curve:null);
@@ -741,15 +760,16 @@ function renderJ(){
   const v=ready?['READY','ok','Edge looks real on a usable sample. A challenge is a reasonable bet — keep risk ≤ single-trade cap.']
     :almost?['PROMISING','warn','Positive but thin. Push to 100+ trades and tighten drawdown before paying a fee.']
     :['NOT READY','bad','No proven edge yet (or sample too small). Fix the strategy on demo first — do not buy a challenge.'];
+  const vIco=v[1]==='ok'?'bi-patch-check-fill':v[1]==='warn'?'bi-hourglass-split':'bi-exclamation-octagon-fill';
   jStats.innerHTML=
-   `<div class="row"><span>Trades</span><b>${s.n}</b></div>
-    <div class="row"><span>Win rate</span><b>${(s.winRate*100).toFixed(1)}%</b></div>
-    <div class="row"><span>Avg win / loss</span><b class="mono">+${s.avgWin.toFixed(2)}R / ${s.avgLoss.toFixed(2)}R</b></div>
-    <div class="row"><span>Expectancy / trade</span><b class="${exC}">${s.exp>0?'+':''}${s.exp.toFixed(3)}R</b></div>
-    <div class="row"><span>Profit factor</span><b class="${pfC}">${s.pf===Infinity?'∞':s.pf.toFixed(2)}</b></div>
-    <div class="row"><span>Max drawdown</span><b class="warn">${s.maxDD.toFixed(1)}R ≈ ${(s.maxDD*0.5).toFixed(1)}% acct @0.5%</b></div>
-    <div class="row"><span>Worst streak</span><b>${s.worst} losses</b></div>
-    <div class="row" style="border-top:1px solid var(--line);margin-top:6px;padding-top:10px"><span>Verdict</span><b class="${v[1]}">${v[0]}</b></div>
+   `<div class="row"><span class="ri"><i class="bi bi-hash"></i>Trades</span><b>${s.n}</b></div>
+    <div class="row"><span class="ri"><i class="bi bi-trophy"></i>Win rate</span><b>${(s.winRate*100).toFixed(1)}%</b></div>
+    <div class="row"><span class="ri"><i class="bi bi-arrows-expand"></i>Avg win / loss</span><b class="mono">+${s.avgWin.toFixed(2)}R / ${s.avgLoss.toFixed(2)}R</b></div>
+    <div class="row"><span class="ri"><i class="bi bi-graph-up-arrow"></i>Expectancy / trade</span><b class="${exC}">${s.exp>0?'+':''}${s.exp.toFixed(3)}R</b></div>
+    <div class="row"><span class="ri"><i class="bi bi-bezier2"></i>Profit factor</span><b class="${pfC}">${s.pf===Infinity?'∞':s.pf.toFixed(2)}</b></div>
+    <div class="row"><span class="ri"><i class="bi bi-graph-down-arrow"></i>Max drawdown</span><b class="warn">${s.maxDD.toFixed(1)}R ≈ ${(s.maxDD*0.5).toFixed(1)}% acct @0.5%</b></div>
+    <div class="row"><span class="ri"><i class="bi bi-fire"></i>Worst streak</span><b>${s.worst} losses</b></div>
+    <div class="row" style="border-top:1px solid var(--line);margin-top:6px;padding-top:10px"><span class="ri"><i class="bi ${vIco}"></i>Verdict</span><b class="${v[1]}">${v[0]}</b></div>
     <p class="sub" style="margin-top:6px">${v[2]}</p>`;
 }
 jAdd.onclick=()=>{const r=parseFloat(jR.value);if(isNaN(r)){jR.focus();return;}
