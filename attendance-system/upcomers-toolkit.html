@@ -396,6 +396,7 @@
     <div style="overflow-x:auto;margin-top:14px;max-height:240px;overflow-y:auto">
       <table id="jTable"><thead><tr><th>#</th><th><i class="bi bi-calendar3"></i></th><th>Instrument</th><th>Dir</th><th class="mono">R</th><th>Note</th><th></th></tr></thead><tbody></tbody></table>
     </div>
+    <details class="rule" style="margin-top:12px"><summary><i class="bi bi-pie-chart"></i> Edge by instrument</summary><div class="rule-body" id="jByInstr"></div></details>
   </div>
 
   <!-- TRADING CALENDAR -->
@@ -465,6 +466,8 @@
         <label>Goal (USD)</label><input id="pjGoal" class="mono" type="number" value="100000" />
       </div>
     </div>
+    <button class="btn btn-gho" id="pjUseEdge" style="margin-top:8px"><i class="bi bi-magic"></i>Use my logged edge</button>
+    <div id="pjEdgeNote" class="sub" style="margin-top:8px"></div>
     <div class="grid" style="margin-top:14px;align-items:start">
       <div class="out" id="pjOut"></div>
       <div id="pjChart" class="chart"></div>
@@ -522,8 +525,9 @@
     <h2>Backup — export / import</h2>
     <p class="sub" style="margin:4px 0 14px">Your journal and calendar live only in this browser. Export a file to keep them safe or move to another device, then import to restore.</p>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <button class="btn btn-pri" id="bkExport">⬇ Export backup (.json)</button>
-      <label class="btn btn-gho" style="cursor:pointer;display:inline-flex;align-items:center">⬆ Import backup<input id="bkImport" type="file" accept="application/json,.json" style="display:none" /></label>
+      <button class="btn btn-pri" id="bkExport"><i class="bi bi-filetype-json"></i>Export backup (.json)</button>
+      <button class="btn btn-gho" id="bkCsv"><i class="bi bi-filetype-csv"></i>Export trades (.csv)</button>
+      <label class="btn btn-gho" style="cursor:pointer;display:inline-flex;align-items:center"><i class="bi bi-upload"></i>Import backup<input id="bkImport" type="file" accept="application/json,.json" style="display:none" /></label>
     </div>
     <div id="bkMsg" class="sub" style="margin-top:10px"></div>
   </div>
@@ -783,6 +787,7 @@ function renderJ(){
   document.querySelectorAll('.jDel').forEach(b=>b.onclick=()=>{journal.splice(+b.dataset.i,1);saveJ();renderJ();});
   const s=edge(journal);
   drawEquity(s?s.curve:null);
+  renderByInstrument();
   if(typeof renderConsistency==='function')renderConsistency();
   if(typeof renderReadiness==='function')renderReadiness();
   if(!s){jStats.innerHTML='<p class="sub">No trades yet. Log 30–50 to read your edge; 100+ before trusting it.</p>';return;}
@@ -802,6 +807,21 @@ function renderJ(){
     <div class="row"><span class="ri"><i class="bi bi-fire"></i>Worst streak</span><b>${s.worst} losses</b></div>
     <div class="row" style="border-top:1px solid var(--line);margin-top:6px;padding-top:10px"><span class="ri"><i class="bi ${vIco}"></i>Verdict</span><b class="${v[1]}">${v[0]}</b></div>
     <p class="sub" style="margin-top:6px">${v[2]}</p>`;
+}
+function renderByInstrument(){
+  const box=$('jByInstr');if(!box)return;
+  if(!journal.length){box.innerHTML='<p class="sub">No trades yet.</p>';return;}
+  const g={};
+  journal.forEach(t=>{const k=(t.instr||'—').toUpperCase();(g[k]=g[k]||[]).push(+t.r);});
+  const rows=Object.entries(g).map(([k,R])=>{
+    const n=R.length,wins=R.filter(x=>x>0).length,net=R.reduce((a,b)=>a+b,0),exp=net/n;
+    return {k,n,wr:wins/n*100,net,exp};
+  }).sort((a,b)=>b.net-a.net);
+  box.innerHTML=`<div style="overflow-x:auto"><table><thead><tr><th>Instrument</th><th class="mono">Trades</th><th class="mono">Win%</th><th class="mono">Net R</th><th class="mono">Exp/trade</th></tr></thead><tbody>`+
+    rows.map(r=>`<tr><td><b>${r.k}</b></td><td class="mono">${r.n}</td><td class="mono">${r.wr.toFixed(0)}%</td>
+      <td class="mono ${r.net>=0?'ok':'bad'}">${r.net>0?'+':''}${r.net.toFixed(1)}R</td>
+      <td class="mono ${r.exp>0?'ok':'bad'}">${r.exp>0?'+':''}${r.exp.toFixed(2)}R</td></tr>`).join('')+
+    `</tbody></table></div><p class="sub" style="margin-top:8px">Trade what pays. Drop or fix instruments with negative net R.</p>`;
 }
 jAdd.onclick=()=>{const r=parseFloat(jR.value);if(isNaN(r)){jR.focus();return;}
   const date=jDate.value||todayStr();
@@ -849,6 +869,24 @@ function calcProj(){
   if(m<240){countUp($('pjBigNum'),m,(window._pjLast||0),650);window._pjLast=m;}
 }
 ['pjSize','pjRet','pjAcc','pjSplit','pjScale','pjGoal'].forEach(id=>$(id).addEventListener('input',calcProj));
+/* derive realistic monthly return from the actual journal */
+function deriveEdge(){
+  const s=edge(journal);if(!s||!s.n)return null;
+  const risk=parseFloat(($('jRisk')||{}).value)||0.5;
+  const dates=journal.map(t=>t.date).filter(Boolean).sort();
+  let perMonth=s.n,basis='count';
+  if(dates.length>=2){const d0=new Date(dates[0]),d1=new Date(dates[dates.length-1]);
+    const days=Math.max(1,(d1-d0)/86400000),months=Math.max(days/30.4,0.3);perMonth=s.n/months;basis='span';}
+  return {monthlyPct:s.exp*risk*perMonth, perMonth, exp:s.exp, risk, n:s.n, basis};
+}
+if($('pjUseEdge'))$('pjUseEdge').onclick=()=>{
+  const d=deriveEdge();
+  if(!d){toast('Log some trades first (with dates).','error',{title:'No edge yet'});return;}
+  const pctClamped=Math.max(-20,Math.min(40,+d.monthlyPct.toFixed(2)));
+  $('pjRet').value=pctClamped;calcProj();
+  $('pjEdgeNote').innerHTML=`From your journal: <b class="${d.monthlyPct>0?'ok':'bad'}">${d.monthlyPct>0?'+':''}${d.monthlyPct.toFixed(2)}%/mo</b> = expectancy ${d.exp>0?'+':''}${d.exp.toFixed(3)}R × ${d.risk}% risk × ~${d.perMonth.toFixed(1)} trades/mo (${d.n} trades${d.basis==='span'?', dated span':''}).`;
+  toast(`Projection now uses your real edge: ${d.monthlyPct>0?'+':''}${d.monthlyPct.toFixed(2)}%/mo`,d.monthlyPct>0?'success':'error',{title:'Edge applied'});
+};
 
 /* ---------- Trading calendar ---------- */
 const CKEY='upc_caldays_v1'; let cal={};
@@ -1134,6 +1172,16 @@ if($('bkExport'))$('bkExport').onclick=()=>{
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
   $('bkMsg').innerHTML='';
   toast(`${journal.length} trades · ${Object.keys(cal).length} calendar days saved.`,'success',{title:'Backup exported'});
+};
+if($('bkCsv'))$('bkCsv').onclick=()=>{
+  if(!journal.length){toast('Nothing to export yet.','error',{title:'No trades'});return;}
+  const esc=v=>{v=(v==null?'':String(v));return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};
+  const head=['date','instrument','direction','r_multiple','note'];
+  const lines=[head.join(',')].concat(journal.map(t=>[t.date,t.instr,t.dir,t.r,t.note].map(esc).join(',')));
+  const blob=new Blob([lines.join('\n')],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='upcomers-trades-'+todayStr()+'.csv';document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  toast(`${journal.length} trades exported to CSV.`,'success',{title:'CSV ready'});
 };
 if($('bkImport'))$('bkImport').onchange=e=>{
   const f=e.target.files[0];if(!f)return;const rd=new FileReader();
