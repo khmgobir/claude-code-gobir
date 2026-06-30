@@ -109,6 +109,22 @@
   .toc a{transition:background .2s,color .2s,border-color .2s}
   .toc a.active{color:#04140c;background:var(--emer);border-color:var(--emer);font-weight:700}
   @keyframes countPop{0%{transform:scale(1)}40%{transform:scale(1.06)}100%{transform:scale(1)}}
+  /* ---- sonner-style toasts ---- */
+  #toaster{position:fixed;z-index:9999;bottom:22px;right:22px;display:flex;flex-direction:column;gap:10px;width:350px;max-width:calc(100vw - 32px)}
+  @media(max-width:560px){#toaster{left:16px;right:16px;width:auto;bottom:16px}}
+  .toast{display:flex;gap:11px;align-items:flex-start;background:linear-gradient(180deg,#101a28,#0c1420);
+    border:1px solid var(--line2);border-radius:13px;padding:13px 14px;box-shadow:0 16px 44px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.02) inset;
+    color:var(--txt);font-size:.86rem;transform:translateY(18px) scale(.98);opacity:0;
+    transition:transform .38s cubic-bezier(.22,1,.36,1),opacity .3s ease;touch-action:pan-x;cursor:grab;will-change:transform,opacity}
+  .toast.in{transform:translateY(0) scale(1);opacity:1}
+  .toast.out{transform:translateY(18px) scale(.98);opacity:0}
+  .toast .ic{flex-shrink:0;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:.72rem;font-weight:800;margin-top:1px}
+  .toast.success{border-color:rgba(0,229,140,.42)} .toast.success .ic{background:rgba(0,229,140,.18);color:var(--emer);box-shadow:0 0 12px rgba(0,229,140,.3)}
+  .toast.error{border-color:rgba(255,91,110,.42)} .toast.error .ic{background:rgba(255,91,110,.18);color:var(--red)}
+  .toast.info{border-color:rgba(63,189,248,.42)} .toast.info .ic{background:rgba(63,189,248,.18);color:var(--cyan)}
+  .toast b{display:block;font-weight:600;margin-bottom:1px;color:#fff}
+  .toast small{color:var(--muted);line-height:1.35;word-break:break-word}
+  .toast:nth-last-child(n+4){opacity:.55;transform:translateY(0) scale(.96)}
   /* table wrappers scroll smoothly on touch */
   .tscroll,div[style*="overflow-x"]{ -webkit-overflow-scrolling:touch }
   @media(max-width:680px){
@@ -473,6 +489,8 @@
     <div id="bkMsg" class="sub" style="margin-top:10px"></div>
   </div>
 
+  <div id="toaster" aria-live="polite" aria-atomic="false"></div>
+
   <footer>
     Discipline aid, not financial advice. Verify every rule at
     <a href="https://help.upcomers.com" target="_blank" rel="noopener">help.upcomers.com</a> before risking a fee. Charts by D3.
@@ -490,6 +508,26 @@ const PLANS=[
 ];
 const $=id=>document.getElementById(id);
 const RM=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+/* sonner-style toasts (vanilla port, after emilkowalski/sonner) */
+function toast(msg,type,opts){
+  type=type||'info';opts=opts||{};
+  const host=$('toaster');if(!host)return;
+  const titles={success:'Success',error:'Something went wrong',info:'Notice'};
+  const ic={success:'✓',error:'!',info:'i'}[type];
+  const el=document.createElement('div');el.className='toast '+type;el.setAttribute('role','status');
+  el.innerHTML=`<span class="ic" aria-hidden="true">${ic}</span><div><b>${opts.title||titles[type]}</b><small>${msg||''}</small></div>`;
+  host.appendChild(el);
+  if(RM){el.classList.add('in');} else {requestAnimationFrame(()=>el.classList.add('in'));}
+  let dur=opts.duration||4200,timer=setTimeout(close,dur),sx=0,dx=0,drag=false;
+  function close(){clearTimeout(timer);el.classList.remove('in');el.classList.add('out');setTimeout(()=>el.remove(),360);}
+  el.addEventListener('mouseenter',()=>clearTimeout(timer));
+  el.addEventListener('mouseleave',()=>{timer=setTimeout(close,1600);});
+  el.addEventListener('pointerdown',e=>{drag=true;sx=e.clientX;el.style.transition='none';try{el.setPointerCapture(e.pointerId);}catch(_){}});
+  el.addEventListener('pointermove',e=>{if(!drag)return;dx=e.clientX-sx;if(dx>0){el.style.transform=`translateX(${dx}px)`;el.style.opacity=String(Math.max(0,1-dx/220));}});
+  el.addEventListener('pointerup',()=>{drag=false;el.style.transition='';if(dx>90)close();else{el.style.transform='';el.style.opacity='';}dx=0;});
+  while(host.children.length>5)host.firstChild.remove();
+  return close;
+}
 const fmt=n=>'$'+Math.round(n).toLocaleString();
 const pc=n=>n===null||n===undefined?'—':n+'%';
 
@@ -718,7 +756,8 @@ jAdd.onclick=()=>{const r=parseFloat(jR.value);if(isNaN(r)){jR.focus();return;}
   const date=jDate.value||todayStr();
   journal.push({date,instr:jInstr.value.trim(),dir:jDir.value,r,note:jNote.value.trim()});
   saveJ();jR.value='';jNote.value='';jInstr.focus();
-  syncDay(date); renderJ();};
+  syncDay(date); renderJ();
+  toast(`${r>0?'+':''}${r}R on ${date}`,r>=0?'success':'error',{title:'Trade logged',duration:2400});};
 jClear.onclick=()=>{if(confirm('Delete all logged trades?')){journal=[];saveJ();renderJ();}};
 jSeed.onclick=()=>{const ins=['EURUSD','XAUUSD','GBPJPY','BTCUSD','US100'];
   const base=new Date(); base.setDate(1);
@@ -878,15 +917,15 @@ async function shareCanvas(makeCanvas,baseName,forceDownload,msgEl){
   try{if(document.fonts&&document.fonts.ready)await document.fonts.ready;}catch(e){}
   const cv=makeCanvas();
   cv.toBlob(async(blob)=>{
-    if(!blob){if(msgEl)msgEl.innerHTML='<span class="bad">Could not render image.</span>';return;}
+    if(!blob){if(msgEl)msgEl.innerHTML='';toast('Could not render the image.','error');return;}
     const fname=baseName+'.png',file=new File([blob],fname,{type:'image/png'});
     if(!forceDownload&&navigator.canShare&&navigator.canShare({files:[file]})){
-      try{await navigator.share({files:[file],title:'Upcomers Funding Toolkit'});if(msgEl)msgEl.innerHTML='<span class="ok">Shared ✓</span>';return;}
+      try{await navigator.share({files:[file],title:'Upcomers Funding Toolkit'});if(msgEl)msgEl.innerHTML='';toast('Sent to your share sheet.','success',{title:'Shared'});return;}
       catch(e){if(e&&e.name==='AbortError'){if(msgEl)msgEl.innerHTML='';return;}}
     }
     const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;document.body.appendChild(a);a.click();a.remove();
     setTimeout(()=>URL.revokeObjectURL(a.href),1500);
-    if(msgEl)msgEl.innerHTML='<span class="ok">Image saved ✓</span> '+fname;
+    if(msgEl)msgEl.innerHTML='';toast(fname,'success',{title:'Image saved'});
   },'image/png');
 }
 function imgHead(x,W,title,glow){
@@ -1042,7 +1081,8 @@ if($('bkExport'))$('bkExport').onclick=()=>{
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='upcomers-backup-'+todayStr()+'.json';document.body.appendChild(a);a.click();a.remove();
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-  $('bkMsg').innerHTML=`<span class="ok">Exported ✓</span> ${journal.length} trades · ${Object.keys(cal).length} calendar days.`;
+  $('bkMsg').innerHTML='';
+  toast(`${journal.length} trades · ${Object.keys(cal).length} calendar days saved.`,'success',{title:'Backup exported'});
 };
 if($('bkImport'))$('bkImport').onchange=e=>{
   const f=e.target.files[0];if(!f)return;const rd=new FileReader();
@@ -1053,9 +1093,10 @@ if($('bkImport'))$('bkImport').onchange=e=>{
       journal=Array.isArray(d.journal)?d.journal:[];
       cal=(d.cal&&typeof d.cal==='object')?d.cal:{};
       saveJ();saveC();renderJ();renderCal();renderConsistency();renderReadiness();
-      $('bkMsg').innerHTML=`<span class="ok">Imported ✓</span> ${journal.length} trades · ${Object.keys(cal).length} days restored.`;
+      $('bkMsg').innerHTML='';
+      toast(`${journal.length} trades · ${Object.keys(cal).length} days restored.`,'success',{title:'Backup imported'});
     }
-  }catch(err){$('bkMsg').innerHTML=`<span class="bad">Import failed:</span> ${err.message}`;}
+  }catch(err){toast(err.message,'error',{title:'Import failed'});}
   e.target.value='';};
   rd.readAsText(f);
 };
