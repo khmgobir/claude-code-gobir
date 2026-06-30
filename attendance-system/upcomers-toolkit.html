@@ -142,6 +142,28 @@
   .btn .bi{margin-right:5px}
   .out.statsbox{background:linear-gradient(180deg,#0b1422,#070d16)}
   @media(prefers-reduced-motion:reduce){.card.beam::before{display:none}}
+  /* ---- expanding hover menu (FAB) ---- */
+  #fab{position:fixed;left:20px;bottom:20px;z-index:9998;display:flex;flex-direction:column-reverse;align-items:flex-start;gap:12px}
+  .fab-main{width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;display:grid;place-items:center;
+    background:linear-gradient(135deg,#00b765,#00e58c);color:#04140c;font-size:1.5rem;
+    box-shadow:0 12px 34px rgba(0,229,140,.42);transition:transform .35s cubic-bezier(.22,1,.36,1),box-shadow .3s}
+  #fab:hover .fab-main,#fab.open .fab-main{transform:rotate(135deg);box-shadow:0 14px 40px rgba(0,229,140,.6)}
+  .fab-item{display:flex;align-items:center;height:48px;width:48px;overflow:hidden;border-radius:24px;
+    border:1px solid var(--line2);background:linear-gradient(180deg,#101a28,#0c1420);color:var(--txt);cursor:pointer;
+    text-decoration:none;white-space:nowrap;font-weight:600;font-size:.86rem;box-shadow:0 8px 22px rgba(0,0,0,.4);
+    opacity:0;transform:translateY(16px) scale(.85);pointer-events:none;
+    transition:opacity .3s,transform .4s cubic-bezier(.22,1,.36,1),width .3s ease,background .2s,border-color .2s}
+  .fab-item .bi{font-size:1.2rem;min-width:48px;text-align:center;color:var(--emer)}
+  .fab-item span{opacity:0;padding-right:18px;transition:opacity .2s}
+  #fab:hover .fab-item,#fab.open .fab-item{opacity:1;transform:none;pointer-events:auto}
+  .fab-item:hover{width:172px;border-color:var(--emer);background:#13202f}
+  .fab-item:hover span{opacity:1}
+  #fab:hover .fab-item:nth-child(2),#fab.open .fab-item:nth-child(2){transition-delay:0s}
+  #fab:hover .fab-item:nth-child(3),#fab.open .fab-item:nth-child(3){transition-delay:.04s}
+  #fab:hover .fab-item:nth-child(4),#fab.open .fab-item:nth-child(4){transition-delay:.08s}
+  #fab:hover .fab-item:nth-child(5),#fab.open .fab-item:nth-child(5){transition-delay:.12s}
+  #fab:hover .fab-item:nth-child(6),#fab.open .fab-item:nth-child(6){transition-delay:.16s}
+  @media(max-width:560px){#fab{left:16px;bottom:84px}}
   /* table wrappers scroll smoothly on touch */
   .tscroll,div[style*="overflow-x"]{ -webkit-overflow-scrolling:touch }
   @media(max-width:680px){
@@ -504,6 +526,15 @@
       <label class="btn btn-gho" style="cursor:pointer;display:inline-flex;align-items:center">⬆ Import backup<input id="bkImport" type="file" accept="application/json,.json" style="display:none" /></label>
     </div>
     <div id="bkMsg" class="sub" style="margin-top:10px"></div>
+  </div>
+
+  <div id="fab">
+    <button class="fab-main" id="fabMain" aria-label="Quick actions menu" aria-expanded="false" aria-haspopup="true"><i class="bi bi-lightning-charge-fill"></i></button>
+    <button class="fab-item" data-act="demo"><i class="bi bi-database-add"></i><span>Load demo</span></button>
+    <button class="fab-item" data-act="export"><i class="bi bi-download"></i><span>Export backup</span></button>
+    <a class="fab-item" href="#ready"><i class="bi bi-patch-check-fill"></i><span>Readiness</span></a>
+    <a class="fab-item" href="#cal"><i class="bi bi-calendar3"></i><span>Calendar</span></a>
+    <a class="fab-item" href="#jrnl"><i class="bi bi-journal-richtext"></i><span>Journal</span></a>
   </div>
 
   <div id="toaster" aria-live="polite" aria-atomic="false"></div>
@@ -1131,7 +1162,19 @@ function setupReveal(){
   cards.forEach(c=>io.observe(c));
   setTimeout(()=>cards.forEach(c=>c.classList.add('in')),1500); // safety
 }
-function init(){acctSummary();drawCmp();calcRisk();calcTrack();renderJ();renderCal();renderConsistency();renderReadiness();calcProj();setupReveal();setupStandards();}
+function setupFab(){
+  const fab=$('fab');if(!fab)return;const main=$('fabMain');
+  main.addEventListener('click',e=>{e.stopPropagation();const open=fab.classList.toggle('open');main.setAttribute('aria-expanded',open);});
+  fab.querySelectorAll('.fab-item').forEach(it=>it.addEventListener('click',()=>{
+    const act=it.dataset.act;
+    if(act==='top')window.scrollTo({top:0,behavior:'smooth'});
+    if(act==='demo'&&$('jSeed')){$('jSeed').click();toast('60 sample trades loaded.','success',{title:'Demo set'});}
+    if(act==='export'&&$('bkExport'))$('bkExport').click();
+    fab.classList.remove('open');main.setAttribute('aria-expanded','false');
+  }));
+  document.addEventListener('click',e=>{if(!fab.contains(e.target)){fab.classList.remove('open');main.setAttribute('aria-expanded','false');}});
+}
+function init(){acctSummary();drawCmp();calcRisk();calcTrack();renderJ();renderCal();renderConsistency();renderReadiness();calcProj();setupReveal();setupStandards();setupFab();}
 window.addEventListener('resize',()=>{drawCmp();renderJ();calcProj();});
 init();
 </script>
