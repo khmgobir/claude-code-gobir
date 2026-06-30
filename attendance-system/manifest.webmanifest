@@ -1,0 +1,13 @@
+{
+  "name": "Upcomers Funding Toolkit",
+  "short_name": "Upcomers Toolkit",
+  "description": "Risk, consistency, journal, calendar and $100k planner for Upcomers funded accounts.",
+  "start_url": "upcomers-toolkit.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#05080f",
+  "theme_color": "#05080f",
+  "icons": [
+    { "src": "vendor/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
