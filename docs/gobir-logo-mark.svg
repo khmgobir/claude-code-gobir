@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="0.25" y2="1">
+      <stop offset="0" stop-color="#fff0bf"/><stop offset="28%" stop-color="#f3d277"/><stop offset="58%" stop-color="#d7a63e"/><stop offset="82%" stop-color="#b9842a"/><stop offset="100%" stop-color="#8f6418"/>
+    </linearGradient>
+    <linearGradient id="goldDeep" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c89a34"/><stop offset="100%" stop-color="#6d4b12"/></linearGradient>
+    <linearGradient id="goldDark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a87d21"/><stop offset="100%" stop-color="#53380d"/></linearGradient>
+    <radialGradient id="gloss" cx="38%" cy="26%" r="72%"><stop offset="0" stop-color="#ffffff" stop-opacity="0.92"/><stop offset="60%" stop-color="#ffffff" stop-opacity="0.12"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+    <radialGradient id="navyWin" cx="50%" cy="35%" r="78%"><stop offset="0" stop-color="#1d3052"/><stop offset="100%" stop-color="#0a1626"/></radialGradient>
+    <radialGradient id="bgDark" cx="50%" cy="34%" r="82%"><stop offset="0" stop-color="#1d3153"/><stop offset="55%" stop-color="#14263f"/><stop offset="100%" stop-color="#0a1320"/></radialGradient>
+    <linearGradient id="ivory" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fdf9f0"/><stop offset="100%" stop-color="#efe6d2"/></linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.14"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/></linearGradient>
+    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000000" flood-opacity="0.42"/></filter>
+    <filter id="softdrop" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#8a6a1e" flood-opacity="0.3"/></filter>
+  </defs>
+  <g filter="url(#shadow)">
+    <g transform="translate(0,6)">
+      <circle cx="256" cy="256" r="98" fill="none" stroke="url(#goldDeep)" stroke-width="44" pathLength="100" stroke-dasharray="76 24" stroke-dashoffset="12" stroke-linecap="round"/>
+      <rect x="250" y="240" width="92" height="40" rx="20" fill="url(#goldDeep)"/>
+    </g>
+    <circle cx="256" cy="256" r="98" fill="none" stroke="url(#gold)" stroke-width="44" pathLength="100" stroke-dasharray="76 24" stroke-dashoffset="12" stroke-linecap="round"/>
+    <rect x="250" y="236" width="92" height="40" rx="20" fill="url(#gold)" stroke="#fff6d6" stroke-opacity="0.4" stroke-width="1.2"/>
+    <circle cx="256" cy="256" r="98" fill="none" stroke="#fff7da" stroke-opacity="0.5" stroke-width="9" pathLength="100" stroke-dasharray="15 85" stroke-dashoffset="55" stroke-linecap="round"/>
+
+  </g>
+
+</svg>

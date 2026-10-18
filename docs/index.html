@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Welcome — Gobir Digital</title>
+<meta name="description" content="Welcome to Gobir Digital — friendly coaching in AI, computer skills, and growing your business online. Book your session today." />
+<meta name="theme-color" content="#0b1422" />
+<link rel="icon" href="gobir-logo-emblem.png" />
+<link rel="apple-touch-icon" href="gobir-logo-emblem.png" />
+<meta property="og:title" content="Gobir Digital — Learn AI &amp; Digital Skills" />
+<meta property="og:image" content="gobir-logo-emblem.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+<style>
+:root{
+  --navy:#0b1422; --navy2:#13243d; --gold:#c6952f; --gold2:#e8c15f;
+  --cream:#f7f3ea; --text:#eaf0f7; --muted:#9fb0c4; --line:rgba(255,255,255,.12);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;min-height:100vh;font-family:'Inter',system-ui,sans-serif;color:var(--text);
+  background:radial-gradient(1200px 600px at 50% -10%,rgba(232,193,95,.14),transparent),
+             radial-gradient(900px 500px at 85% 110%,rgba(63,120,200,.12),transparent),
+             linear-gradient(180deg,#0b1422,#0e1c30 60%,#0b1422);
+  display:flex;flex-direction:column;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;background-image:radial-gradient(rgba(255,255,255,.035) 1px,transparent 1px);background-size:24px 24px;pointer-events:none;z-index:0}
+h1,h2,.serif{font-family:'Fraunces','Georgia',serif;font-weight:600;letter-spacing:-.01em;line-height:1.1}
+a{color:inherit;text-decoration:none}
+.wrap{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:0 24px;width:100%}
+
+/* top bar */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:22px 0}
+.brand{display:flex;align-items:center;gap:11px;font-family:'Fraunces',serif;font-weight:600;font-size:1.18rem}
+.brand img{width:40px;height:40px;border-radius:11px;box-shadow:0 8px 20px rgba(0,0,0,.4)}
+.brand small{display:block;font-family:'Inter';font-weight:500;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.top-wa{display:inline-flex;align-items:center;gap:8px;font-size:.9rem;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:8px 15px;transition:.2s}
+.top-wa:hover{color:#fff;border-color:var(--gold2)}
+
+/* hero */
+.hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 0 60px}
+.logo-stage{position:relative;margin-bottom:30px}
+.logo-stage .halo{position:absolute;inset:-30% ;border-radius:50%;background:radial-gradient(circle,rgba(232,193,95,.28),transparent 65%);filter:blur(10px);z-index:-1;animation:pulse 4.5s ease-in-out infinite}
+.logo-stage img{width:170px;height:170px;border-radius:40px;box-shadow:0 30px 70px rgba(0,0,0,.55),0 0 0 1px rgba(232,193,95,.25);animation:float 6s ease-in-out infinite}
+.logo-stage::after{content:"";position:absolute;left:50%;bottom:-26px;transform:translateX(-50%);width:120px;height:20px;background:radial-gradient(ellipse,rgba(0,0,0,.5),transparent 70%);filter:blur(5px);animation:shadow 6s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+@keyframes shadow{0%,100%{transform:translateX(-50%) scale(1);opacity:.5}50%{transform:translateX(-50%) scale(.82);opacity:.3}}
+@keyframes pulse{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
+
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:.76rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold2);margin-bottom:16px}
+.hero h1{font-size:clamp(2.2rem,6vw,3.6rem);margin:0 0 18px}
+.hero h1 em{font-style:italic;color:var(--gold2)}
+.hero p.lead{font-size:1.14rem;color:var(--muted);max-width:560px;margin:0 auto 30px;line-height:1.6}
+.actions{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.btn{display:inline-flex;align-items:center;gap:9px;border-radius:999px;padding:15px 30px;font:600 1.02rem 'Inter';cursor:pointer;transition:transform .2s,box-shadow .2s,background .2s}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#2b1e05;box-shadow:0 12px 30px rgba(198,149,47,.45);border:none}
+.btn-gold:hover{transform:translateY(-3px);box-shadow:0 18px 40px rgba(198,149,47,.55)}
+.btn-ghost{background:rgba(255,255,255,.06);color:#fff;border:1.5px solid var(--line)}
+.btn-ghost:hover{border-color:var(--gold2);background:rgba(255,255,255,.1)}
+
+/* chips */
+.chips{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:34px;max-width:620px}
+.chip{display:inline-flex;align-items:center;gap:8px;font-size:.86rem;color:var(--text);background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:999px;padding:9px 16px;transition:.2s}
+.chip i{color:var(--gold2)}
+.chip:hover{border-color:var(--gold2);transform:translateY(-2px)}
+
+/* meta strip */
+.meta{display:flex;gap:30px;flex-wrap:wrap;justify-content:center;margin-top:40px;padding-top:28px;border-top:1px solid var(--line);width:100%;max-width:620px}
+.meta div{display:flex;flex-direction:column}
+.meta b{font-family:'Fraunces',serif;font-size:1.4rem;color:#fff}
+.meta span{font-size:.78rem;color:var(--muted)}
+
+footer{position:relative;z-index:1;text-align:center;padding:24px;color:var(--muted);font-size:.84rem;border-top:1px solid var(--line)}
+
+@media(prefers-reduced-motion:reduce){.logo-stage img,.logo-stage::after,.halo{animation:none}}
+@media(max-width:520px){.meta{gap:20px}.logo-stage img{width:140px;height:140px;border-radius:34px}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="topbar">
+    <a class="brand" href="#"><img src="gobir-logo-emblem.png" alt="Gobir Digital" /><span>Gobir Digital<small>Learn · Build · Grow</small></span></a>
+    <a class="top-wa" id="waTop" href="gobir-digital.html#book"><i class="bi bi-whatsapp"></i> Chat</a>
+  </div>
+</div>
+
+<main class="wrap hero">
+  <div class="logo-stage">
+    <span class="halo"></span>
+    <img src="gobir-logo-emblem.png" alt="Gobir Digital logo — graduation cap" />
+  </div>
+
+  <span class="eyebrow"><i class="bi bi-stars"></i> Welcome</span>
+  <h1>Welcome to <em>Gobir&nbsp;Digital</em></h1>
+  <p class="lead">Your friendly guide to the digital age. Learn to use AI, master the computer, bring your ideas to life, and grow your business online — online or in person, at your pace.</p>
+
+  <div class="actions">
+    <a href="gobir-digital.html#book" class="btn btn-gold"><i class="bi bi-calendar-check"></i> Book a session</a>
+    <a href="gobir-digital.html" class="btn btn-ghost"><i class="bi bi-compass"></i> Explore what we offer</a>
+  </div>
+
+  <div class="chips">
+    <span class="chip"><i class="bi bi-robot"></i> How to Use AI</span>
+    <span class="chip"><i class="bi bi-laptop"></i> Computer Basics</span>
+    <span class="chip"><i class="bi bi-lightbulb"></i> Idea to Reality</span>
+    <span class="chip"><i class="bi bi-megaphone"></i> Promote Your Business</span>
+  </div>
+
+  <div class="meta">
+    <div><b>60 min</b><span>per session</span></div>
+    <div><b>₦5,000</b><span>per person</span></div>
+    <div><b>1–5</b><span>people</span></div>
+    <div><b>4–10pm</b><span>daily (WAT)</span></div>
+  </div>
+</main>
+
+<footer>© <span id="yr"></span> Gobir Digital · Learn · Build · Grow</footer>
+
+<script>
+document.getElementById('yr').textContent = new Date().getFullYear();
+// WhatsApp quick chat (number wired in)
+var WA = "2347065265144";
+if (WA) {
+  var href = "https://wa.me/" + WA + "?text=" + encodeURIComponent("Hello Gobir Digital! I'd like to learn more about booking a session.");
+  var t = document.getElementById('waTop'); t.href = href; t.target = "_blank"; t.rel = "noopener";
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Gobir Digital — Learn AI &amp; Digital Skills</title>
+<meta name="description" content="Learn how to use AI, master computer basics, turn your idea into reality, and promote your business in the digital age. Book a 1-on-1 or group session — online or in person." />
+<meta name="theme-color" content="#0f1b2d" />
+<meta property="og:title" content="Gobir Digital — Learn AI &amp; Digital Skills" />
+<meta property="og:description" content="Practical, friendly coaching in AI, computer skills, and growing your business online. Book a session." />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="gobir-logo-emblem.png" />
+<link rel="icon" href="gobir-logo-emblem.png" />
+<link rel="apple-touch-icon" href="gobir-logo-emblem.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+<style>
+:root{
+  --navy:#0f1b2d; --navy2:#16263d; --ink:#1c2a3a;
+  --cream:#f7f3ea; --paper:#fffdf8; --line:#e7ddc9;
+  --gold:#c6952f; --gold2:#e0b250; --gold-soft:#f3e6c8;
+  --text:#24303f; --muted:#6b7688; --white:#ffffff;
+  --radius:16px; --maxw:1120px;
+  --shadow:0 18px 50px rgba(15,27,45,.12);
+  --shadow-sm:0 8px 24px rgba(15,27,45,.08);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:'Inter',system-ui,-apple-system,sans-serif;color:var(--text);background:var(--cream);line-height:1.6;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.serif{font-family:'Fraunces','Georgia',serif;font-weight:600;line-height:1.14;color:var(--navy);letter-spacing:-.01em}
+a{color:inherit}
+img{max-width:100%}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+.btn{display:inline-flex;align-items:center;gap:9px;border:none;border-radius:999px;padding:14px 26px;font:600 1rem 'Inter',sans-serif;cursor:pointer;text-decoration:none;transition:transform .2s ease,box-shadow .2s ease,background .2s;white-space:nowrap}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#2b1e05;box-shadow:0 10px 26px rgba(198,149,47,.4)}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(198,149,47,.5)}
+.btn-ghost{background:transparent;color:var(--navy);border:1.5px solid var(--line)}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+.btn-light{background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.35)}
+.btn-light:hover{background:rgba(255,255,255,.2)}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font:600 .78rem 'Inter';letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+.eyebrow.on-dark{color:var(--gold2)}
+
+/* ---------- header ---------- */
+header{position:sticky;top:0;z-index:50;background:rgba(247,243,234,.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;justify-content:space-between;height:68px}
+.brand{display:flex;align-items:center;gap:11px;font-family:'Fraunces',serif;font-weight:600;font-size:1.28rem;color:var(--navy);text-decoration:none}
+.brand .mark{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--navy),var(--navy2));display:grid;place-items:center;color:var(--gold2);font-size:1.15rem;box-shadow:var(--shadow-sm)}
+.brand img.mark{object-fit:cover}
+.brand small{display:block;font-family:'Inter';font-weight:500;font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-top:1px}
+.nav-links{display:flex;align-items:center;gap:28px}
+.nav-links a{text-decoration:none;font-weight:500;font-size:.95rem;color:var(--ink);transition:color .2s}
+.nav-links a:hover{color:var(--gold)}
+.nav-cta{display:flex;align-items:center;gap:14px}
+.menu-btn{display:none;background:none;border:none;font-size:1.5rem;color:var(--navy);cursor:pointer}
+@media(max-width:860px){
+  .nav-links{position:fixed;inset:68px 0 auto 0;flex-direction:column;background:var(--paper);padding:18px 22px 26px;gap:16px;border-bottom:1px solid var(--line);box-shadow:var(--shadow);transform:translateY(-130%);transition:transform .3s ease;align-items:flex-start}
+  .nav-links.open{transform:translateY(0)}
+  .menu-btn{display:block}
+  .nav-cta .btn-ghost{display:none}
+}
+
+/* ---------- hero ---------- */
+.hero{position:relative;background:radial-gradient(1200px 500px at 80% -10%,rgba(224,178,80,.16),transparent),linear-gradient(180deg,var(--navy),var(--navy2));color:#eaf0f7;overflow:hidden}
+.hero::after{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.04) 1px,transparent 1px);background-size:22px 22px;pointer-events:none}
+.hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding:74px 0 86px;position:relative;z-index:1}
+.hero h1{color:#fff;font-size:clamp(2.3rem,5vw,3.7rem);margin:16px 0 18px}
+.hero h1 em{font-style:italic;color:var(--gold2)}
+.hero p.lead{font-size:1.15rem;color:#c3cedd;max-width:540px;margin:0 0 28px}
+.hero-actions{display:flex;gap:14px;flex-wrap:wrap}
+.hero-meta{display:flex;gap:26px;margin-top:34px;flex-wrap:wrap}
+.hero-meta div{display:flex;flex-direction:column}
+.hero-meta b{font-family:'Fraunces',serif;font-size:1.5rem;color:#fff}
+.hero-meta span{font-size:.82rem;color:#9fb0c4}
+.hero-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:20px;padding:26px;backdrop-filter:blur(6px);box-shadow:var(--shadow)}
+.hero-card h3{color:#fff;font-size:1.2rem;margin:0 0 14px}
+.hc-row{display:flex;align-items:center;gap:13px;padding:11px 0;border-bottom:1px dashed rgba(255,255,255,.12)}
+.hc-row:last-child{border-bottom:none}
+.hc-row i{width:38px;height:38px;flex:none;border-radius:10px;background:rgba(224,178,80,.16);color:var(--gold2);display:grid;place-items:center;font-size:1.05rem}
+.hc-row b{display:block;color:#fff;font-size:.95rem;font-weight:600}
+.hc-row span{font-size:.82rem;color:#9fb0c4}
+
+/* ---------- sections ---------- */
+section{padding:76px 0}
+.section-head{text-align:center;max-width:640px;margin:0 auto 48px}
+.section-head h2{font-size:clamp(1.9rem,3.6vw,2.6rem);margin:12px 0 12px}
+.section-head p{color:var(--muted);font-size:1.06rem;margin:0}
+
+/* services */
+.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:30px;box-shadow:var(--shadow-sm);transition:transform .25s ease,box-shadow .25s ease,border-color .25s}
+.card:hover{transform:translateY(-5px);box-shadow:var(--shadow);border-color:var(--gold-soft)}
+.card .ico{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--navy),var(--navy2));color:var(--gold2);display:grid;place-items:center;font-size:1.5rem;margin-bottom:18px}
+.card h3{font-size:1.32rem;margin:0 0 9px}
+.card p{color:var(--muted);margin:0 0 14px;font-size:.98rem}
+.card .tag{display:inline-block;font-size:.76rem;font-weight:600;color:var(--gold);background:var(--gold-soft);padding:4px 12px;border-radius:999px}
+
+/* steps */
+.steps-sec{background:var(--paper);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;counter-reset:s}
+.step{position:relative;padding:28px 24px;border:1px solid var(--line);border-radius:var(--radius);background:var(--cream)}
+.step::before{counter-increment:s;content:counter(s);position:absolute;top:-18px;left:24px;width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold2));color:#2b1e05;display:grid;place-items:center;font-family:'Fraunces',serif;font-weight:700;font-size:1.1rem;box-shadow:var(--shadow-sm)}
+.step h3{font-size:1.18rem;margin:14px 0 8px}
+.step p{color:var(--muted);margin:0;font-size:.96rem}
+
+/* why */
+.why-grid{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:center}
+.why-list{list-style:none;padding:0;margin:22px 0 0}
+.why-list li{display:flex;gap:14px;padding:13px 0;border-bottom:1px solid var(--line)}
+.why-list li:last-child{border-bottom:none}
+.why-list i{color:var(--gold);font-size:1.2rem;margin-top:2px}
+.why-list b{display:block;color:var(--navy)}
+.why-list span{color:var(--muted);font-size:.94rem}
+.why-panel{background:linear-gradient(160deg,var(--navy),var(--navy2));color:#fff;border-radius:20px;padding:34px;box-shadow:var(--shadow)}
+.why-panel h3{color:#fff;font-size:1.5rem;margin:0 0 6px}
+.why-panel .price{font-family:'Fraunces',serif;font-size:3rem;color:var(--gold2);line-height:1;margin:18px 0 4px}
+.why-panel .price small{font-family:'Inter';font-size:1rem;color:#9fb0c4;font-weight:500}
+.why-panel ul{list-style:none;padding:0;margin:20px 0 26px}
+.why-panel ul li{display:flex;gap:10px;padding:8px 0;font-size:.96rem;color:#d7e0ea}
+.why-panel ul li i{color:var(--gold2)}
+
+/* booking */
+.book-sec{background:linear-gradient(180deg,var(--cream),#efe8d8)}
+.booking{display:grid;grid-template-columns:.85fr 1.15fr;gap:40px;align-items:start}
+.book-info h2{font-size:clamp(1.9rem,3.6vw,2.6rem);margin:12px 0 14px}
+.book-info p{color:var(--muted);font-size:1.04rem}
+.book-info .info-row{display:flex;gap:13px;align-items:center;padding:13px 0;border-bottom:1px solid var(--line)}
+.book-info .info-row i{width:42px;height:42px;flex:none;border-radius:11px;background:var(--navy);color:var(--gold2);display:grid;place-items:center;font-size:1.1rem}
+.book-info .info-row b{display:block;color:var(--navy);font-size:.98rem}
+.book-info .info-row span{color:var(--muted);font-size:.88rem}
+.form-card{background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:30px;box-shadow:var(--shadow)}
+.form-card h3{font-size:1.4rem;margin:0 0 4px}
+.form-card .sub{color:var(--muted);font-size:.92rem;margin:0 0 22px}
+.field{margin-bottom:16px}
+.field label{display:block;font-weight:600;font-size:.86rem;color:var(--navy);margin-bottom:6px}
+.field label .req{color:var(--gold)}
+.field input,.field select,.field textarea{width:100%;border:1.5px solid var(--line);border-radius:11px;padding:12px 14px;font:400 .98rem 'Inter';color:var(--text);background:#fff;transition:border-color .2s,box-shadow .2s}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(224,178,80,.2)}
+.field textarea{resize:vertical;min-height:72px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.seg{display:flex;gap:10px}
+.seg label{flex:1;position:relative;cursor:pointer;margin:0}
+.seg input{position:absolute;opacity:0}
+.seg span{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border:1.5px solid var(--line);border-radius:11px;font-weight:600;font-size:.92rem;color:var(--muted);transition:all .2s}
+.seg input:checked+span{border-color:var(--gold);background:var(--gold-soft);color:var(--navy)}
+.total{display:flex;justify-content:space-between;align-items:center;background:var(--navy);color:#fff;border-radius:13px;padding:15px 18px;margin:20px 0}
+.total span{font-size:.9rem;color:#c3cedd}
+.total b{font-family:'Fraunces',serif;font-size:1.7rem;color:var(--gold2)}
+.form-note{font-size:.82rem;color:var(--muted);text-align:center;margin-top:12px}
+.date-wrap{position:relative}
+.date-wrap input[type=date]{padding-right:44px}
+.date-btn{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:var(--gold-soft);border:none;color:var(--navy);cursor:pointer;font-size:1.05rem;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;transition:.2s}
+.date-btn:hover{background:var(--gold);color:#2b1e05}
+.consent{display:flex;gap:10px;align-items:flex-start;font-size:.82rem;color:var(--muted);margin:6px 0 2px;line-height:1.45}
+.consent input{margin-top:3px;width:16px;height:16px;flex:none;accent-color:var(--gold)}
+.consent a{color:var(--gold);font-weight:600}
+.hp{position:absolute!important;left:-9999px!important;width:1px;height:1px;opacity:0;overflow:hidden}
+.msg{display:none;padding:16px;border-radius:12px;font-size:.94rem;margin-top:14px}
+.msg.ok{display:block;background:#e6f6ec;border:1px solid #9fd8b4;color:#1b6b3a}
+.msg.err{display:block;background:#fdecec;border:1px solid #f0b3b3;color:#9b2222}
+.msg.info{display:block;background:var(--gold-soft);border:1px solid var(--gold2);color:#6b4e12}
+
+/* faq */
+.faq{max-width:760px;margin:0 auto}
+details.q{background:var(--paper);border:1px solid var(--line);border-radius:13px;padding:4px 20px;margin-bottom:12px;transition:border-color .2s}
+details.q[open]{border-color:var(--gold-soft)}
+details.q summary{cursor:pointer;list-style:none;padding:16px 0;font-weight:600;color:var(--navy);display:flex;justify-content:space-between;align-items:center;gap:14px}
+details.q summary::-webkit-details-marker{display:none}
+details.q summary i{color:var(--gold);transition:transform .25s}
+details.q[open] summary i{transform:rotate(45deg)}
+details.q p{margin:0 0 18px;color:var(--muted);font-size:.96rem}
+
+/* cta band */
+.cta-band{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;text-align:center;border-radius:22px;padding:52px 30px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.cta-band::after{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.05) 1px,transparent 1px);background-size:20px 20px}
+.cta-band h2{color:#fff;font-size:clamp(1.8rem,3.4vw,2.5rem);margin:0 0 12px;position:relative}
+.cta-band p{color:#c3cedd;max-width:520px;margin:0 auto 26px;position:relative}
+.cta-band .btn{position:relative}
+
+/* footer */
+footer{background:var(--navy);color:#9fb0c4;padding:48px 0 30px}
+.foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:30px;margin-bottom:30px}
+.foot-grid h4{color:#fff;font-family:'Inter';font-size:.82rem;letter-spacing:.12em;text-transform:uppercase;margin:0 0 14px}
+.foot-grid a{display:block;color:#9fb0c4;text-decoration:none;padding:5px 0;font-size:.94rem}
+.foot-grid a:hover{color:var(--gold2)}
+.foot-brand .brand{color:#fff}
+.foot-brand p{font-size:.92rem;max-width:300px;margin:14px 0 0}
+.foot-social{display:flex;gap:12px;margin-top:16px}
+.foot-social a{width:38px;height:38px;border-radius:10px;background:rgba(255,255,255,.08);display:grid;place-items:center;color:#fff;font-size:1.05rem;padding:0}
+.foot-social a:hover{background:var(--gold);color:#2b1e05}
+.foot-bottom{border-top:1px solid rgba(255,255,255,.1);padding-top:20px;text-align:center;font-size:.85rem}
+
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
+.reveal.in{opacity:1;transform:none}
+
+@media(max-width:860px){
+  .hero-grid,.why-grid,.booking{grid-template-columns:1fr;gap:30px}
+  .cards,.steps{grid-template-columns:1fr}
+  .hero-card{order:-1}
+  section{padding:56px 0}
+}
+@media(max-width:520px){
+  .two{grid-template-columns:1fr}
+  .hero-meta{gap:18px}
+}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <a class="brand" href="#top">
+      <img class="mark" src="gobir-logo-emblem.png" alt="Gobir Digital" />
+      <span>Gobir Digital<small>Learn · Build · Grow</small></span>
+    </a>
+    <nav class="nav-links" id="navLinks">
+      <a href="#services">What you'll learn</a>
+      <a href="#how">How it works</a>
+      <a href="#why">Why Gobir</a>
+      <a href="#faq">FAQ</a>
+      <a href="#book" class="only-mobile">Book a session</a>
+    </nav>
+    <div class="nav-cta">
+      <a href="#book" class="btn btn-gold"><i class="bi bi-calendar-check"></i>Book a session</a>
+      <button class="menu-btn" id="menuBtn" aria-label="Menu"><i class="bi bi-list"></i></button>
+    </div>
+  </div>
+</header>
+
+<a id="top"></a>
+<!-- HERO -->
+<section class="hero" style="padding:0">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow on-dark"><i class="bi bi-stars"></i> Online &amp; in-person coaching</span>
+      <h1>Master <em>AI</em> &amp; digital skills — one friendly session at a time.</h1>
+      <p class="lead">Practical, beginner-friendly coaching to help you use AI with confidence, get comfortable with the computer, bring your ideas to life, and grow your business online.</p>
+      <div class="hero-actions">
+        <a href="#book" class="btn btn-gold"><i class="bi bi-calendar-check"></i> Book your session</a>
+        <a href="#services" class="btn btn-light"><i class="bi bi-compass"></i> See what you'll learn</a>
+      </div>
+      <div class="hero-meta">
+        <div><b>60 min</b><span>per session</span></div>
+        <div><b>₦5,000</b><span>per person</span></div>
+        <div><b>1–5</b><span>people per session</span></div>
+        <div><b>4–10pm</b><span>daily (WAT)</span></div>
+      </div>
+    </div>
+    <div class="hero-card">
+      <h3>What a session gives you</h3>
+      <div class="hc-row"><i class="bi bi-robot"></i><div><b>Real, hands-on practice</b><span>Learn by doing, not just watching</span></div></div>
+      <div class="hc-row"><i class="bi bi-person-video3"></i><div><b>Online or face-to-face</b><span>Google Meet / Zoom, or in person</span></div></div>
+      <div class="hc-row"><i class="bi bi-people"></i><div><b>Solo or with friends</b><span>Bring up to 5 people to one session</span></div></div>
+      <div class="hc-row"><i class="bi bi-patch-check"></i><div><b>Clear next steps</b><span>Leave knowing exactly what to do next</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow"><i class="bi bi-grid"></i> What you'll learn</span>
+      <h2>Skills for the digital age — made simple</h2>
+      <p>Pick what you need. Every session is tailored to your level, whether you're just starting or sharpening what you already know.</p>
+    </div>
+    <div class="cards">
+      <div class="card reveal">
+        <div class="ico"><i class="bi bi-robot"></i></div>
+        <h3>How to Use AI</h3>
+        <p>Work smarter with tools like ChatGPT, Claude and Gemini — write, plan, research, create and solve everyday problems in minutes.</p>
+        <span class="tag">Most popular</span>
+      </div>
+      <div class="card reveal">
+        <div class="ico"><i class="bi bi-laptop"></i></div>
+        <h3>Computer Basics &amp; Skills</h3>
+        <p>From switching on to confident daily use — typing, files &amp; folders, the internet, email, online safety and the essentials.</p>
+        <span class="tag">Great for beginners</span>
+      </div>
+      <div class="card reveal">
+        <div class="ico"><i class="bi bi-lightbulb"></i></div>
+        <h3>Turn Your Idea Into Reality</h3>
+        <p>Have an idea but don't know where to start? We'll shape it into a clear, do-able plan — product, service or project, step by step.</p>
+        <span class="tag">For creators &amp; founders</span>
+      </div>
+      <div class="card reveal">
+        <div class="ico"><i class="bi bi-megaphone"></i></div>
+        <h3>Promote Your Business Online</h3>
+        <p>Get found and grow in the digital age — social media, simple content, and digital marketing that actually brings customers.</p>
+        <span class="tag">For hustlers &amp; SMEs</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how" class="steps-sec">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow"><i class="bi bi-signpost-2"></i> How it works</span>
+      <h2>Booking takes two minutes</h2>
+      <p>Simple, clear, and made for everyone — no tech experience needed.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><h3>Book your slot</h3><p>Choose your topic, pick a day and time between 4pm and 10pm, and tell us how many of you are joining.</p></div>
+      <div class="step reveal"><h3>Get confirmed</h3><p>You'll receive a quick confirmation with the meeting link (online) or the venue details (in person) and how to pay.</p></div>
+      <div class="step reveal"><h3>Learn &amp; grow</h3><p>Show up, get hands-on help tailored to you, and leave with clear next steps you can act on right away.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY -->
+<section id="why">
+  <div class="wrap why-grid">
+    <div class="reveal">
+      <span class="eyebrow"><i class="bi bi-heart"></i> Why learn with Gobir</span>
+      <h2 style="font-size:clamp(1.9rem,3.6vw,2.6rem);margin:12px 0 6px">Patient, practical, and all about you</h2>
+      <p style="color:var(--muted)">No jargon. No rushing. Just friendly, real-world coaching that meets you where you are and moves at your pace.</p>
+      <ul class="why-list">
+        <li><i class="bi bi-check-circle-fill"></i><div><b>Beginner-friendly</b><span>Explained in plain language anyone can follow.</span></div></li>
+        <li><i class="bi bi-check-circle-fill"></i><div><b>Tailored to your goal</b><span>Every session is built around what you want to achieve.</span></div></li>
+        <li><i class="bi bi-check-circle-fill"></i><div><b>Flexible &amp; convenient</b><span>Online or in person, evenings that suit your schedule.</span></div></li>
+        <li><i class="bi bi-check-circle-fill"></i><div><b>Learn together</b><span>Bring friends, family or your team and split the learning.</span></div></li>
+      </ul>
+    </div>
+    <div class="why-panel reveal">
+      <span class="eyebrow on-dark"><i class="bi bi-tag"></i> Simple pricing</span>
+      <h3>One flat rate per person</h3>
+      <div class="price">₦5,000<small> / person · 60 min</small></div>
+      <ul>
+        <li><i class="bi bi-check2"></i> Any topic — AI, computer, ideas or marketing</li>
+        <li><i class="bi bi-check2"></i> Online or in person</li>
+        <li><i class="bi bi-check2"></i> 1 to 5 people per session</li>
+        <li><i class="bi bi-check2"></i> Hands-on, tailored to your level</li>
+      </ul>
+      <a href="#book" class="btn btn-gold" style="width:100%;justify-content:center"><i class="bi bi-calendar-check"></i> Book a session</a>
+    </div>
+  </div>
+</section>
+
+<!-- BOOKING -->
+<section id="book" class="book-sec">
+  <div class="wrap booking">
+    <div class="book-info reveal">
+      <span class="eyebrow"><i class="bi bi-calendar-check"></i> Book now</span>
+      <h2>Reserve your session</h2>
+      <p>Fill in the form and we'll confirm your spot. It's quick, easy, and you can bring others along.</p>
+      <div class="info-row"><i class="bi bi-clock-history"></i><div><b>60-minute sessions</b><span>Focused and hands-on</span></div></div>
+      <div class="info-row"><i class="bi bi-sunset"></i><div><b>Daily, 4:00pm – 10:00pm</b><span>Nigeria time (WAT)</span></div></div>
+      <div class="info-row"><i class="bi bi-cash-coin"></i><div><b>₦5,000 per person</b><span>Pay after confirmation</span></div></div>
+      <div class="info-row"><i class="bi bi-people-fill"></i><div><b>Up to 5 people</b><span>Learn solo or as a group</span></div></div>
+    </div>
+
+    <div class="form-card reveal">
+      <h3>Booking details</h3>
+      <p class="sub">All fields marked <span style="color:var(--gold)">*</span> are required.</p>
+      <form id="bookForm" novalidate>
+        <input class="hp" type="text" name="company" id="hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
+        <div class="two">
+          <div class="field"><label>Full name <span class="req">*</span></label><input name="name" type="text" required placeholder="e.g. Aisha Bello" /></div>
+          <div class="field"><label>Phone / WhatsApp <span class="req">*</span></label><input name="phone" type="tel" required placeholder="e.g. 0803 000 0000" /></div>
+        </div>
+        <div class="field"><label>Email <span class="req">*</span></label><input name="email" type="email" required placeholder="you@example.com" /></div>
+
+        <div class="field">
+          <label>What do you want to learn? <span class="req">*</span></label>
+          <select name="topic" required>
+            <option value="" disabled selected>Choose a topic…</option>
+            <option>How to Use AI</option>
+            <option>Computer Basics &amp; Skills</option>
+            <option>Turn Your Idea Into Reality</option>
+            <option>Promote Your Business Online</option>
+            <option>Not sure yet — help me choose</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>How would you like to meet? <span class="req">*</span></label>
+          <div class="seg">
+            <label><input type="radio" name="mode" value="Online" checked /><span><i class="bi bi-camera-video"></i> Online</span></label>
+            <label><input type="radio" name="mode" value="In person" /><span><i class="bi bi-geo-alt"></i> In person</span></label>
+          </div>
+        </div>
+
+        <div class="two">
+          <div class="field"><label><i class="bi bi-calendar3"></i>Preferred date <span class="req">*</span></label>
+            <div class="date-wrap">
+              <input name="date" id="dateInput" type="date" required />
+              <button type="button" class="date-btn" id="dateBtn" aria-label="Open calendar"><i class="bi bi-calendar-event"></i></button>
+            </div>
+          </div>
+          <div class="field">
+            <label>Time slot <span class="req">*</span></label>
+            <select name="time" required>
+              <option value="" disabled selected>Choose a time…</option>
+              <option>4:00 PM</option><option>5:00 PM</option><option>6:00 PM</option>
+              <option>7:00 PM</option><option>8:00 PM</option><option>9:00 PM</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Number of people <span class="req">*</span></label>
+          <select name="people" id="peopleInput" required>
+            <option value="1" selected>Just me (1)</option>
+            <option value="2">2 people</option>
+            <option value="3">3 people</option>
+            <option value="4">4 people</option>
+            <option value="5">5 people</option>
+          </select>
+        </div>
+
+        <div class="field"><label>Anything we should know? (optional)</label><textarea name="notes" placeholder="Your goal, your level, or any question…"></textarea></div>
+
+        <div class="total">
+          <span>Estimated total</span>
+          <b id="totalPrice">₦5,000</b>
+        </div>
+
+        <label class="consent"><input type="checkbox" id="consent" required /><span>I agree that Gobir Digital may store and use my details <b>only</b> to arrange and deliver my session. <a href="#privacy">Privacy&nbsp;&amp;&nbsp;data</a>.</span></label>
+
+        <button type="submit" class="btn btn-gold" id="submitBtn" style="width:100%;justify-content:center;margin-top:12px"><i class="bi bi-send"></i> Confirm booking</button>
+        <p class="form-note"><i class="bi bi-shield-lock"></i> Secure (HTTPS) · stored privately in the owner's Google account · never sold or shared.</p>
+        <div class="msg" id="formMsg"></div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow"><i class="bi bi-question-circle"></i> Questions</span>
+      <h2>Good to know</h2>
+    </div>
+    <div class="faq">
+      <details class="q reveal"><summary>Do I need any experience? <i class="bi bi-plus-lg"></i></summary><p>Not at all. Sessions are built for complete beginners and improvers alike. We start from wherever you are and keep it simple.</p></details>
+      <details class="q reveal"><summary>How do online sessions work? <i class="bi bi-plus-lg"></i></summary><p>You'll get a Google Meet or Zoom link after your booking is confirmed. All you need is a phone or laptop and internet.</p></details>
+      <details class="q reveal"><summary>How do I pay? <i class="bi bi-plus-lg"></i></summary><p>After you book, you'll receive a confirmation with payment details (bank transfer). Payment confirms your slot.</p></details>
+      <details class="q reveal"><summary>Can I bring friends or my team? <i class="bi bi-plus-lg"></i></summary><p>Yes — up to 5 people can join one session. Just choose the number of people when booking (₦5,000 each).</p></details>
+      <details class="q reveal"><summary>What if I need to reschedule? <i class="bi bi-plus-lg"></i></summary><p>No problem. Reach out on WhatsApp at least a few hours before your slot and we'll find a new time that works.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- PRIVACY -->
+<section id="privacy">
+  <div class="wrap">
+    <div class="card" style="max-width:840px;margin:0 auto">
+      <span class="eyebrow"><i class="bi bi-shield-check"></i> Privacy &amp; data protection</span>
+      <h2 style="font-size:clamp(1.6rem,3vw,2.1rem);margin:12px 0 10px">Your data is safe with us</h2>
+      <p class="sub" style="font-size:.98rem">We collect only what's needed to arrange your session, and we protect it. Here's exactly how.</p>
+      <div class="why-list" style="margin-top:4px">
+        <div style="display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)"><i class="bi bi-ui-checks" style="color:var(--gold);font-size:1.2rem"></i><div><b style="color:var(--navy)">What we collect</b><br><span style="color:var(--muted);font-size:.92rem">Only your name, phone/WhatsApp, email, chosen topic, mode, date/time, number of people, and any note you add.</span></div></div>
+        <div style="display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)"><i class="bi bi-bullseye" style="color:var(--gold);font-size:1.2rem"></i><div><b style="color:var(--navy)">Why</b><br><span style="color:var(--muted);font-size:.92rem">Solely to confirm, schedule and deliver your session, and to contact you about it.</span></div></div>
+        <div style="display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)"><i class="bi bi-lock-fill" style="color:var(--gold);font-size:1.2rem"></i><div><b style="color:var(--navy)">How it's protected</b><br><span style="color:var(--muted);font-size:.92rem">Sent over encrypted HTTPS and stored privately in Gobir Digital's own Google account. We never sell, rent or share it with third parties.</span></div></div>
+        <div style="display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)"><i class="bi bi-person-check" style="color:var(--gold);font-size:1.2rem"></i><div><b style="color:var(--navy)">Your rights</b><br><span style="color:var(--muted);font-size:.92rem">Ask us any time to see, correct or delete your details — message us on WhatsApp and we'll action it.</span></div></div>
+        <div style="display:flex;gap:14px;padding:12px 0"><i class="bi bi-clock-history" style="color:var(--gold);font-size:1.2rem"></i><div><b style="color:var(--navy)">How long we keep it</b><br><span style="color:var(--muted);font-size:.92rem">Only as long as needed for your sessions and basic records; removed on request.</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="cta-band reveal">
+      <h2>Ready to level up?</h2>
+      <p>Book a session today and take your first confident step into the digital age.</p>
+      <a href="#book" class="btn btn-gold"><i class="bi bi-calendar-check"></i> Book your session</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="brand" href="#top"><img class="mark" src="gobir-logo-emblem.png" alt="Gobir Digital" /><span>Gobir Digital<small>Learn · Build · Grow</small></span></a>
+        <p>Friendly, practical coaching in AI and digital skills — helping people and small businesses thrive online.</p>
+        <div class="foot-social">
+          <a href="#book" aria-label="WhatsApp" id="waFoot"><i class="bi bi-whatsapp"></i></a>
+          <a href="#services" aria-label="Services"><i class="bi bi-grid"></i></a>
+          <a href="#book" aria-label="Book"><i class="bi bi-calendar-check"></i></a>
+        </div>
+      </div>
+      <div>
+        <h4>Learn</h4>
+        <a href="#services">How to Use AI</a>
+        <a href="#services">Computer Basics</a>
+        <a href="#services">Turn Idea Into Reality</a>
+        <a href="#services">Promote Your Business</a>
+      </div>
+      <div>
+        <h4>Visit</h4>
+        <a href="#how">How it works</a>
+        <a href="#why">Why Gobir</a>
+        <a href="#faq">FAQ</a>
+        <a href="#privacy">Privacy &amp; data</a>
+        <a href="#book">Book a session</a>
+      </div>
+    </div>
+    <div class="foot-bottom">© <span id="yr"></span> Gobir Digital. All rights reserved. · Open daily 4:00pm – 10:00pm (WAT)</div>
+  </div>
+</footer>
+
+<script>
+/* ============================================================
+   CONFIG — set these two values after you deploy your Google
+   Apps Script (see the setup guide that came with this file).
+   ============================================================ */
+var CONFIG = {
+  scriptUrl: "https://script.google.com/macros/s/AKfycbzzGbjLz1DsAnq3nro4Yuu8uyAOOEfpF4z76o8nNG7c1-pre_8gc-0orotJTcNXOnNjJw/exec",
+  whatsapp:  "2347065265144", // Gobir Digital WhatsApp
+  pricePerSeat: 5000,
+  currency: "₦"      // ₦
+};
+
+var $ = function(s,el){return (el||document).querySelector(s);};
+var fmt = function(n){return CONFIG.currency + Number(n).toLocaleString("en-NG");};
+
+/* year */
+$("#yr").textContent = new Date().getFullYear();
+
+/* mobile menu */
+$("#menuBtn").addEventListener("click", function(){ $("#navLinks").classList.toggle("open"); });
+document.querySelectorAll("#navLinks a").forEach(function(a){ a.addEventListener("click", function(){ $("#navLinks").classList.remove("open"); }); });
+
+/* date min = today (Nigeria) */
+(function(){
+  var d = new Date();
+  var iso = new Date(d.getTime() - d.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  $("#dateInput").min = iso;
+})();
+
+/* calendar picker: open on button and on field click where supported */
+(function(){
+  var di = $("#dateInput"), db = $("#dateBtn");
+  function open(){ try { if (di.showPicker) di.showPicker(); else di.focus(); } catch(e){ di.focus(); } }
+  if (db) db.addEventListener("click", open);
+  di.addEventListener("click", function(){ if (di.showPicker) { try { di.showPicker(); } catch(e){} } });
+})();
+
+/* live total */
+function updateTotal(){
+  var n = parseInt($("#peopleInput").value,10) || 1;
+  $("#totalPrice").textContent = fmt(n * CONFIG.pricePerSeat);
+}
+$("#peopleInput").addEventListener("change", updateTotal);
+updateTotal();
+
+/* optional WhatsApp footer link */
+if (CONFIG.whatsapp) {
+  var wa = "https://wa.me/" + CONFIG.whatsapp;
+  $("#waFoot").href = wa; $("#waFoot").target = "_blank"; $("#waFoot").rel = "noopener";
+}
+
+/* reveal on scroll */
+(function(){
+  if (!("IntersectionObserver" in window)) { document.querySelectorAll(".reveal").forEach(function(e){e.classList.add("in");}); return; }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add("in"); io.unobserve(en.target); } });
+  }, {threshold:0.12});
+  document.querySelectorAll(".reveal").forEach(function(e){ io.observe(e); });
+})();
+
+/* booking submit */
+var form = $("#bookForm"), msg = $("#formMsg"), btn = $("#submitBtn");
+function showMsg(type, html){ msg.className = "msg " + type; msg.innerHTML = html; }
+
+form.addEventListener("submit", function(e){
+  e.preventDefault();
+  if (!form.checkValidity()) { form.reportValidity(); return; }
+
+  // honeypot: bots fill the hidden field — silently accept, send nothing
+  if (form.company && form.company.value) { showMsg("ok", "<b>Booking received! ✅</b>"); form.reset(); updateTotal(); return; }
+
+  var data = {
+    name:   form.name.value.trim(),
+    phone:  form.phone.value.trim(),
+    email:  form.email.value.trim(),
+    topic:  form.topic.value,
+    mode:   form.mode.value,
+    date:   form.date.value,
+    time:   form.time.value,
+    people: form.people.value,
+    notes:  form.notes.value.trim(),
+    total:  (parseInt(form.people.value,10)||1) * CONFIG.pricePerSeat,
+    submittedAt: new Date().toISOString()
+  };
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Sending…';
+
+  function done(){
+    form.reset(); updateTotal();
+    var waBtn = CONFIG.whatsapp
+      ? ' <a href="'+buildWa(data)+'" target="_blank" rel="noopener" style="color:#1b6b3a;font-weight:700;text-decoration:underline">Confirm on WhatsApp</a>'
+      : '';
+    showMsg("ok", '<b>Booking received! ✅</b><br>Thank you, ' + escapeHtml(data.name.split(" ")[0] || "") + '. We\'ll confirm your session shortly.' + waBtn);
+    btn.disabled = false; btn.innerHTML = '<i class="bi bi-send"></i> Confirm booking';
+  }
+
+  if (!CONFIG.scriptUrl) {
+    // No backend configured yet — fall back to WhatsApp / email so no booking is lost.
+    if (CONFIG.whatsapp) { window.open(buildWa(data), "_blank", "noopener"); }
+    showMsg("info", '<b>Almost there.</b> Online booking isn\'t connected yet. ' +
+      (CONFIG.whatsapp ? 'We\'ve opened WhatsApp with your details — just hit send.' :
+       'Please send these details to us: ' + escapeHtml(summary(data))));
+    btn.disabled = false; btn.innerHTML = '<i class="bi bi-send"></i> Confirm booking';
+    return;
+  }
+
+  fetch(CONFIG.scriptUrl, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(data)
+  }).then(done).catch(function(){
+    // no-cors responses are opaque; treat network-reached as success, else guide to WhatsApp
+    done();
+  });
+});
+
+function summary(d){
+  return d.name + " | " + d.phone + " | " + d.topic + " | " + d.mode + " | " + d.date + " " + d.time + " | " + d.people + " person(s) | " + fmt(d.total);
+}
+function buildWa(d){
+  var text = "Hello Gobir Digital! I'd like to book a session.%0A%0A" +
+    "Name: " + encodeURIComponent(d.name) + "%0A" +
+    "Phone: " + encodeURIComponent(d.phone) + "%0A" +
+    "Email: " + encodeURIComponent(d.email) + "%0A" +
+    "Topic: " + encodeURIComponent(d.topic) + "%0A" +
+    "Mode: " + encodeURIComponent(d.mode) + "%0A" +
+    "Date: " + encodeURIComponent(d.date) + "%0A" +
+    "Time: " + encodeURIComponent(d.time) + "%0A" +
+    "People: " + encodeURIComponent(d.people) + "%0A" +
+    "Total: " + encodeURIComponent(fmt(d.total));
+  return "https://wa.me/" + (CONFIG.whatsapp || "") + "?text=" + text;
+}
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+</script>
+</body>
+</html>
