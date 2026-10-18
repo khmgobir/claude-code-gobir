@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+body { background: #eef3fb; color: #1b2a41; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
+
+@layer components {
+  .wrap { @apply mx-auto w-full max-w-6xl px-5; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 font-semibold transition-transform duration-200; }
+  .btn-blue { @apply btn bg-gradient-to-br from-brand to-brand2 text-white shadow-[0_10px_26px_rgba(31,143,239,.4)] hover:-translate-y-0.5; }
+  .btn-ghost { @apply btn border border-line bg-white text-navy hover:border-brand; }
+  .btn-light { @apply btn border border-white/30 bg-white/10 text-white hover:bg-white/20; }
+  .eyebrow { @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-brand; }
+  .card { @apply rounded-2xl border border-line bg-white p-7 shadow-card; }
+  .field label { @apply mb-1.5 block text-sm font-semibold text-navy; }
+  .field input, .field select, .field textarea { @apply w-full rounded-xl border-[1.5px] border-line bg-white px-3.5 py-3 text-[0.98rem] text-ink outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/20; }
+  .field textarea { @apply min-h-[72px] resize-y; }
+  .h2 { @apply font-serif text-[clamp(1.9rem,3.6vw,2.6rem)] font-semibold leading-tight text-navy; }
+}
+
+/* reveal on scroll */
+.reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s ease, transform .7s ease; }
+.reveal.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } .animate-float, .animate-waPulse { animation: none; } }
