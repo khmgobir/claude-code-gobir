@@ -586,12 +586,13 @@ document.querySelectorAll("#navLinks a").forEach(function(a){ a.addEventListener
   $("#dateInput").min = iso;
 })();
 
-/* calendar picker: open on button and on field click where supported */
+/* calendar picker: open reliably on button, field click/focus */
 (function(){
   var di = $("#dateInput"), db = $("#dateBtn");
-  function open(){ try { if (di.showPicker) di.showPicker(); else di.focus(); } catch(e){ di.focus(); } }
+  function open(e){ if (e) { e.preventDefault(); } try { if (di.showPicker) { di.showPicker(); return; } } catch(err){} di.focus(); }
   if (db) db.addEventListener("click", open);
-  di.addEventListener("click", function(){ if (di.showPicker) { try { di.showPicker(); } catch(e){} } });
+  di.addEventListener("click", open);
+  di.addEventListener("focus", function(){ try { if (di.showPicker) di.showPicker(); } catch(e){} });
 })();
 
 /* live total */
