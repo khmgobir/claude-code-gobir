@@ -15,14 +15,20 @@ export default function Owner() {
   const [blkDate, setBlkDate] = useState("");
   const [blkTime, setBlkTime] = useState("");
   const [blkMsg, setBlkMsg] = useState("");
+  const [bookings, setBookings] = useState<any[] | null>(null);
   const today = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 
   function loadStatus(p: string) {
     setLoginMsg("Checking…");
     api<any>({ action: "ownerstatus", pin: p })
-      .then((r) => { if (r && r.ok) { localStorage.setItem("gobirPin", p); setPin(p); setUnlocked(true); setOpen(!!r.open); setLoginMsg(""); } else lock("Wrong PIN. Try again."); })
+      .then((r) => { if (r && r.ok) { localStorage.setItem("gobirPin", p); setPin(p); setUnlocked(true); setOpen(!!r.open); setLoginMsg(""); loadBookings(p); } else lock("Wrong PIN. Try again."); })
       .catch(() => setLoginMsg("Couldn't reach the server."));
   }
+  function loadBookings(p: string) {
+    setBookings(null);
+    api<any>({ action: "bookings", pin: p }).then((r) => { if (r && r.ok) setBookings(r.bookings || []); else setBookings([]); }).catch(() => setBookings([]));
+  }
+  const waOf = (phone: string) => "https://wa.me/" + (phone || "").replace(/[^0-9]/g, "").replace(/^0/, "234");
   function lock(m: string) { localStorage.removeItem("gobirPin"); setUnlocked(false); setPin(""); setLoginMsg(m); }
   useEffect(() => { const p = localStorage.getItem("gobirPin"); if (p) loadStatus(p); /* eslint-disable-next-line */ }, []);
 
@@ -80,6 +86,32 @@ export default function Owner() {
                 <button onClick={() => block(false)} className="btn flex-1 bg-gradient-to-br from-[#17a06c] to-[#28c98a] text-white"><i className="bi bi-check2-circle" /> Unblock</button>
               </div>
               {blkMsg && <p className="mt-2 text-sm text-[#9fb4d0]">{blkMsg}</p>}
+            </div>
+
+            <div className="mt-6 border-t border-white/15 pt-5 text-left">
+              <div className="flex items-center justify-between">
+                <b className="text-[0.95rem] text-[#cfe0f5]">Upcoming sessions{bookings ? ` (${bookings.length})` : ""}</b>
+                <button onClick={() => loadBookings(pin)} className="text-xs text-brand2 underline">Refresh</button>
+              </div>
+              {bookings === null ? (
+                <p className="mt-2 text-sm text-[#9fb4d0]">Loading…</p>
+              ) : bookings.length === 0 ? (
+                <p className="mt-2 text-sm text-[#9fb4d0]">No upcoming bookings.</p>
+              ) : (
+                <ul className="mt-2 max-h-72 space-y-2 overflow-auto">
+                  {bookings.map((b, i) => (
+                    <li key={i} className="rounded-xl border border-white/10 bg-white/[.04] p-3 text-sm">
+                      <div className="flex justify-between"><b className="text-white">{b.date} · {b.time}</b><span className="text-[#9fb4d0]">{b.mode} · {b.people}p</span></div>
+                      <div className="text-[#cfe0f5]">{b.name} — {b.topic}</div>
+                      <div className="mt-1 flex flex-wrap gap-3 text-xs">
+                        <a href={`tel:${b.phone}`} className="text-brand2">Call</a>
+                        <a href={waOf(b.phone)} target="_blank" rel="noopener" className="text-brand2">WhatsApp</a>
+                        {b.address && <span className="text-[#9fb4d0]"><i className="bi bi-geo-alt-fill" /> {b.address}</span>}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             <button onClick={() => lock("")} className="mt-4 text-sm text-[#9fb4d0] underline">Lock / change PIN</button>

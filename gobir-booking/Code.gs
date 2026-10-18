@@ -51,6 +51,7 @@ function route(p) {
     case "setopen":    return apiSetOpen(p);
     case "setblock":   return apiSetBlock(p);
     case "unsetblock": return apiUnsetBlock(p);
+    case "bookings":   return apiBookingsList(p);
     default:           return { ok:false, reason:"unknown_action" };
   }
 }
@@ -185,6 +186,24 @@ function setBookingOpen(open){
 function apiOwnerStatus(p){
   if (String(p.pin) !== ownerPin()) return { ok:false, reason:"pin" };
   return { ok:true, open:bookingOpen() };
+}
+function apiBookingsList(p){
+  if (String(p.pin) !== ownerPin()) return { ok:false, reason:"pin" };
+  var sh = bookingsSheet(), v = sh.getDataRange().getValues();
+  var today = Utilities.formatDate(new Date(), TZ, "yyyy-MM-dd");
+  var out = [];
+  for (var i=1;i<v.length;i++){
+    if (String(v[i][idx("Status")]).toLowerCase()==="cancelled") continue;
+    var d = fmtDate(v[i][idx("Date")]); if (d < today) continue;
+    out.push({
+      date:d, time:String(v[i][idx("Time")]), name:String(v[i][idx("Name")]),
+      phone:String(v[i][idx("Phone")]), topic:String(v[i][idx("Topic")]),
+      mode:String(v[i][idx("Mode")]), people:String(v[i][idx("People")]),
+      address:String(v[i][idx("Address")]||"")
+    });
+  }
+  out.sort(function(a,b){ return (a.date+" "+a.time) < (b.date+" "+b.time) ? -1 : 1; });
+  return { ok:true, bookings: out.slice(0, 50) };
 }
 function apiSetOpen(p){
   if (String(p.pin) !== ownerPin()) return { ok:false, reason:"pin" };
