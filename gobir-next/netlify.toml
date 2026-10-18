@@ -1,0 +1,12 @@
+# Netlify auto-build config for the Gobir Digital Next.js app.
+# Connect this repo in Netlify (New site from Git). Netlify builds on its
+# own infrastructure — no GitHub Actions needed, so the Actions billing
+# lock does not matter.
+
+[build]
+  base = "gobir-next"
+  command = "npm run build"
+  publish = "out"
+
+[build.environment]
+  NODE_VERSION = "20"
