@@ -101,9 +101,14 @@ booking page becomes smart:
 **Clients only see free times.** When someone picks a date, the page shows
 only the 4–9pm slots that aren't already booked or blocked.
 
-**Turn booking OFF when you're busy.** Open your spreadsheet → the **Settings**
-tab (created automatically) → set **BookingOpen** to `NO`. The site then shows
-"Booking is closed" and takes no new bookings. Set it back to `YES` to reopen.
+**Turn booking OFF when you're busy — from your phone.** Open **`owner.html`**
+(e.g. `your-site/owner.html`), enter your **PIN**, and tap **Close booking** /
+**Open booking**. No spreadsheet needed. Bookmark it or add it to your home
+screen.
+- Your PIN lives in the **Settings** tab as **OwnerPIN** (default `gobir2025`).
+  **Change it** to something private. (It's a light gate — keep the link/PIN to
+  yourself.)
+- You can still toggle manually: Settings tab → **BookingOpen** = `YES`/`NO`.
 
 **Block specific days or times.** Open the **Blocked** tab (created
 automatically) and add a row:

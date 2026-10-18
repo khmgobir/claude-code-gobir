@@ -42,6 +42,8 @@ function route(p) {
     case "book":       return apiBook(p);
     case "cancel":     return apiCancel(p);
     case "reschedule": return apiReschedule(p);
+    case "ownerstatus":return apiOwnerStatus(p);
+    case "setopen":    return apiSetOpen(p);
     default:           return { ok:false, reason:"unknown_action" };
   }
 }
@@ -147,6 +149,35 @@ function bookingOpen(){
   var v = sh.getDataRange().getValues();
   for (var i=0;i<v.length;i++){ if (String(v[i][0]).trim().toLowerCase()==="bookingopen"){ return String(v[i][1]).trim().toUpperCase()!=="NO"; } }
   return true;
+}
+function ownerPin(){
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName("Settings");
+  if (!sh) { sh = ss.insertSheet("Settings"); sh.appendRow(["Setting","Value"]); sh.appendRow(["BookingOpen","YES"]); }
+  var v = sh.getDataRange().getValues(), found = null;
+  for (var i=0;i<v.length;i++){ if (String(v[i][0]).trim().toLowerCase()==="ownerpin") found = String(v[i][1]).trim(); }
+  if (found === null) { sh.appendRow(["OwnerPIN","gobir2025"]); found = "gobir2025"; }
+  return found;
+}
+function setBookingOpen(open){
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName("Settings");
+  if (!sh) { sh = ss.insertSheet("Settings"); sh.appendRow(["Setting","Value"]); }
+  var v = sh.getDataRange().getValues(), row = -1;
+  for (var i=0;i<v.length;i++){ if (String(v[i][0]).trim().toLowerCase()==="bookingopen") row = i+1; }
+  if (row < 0) sh.appendRow(["BookingOpen", open?"YES":"NO"]);
+  else sh.getRange(row,2).setValue(open?"YES":"NO");
+}
+function apiOwnerStatus(p){
+  if (String(p.pin) !== ownerPin()) return { ok:false, reason:"pin" };
+  return { ok:true, open:bookingOpen() };
+}
+function apiSetOpen(p){
+  if (String(p.pin) !== ownerPin()) return { ok:false, reason:"pin" };
+  var val = String(p.value).toLowerCase();
+  var open = (val==="yes"||val==="open"||val==="true"||val==="1");
+  setBookingOpen(open);
+  return { ok:true, open:open };
 }
 function blockedFor(date){
   var ss = SpreadsheetApp.getActiveSpreadsheet();
