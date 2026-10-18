@@ -318,7 +318,7 @@ select:disabled{opacity:.7;cursor:not-allowed}
       </div>
       <div class="hero-meta">
         <div><b>60 min</b><span>per session</span></div>
-        <div><b>₦5,000</b><span>per person</span></div>
+        <div><b>₦5k–10k</b><span>solo / group</span></div>
         <div><b>1–5</b><span>people per session</span></div>
         <div><b>4–10pm</b><span>daily (WAT)</span></div>
       </div>
@@ -419,13 +419,13 @@ select:disabled{opacity:.7;cursor:not-allowed}
     </div>
     <div class="why-panel reveal">
       <span class="eyebrow on-dark"><i class="bi bi-tag"></i> Simple pricing</span>
-      <h3>One flat rate per person</h3>
-      <div class="price">₦5,000<small> / person · 60 min</small></div>
+      <h3>Simple, flat pricing</h3>
+      <div class="price">₦5,000<small> solo · 60 min</small></div>
       <ul>
-        <li><i class="bi bi-check2"></i> Any topic — AI, computer, ideas or marketing</li>
-        <li><i class="bi bi-check2"></i> Online or in person</li>
-        <li><i class="bi bi-check2"></i> 1 to 5 people per session</li>
-        <li><i class="bi bi-check2"></i> Hands-on, tailored to your level</li>
+        <li><i class="bi bi-check2"></i> <b>₦5,000</b> for 1 person</li>
+        <li><i class="bi bi-check2"></i> <b>₦10,000</b> flat for a group of 2–5 (max)</li>
+        <li><i class="bi bi-check2"></i> Any topic — AI, computer, ideas, kids or marketing</li>
+        <li><i class="bi bi-check2"></i> Online or in person · hands-on</li>
       </ul>
       <a href="#book" class="btn btn-gold" style="width:100%;justify-content:center"><i class="bi bi-calendar-check"></i> Book a session</a>
     </div>
@@ -441,7 +441,7 @@ select:disabled{opacity:.7;cursor:not-allowed}
       <p>Fill in the form and we'll confirm your spot. It's quick, easy, and you can bring others along.</p>
       <div class="info-row"><i class="bi bi-clock-history"></i><div><b>60-minute sessions</b><span>Focused and hands-on</span></div></div>
       <div class="info-row"><i class="bi bi-sunset"></i><div><b>Daily, 4:00pm – 10:00pm</b><span>Nigeria time (WAT)</span></div></div>
-      <div class="info-row"><i class="bi bi-cash-coin"></i><div><b>₦5,000 per person</b><span>Pay after confirmation</span></div></div>
+      <div class="info-row"><i class="bi bi-cash-coin"></i><div><b>₦5,000 solo · ₦10,000 group</b><span>2–5 people = flat ₦10k · pay after confirmation</span></div></div>
       <div class="info-row"><i class="bi bi-people-fill"></i><div><b>Up to 5 people</b><span>Learn solo or as a group</span></div></div>
     </div>
 
@@ -533,7 +533,7 @@ select:disabled{opacity:.7;cursor:not-allowed}
       <details class="q reveal"><summary>Do I need any experience? <i class="bi bi-plus-lg"></i></summary><p>Not at all. Sessions are built for complete beginners and improvers alike. We start from wherever you are and keep it simple.</p></details>
       <details class="q reveal"><summary>How do online sessions work? <i class="bi bi-plus-lg"></i></summary><p>You'll get a Google Meet or Zoom link after your booking is confirmed. All you need is a phone or laptop and internet.</p></details>
       <details class="q reveal"><summary>How do I pay? <i class="bi bi-plus-lg"></i></summary><p>After you book, you'll receive a confirmation with payment details (bank transfer). Payment confirms your slot.</p></details>
-      <details class="q reveal"><summary>Can I bring friends or my team? <i class="bi bi-plus-lg"></i></summary><p>Yes — up to 5 people can join one session. Just choose the number of people when booking (₦5,000 each).</p></details>
+      <details class="q reveal"><summary>Can I bring friends or my team? <i class="bi bi-plus-lg"></i></summary><p>Yes — up to 5 people can join one session. It's <b>₦5,000 for 1 person</b>, or a <b>flat ₦10,000 for a group of 2–5</b> — so bringing friends is great value.</p></details>
       <details class="q reveal"><summary>What if I need to reschedule? <i class="bi bi-plus-lg"></i></summary><p>No problem. Reach out on WhatsApp at least a few hours before your slot and we'll find a new time that works.</p></details>
     </div>
   </div>
@@ -638,6 +638,7 @@ var CONFIG = {
   scriptUrl: "https://script.google.com/macros/s/AKfycbzzGbjLz1DsAnq3nro4Yuu8uyAOOEfpF4z76o8nNG7c1-pre_8gc-0orotJTcNXOnNjJw/exec",
   whatsapp:  "2347065265144", // Gobir Digital WhatsApp
   pricePerSeat: 5000,
+  groupPrice: 10000,
   currency: "₦"      // ₦
 };
 
@@ -667,10 +668,12 @@ document.querySelectorAll("#navLinks a").forEach(function(a){ a.addEventListener
   di.addEventListener("focus", function(){ try { if (di.showPicker) di.showPicker(); } catch(e){} });
 })();
 
+/* pricing: 1 person = ₦5,000; 2–5 people = flat ₦10,000 */
+function priceFor(n){ n = parseInt(n,10) || 1; return n > 1 ? CONFIG.groupPrice : CONFIG.pricePerSeat; }
 /* live total */
 function updateTotal(){
   var n = parseInt($("#peopleInput").value,10) || 1;
-  $("#totalPrice").textContent = fmt(n * CONFIG.pricePerSeat);
+  $("#totalPrice").textContent = fmt(priceFor(n)) + (n > 1 ? " · group" : "");
 }
 $("#peopleInput").addEventListener("change", updateTotal);
 updateTotal();
@@ -811,7 +814,7 @@ form.addEventListener("submit", function(e){
     time:   form.time.value,
     people: form.people.value,
     notes:  form.notes.value.trim(),
-    total:  (parseInt(form.people.value,10)||1) * CONFIG.pricePerSeat,
+    total:  priceFor(form.people.value),
     submittedAt: new Date().toISOString()
   };
 
