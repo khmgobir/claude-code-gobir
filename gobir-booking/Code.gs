@@ -22,9 +22,23 @@ function doPost(e) {
     }
 
     var d = JSON.parse(e.postData.contents);
+
+    // Ignore bot submissions (honeypot field filled in)
+    if (d.company) {
+      lock.releaseLock();
+      return ContentService.createTextOutput(JSON.stringify({ ok: true }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // Protect against spreadsheet formula injection ( =, +, -, @ )
+    function safe(v) {
+      v = (v == null ? "" : String(v)).slice(0, 500);
+      return /^[=+\-@]/.test(v) ? "'" + v : v;
+    }
+
     sh.appendRow([
-      new Date(), d.name || "", d.phone || "", d.email || "", d.topic || "",
-      d.mode || "", d.date || "", d.time || "", d.people || "", d.total || "", d.notes || ""
+      new Date(), safe(d.name), safe(d.phone), safe(d.email), safe(d.topic),
+      safe(d.mode), safe(d.date), safe(d.time), safe(d.people), safe(d.total), safe(d.notes)
     ]);
 
     lock.releaseLock();

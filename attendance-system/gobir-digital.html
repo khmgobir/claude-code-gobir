@@ -149,6 +149,14 @@ section{padding:76px 0}
 .total span{font-size:.9rem;color:#c3cedd}
 .total b{font-family:'Fraunces',serif;font-size:1.7rem;color:var(--gold2)}
 .form-note{font-size:.82rem;color:var(--muted);text-align:center;margin-top:12px}
+.date-wrap{position:relative}
+.date-wrap input[type=date]{padding-right:44px}
+.date-btn{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:var(--gold-soft);border:none;color:var(--navy);cursor:pointer;font-size:1.05rem;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;transition:.2s}
+.date-btn:hover{background:var(--gold);color:#2b1e05}
+.consent{display:flex;gap:10px;align-items:flex-start;font-size:.82rem;color:var(--muted);margin:6px 0 2px;line-height:1.45}
+.consent input{margin-top:3px;width:16px;height:16px;flex:none;accent-color:var(--gold)}
+.consent a{color:var(--gold);font-weight:600}
+.hp{position:absolute!important;left:-9999px!important;width:1px;height:1px;opacity:0;overflow:hidden}
 .msg{display:none;padding:16px;border-radius:12px;font-size:.94rem;margin-top:14px}
 .msg.ok{display:block;background:#e6f6ec;border:1px solid #9fd8b4;color:#1b6b3a}
 .msg.err{display:block;background:#fdecec;border:1px solid #f0b3b3;color:#9b2222}
@@ -350,6 +358,7 @@ footer{background:var(--navy);color:#9fb0c4;padding:48px 0 30px}
       <h3>Booking details</h3>
       <p class="sub">All fields marked <span style="color:var(--gold)">*</span> are required.</p>
       <form id="bookForm" novalidate>
+        <input class="hp" type="text" name="company" id="hp" tabindex="-1" autocomplete="off" aria-hidden="true" />
         <div class="two">
           <div class="field"><label>Full name <span class="req">*</span></label><input name="name" type="text" required placeholder="e.g. Aisha Bello" /></div>
           <div class="field"><label>Phone / WhatsApp <span class="req">*</span></label><input name="phone" type="tel" required placeholder="e.g. 0803 000 0000" /></div>
@@ -377,7 +386,12 @@ footer{background:var(--navy);color:#9fb0c4;padding:48px 0 30px}
         </div>
 
         <div class="two">
-          <div class="field"><label>Preferred date <span class="req">*</span></label><input name="date" id="dateInput" type="date" required /></div>
+          <div class="field"><label><i class="bi bi-calendar3"></i>Preferred date <span class="req">*</span></label>
+            <div class="date-wrap">
+              <input name="date" id="dateInput" type="date" required />
+              <button type="button" class="date-btn" id="dateBtn" aria-label="Open calendar"><i class="bi bi-calendar-event"></i></button>
+            </div>
+          </div>
           <div class="field">
             <label>Time slot <span class="req">*</span></label>
             <select name="time" required>
@@ -406,8 +420,10 @@ footer{background:var(--navy);color:#9fb0c4;padding:48px 0 30px}
           <b id="totalPrice">₦5,000</b>
         </div>
 
-        <button type="submit" class="btn btn-gold" id="submitBtn" style="width:100%;justify-content:center"><i class="bi bi-send"></i> Confirm booking</button>
-        <p class="form-note"><i class="bi bi-shield-lock"></i> Your details are used only to arrange your session.</p>
+        <label class="consent"><input type="checkbox" id="consent" required /><span>I agree that Gobir Digital may store and use my details <b>only</b> to arrange and deliver my session. <a href="#privacy">Privacy&nbsp;&amp;&nbsp;data</a>.</span></label>
+
+        <button type="submit" class="btn btn-gold" id="submitBtn" style="width:100%;justify-content:center;margin-top:12px"><i class="bi bi-send"></i> Confirm booking</button>
+        <p class="form-note"><i class="bi bi-shield-lock"></i> Secure (HTTPS) · stored privately in the owner's Google account · never sold or shared.</p>
         <div class="msg" id="formMsg"></div>
       </form>
     </div>
@@ -427,6 +443,24 @@ footer{background:var(--navy);color:#9fb0c4;padding:48px 0 30px}
       <details class="q reveal"><summary>How do I pay? <i class="bi bi-plus-lg"></i></summary><p>After you book, you'll receive a confirmation with payment details (bank transfer). Payment confirms your slot.</p></details>
       <details class="q reveal"><summary>Can I bring friends or my team? <i class="bi bi-plus-lg"></i></summary><p>Yes — up to 5 people can join one session. Just choose the number of people when booking (₦5,000 each).</p></details>
       <details class="q reveal"><summary>What if I need to reschedule? <i class="bi bi-plus-lg"></i></summary><p>No problem. Reach out on WhatsApp at least a few hours before your slot and we'll find a new time that works.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- PRIVACY -->
+<section id="privacy">
+  <div class="wrap">
+    <div class="card" style="max-width:840px;margin:0 auto">
+      <span class="eyebrow"><i class="bi bi-shield-check"></i> Privacy &amp; data protection</span>
+      <h2 style="font-size:clamp(1.6rem,3vw,2.1rem);margin:12px 0 10px">Your data is safe with us</h2>
+      <p class="sub" style="font-size:.98rem">We collect only what's needed to arrange your session, and we protect it. Here's exactly how.</p>
+      <div class="why-list" style="margin-top:4px">
+        <div style="display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)"><i class="bi bi-ui-checks" style="color:var(--gold);font-size:1.2rem"></i><div><b style="color:var(--navy)">What we collect</b><br><span style="color:var(--muted);font-size:.92rem">Only your name, phone/WhatsApp, email, chosen topic, mode, date/time, number of people, and any note you add.</span></div></div>
+        <div style="display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)"><i class="bi bi-bullseye" style="color:var(--gold);font-size:1.2rem"></i><div><b style="color:var(--navy)">Why</b><br><span style="color:var(--muted);font-size:.92rem">Solely to confirm, schedule and deliver your session, and to contact you about it.</span></div></div>
+        <div style="display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)"><i class="bi bi-lock-fill" style="color:var(--gold);font-size:1.2rem"></i><div><b style="color:var(--navy)">How it's protected</b><br><span style="color:var(--muted);font-size:.92rem">Sent over encrypted HTTPS and stored privately in Gobir Digital's own Google account. We never sell, rent or share it with third parties.</span></div></div>
+        <div style="display:flex;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)"><i class="bi bi-person-check" style="color:var(--gold);font-size:1.2rem"></i><div><b style="color:var(--navy)">Your rights</b><br><span style="color:var(--muted);font-size:.92rem">Ask us any time to see, correct or delete your details — message us on WhatsApp and we'll action it.</span></div></div>
+        <div style="display:flex;gap:14px;padding:12px 0"><i class="bi bi-clock-history" style="color:var(--gold);font-size:1.2rem"></i><div><b style="color:var(--navy)">How long we keep it</b><br><span style="color:var(--muted);font-size:.92rem">Only as long as needed for your sessions and basic records; removed on request.</span></div></div>
+      </div>
     </div>
   </div>
 </section>
@@ -466,6 +500,7 @@ footer{background:var(--navy);color:#9fb0c4;padding:48px 0 30px}
         <a href="#how">How it works</a>
         <a href="#why">Why Gobir</a>
         <a href="#faq">FAQ</a>
+        <a href="#privacy">Privacy &amp; data</a>
         <a href="#book">Book a session</a>
       </div>
     </div>
@@ -502,6 +537,14 @@ document.querySelectorAll("#navLinks a").forEach(function(a){ a.addEventListener
   $("#dateInput").min = iso;
 })();
 
+/* calendar picker: open on button and on field click where supported */
+(function(){
+  var di = $("#dateInput"), db = $("#dateBtn");
+  function open(){ try { if (di.showPicker) di.showPicker(); else di.focus(); } catch(e){ di.focus(); } }
+  if (db) db.addEventListener("click", open);
+  di.addEventListener("click", function(){ if (di.showPicker) { try { di.showPicker(); } catch(e){} } });
+})();
+
 /* live total */
 function updateTotal(){
   var n = parseInt($("#peopleInput").value,10) || 1;
@@ -532,6 +575,9 @@ function showMsg(type, html){ msg.className = "msg " + type; msg.innerHTML = htm
 form.addEventListener("submit", function(e){
   e.preventDefault();
   if (!form.checkValidity()) { form.reportValidity(); return; }
+
+  // honeypot: bots fill the hidden field — silently accept, send nothing
+  if (form.company && form.company.value) { showMsg("ok", "<b>Booking received! ✅</b>"); form.reset(); updateTotal(); return; }
 
   var data = {
     name:   form.name.value.trim(),
