@@ -1,0 +1,12 @@
+# Root Netlify config — tells Netlify to build the Next.js app in /gobir-next
+# (the repo root also contains an unrelated Capacitor project, which is why
+# a default import 404s). With this file at the repo root, Netlify builds the
+# right app automatically on every push — no GitHub Actions involved.
+
+[build]
+  base = "gobir-next"
+  command = "npm run build"
+  publish = "out"
+
+[build.environment]
+  NODE_VERSION = "20"
