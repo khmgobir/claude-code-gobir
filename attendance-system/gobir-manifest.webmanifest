@@ -1,0 +1,14 @@
+{
+  "name": "Gobir Digital — Learn AI & Digital Skills",
+  "short_name": "Gobir Digital",
+  "description": "Learn AI, computer skills and grow your business. Book a session.",
+  "start_url": "welcome.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0b1422",
+  "theme_color": "#0b1422",
+  "icons": [
+    { "src": "gobir-logo-emblem.png", "sizes": "1536x1536", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
