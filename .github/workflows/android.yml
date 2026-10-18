@@ -1,15 +1,10 @@
 name: Build Android APK
 
 on:
+  # Disabled auto-run (billing-locked Actions kept failing on every push).
+  # Build the APK locally instead, or run this manually from the Actions tab
+  # once billing is resolved.
   workflow_dispatch:
-  push:
-    branches: [claude/focused-goldberg-lztse9, main]
-    paths:
-      - 'attendance-system/**'
-      - 'android/**'
-      - 'capacitor.config.json'
-      - 'package.json'
-      - 'package-lock.json'
       - '.github/workflows/android.yml'
 
 permissions:

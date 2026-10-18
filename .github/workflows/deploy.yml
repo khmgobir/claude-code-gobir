@@ -1,8 +1,9 @@
 name: Deploy to GitHub Pages
 
 on:
-  push:
-    branches: [claude/focused-goldberg-lztse9]
+  # Disabled auto-run: account Actions are billing-locked and the static
+  # site is hosted via Netlify / the /docs branch (no Actions needed).
+  # Re-enable by restoring the push trigger once billing is resolved.
   workflow_dispatch:
 
 permissions:
