@@ -92,6 +92,35 @@ Want to change any of these? They're easy to edit — just ask.
 
 ---
 
+## Managing availability & bookings (NEW)
+
+After pasting the updated `Code.gs` and re-deploying a **New version**
+(Deploy → Manage deployments → ✏️ → Version: New version → Deploy), your
+booking page becomes smart:
+
+**Clients only see free times.** When someone picks a date, the page shows
+only the 4–9pm slots that aren't already booked or blocked.
+
+**Turn booking OFF when you're busy.** Open your spreadsheet → the **Settings**
+tab (created automatically) → set **BookingOpen** to `NO`. The site then shows
+"Booking is closed" and takes no new bookings. Set it back to `YES` to reopen.
+
+**Block specific days or times.** Open the **Blocked** tab (created
+automatically) and add a row:
+- `2026-11-02` with an **empty** time → blocks the **whole day**
+- `2026-11-02` and `6:00 PM` → blocks just that **one slot**
+
+**Cancellations & rescheduling.** Every booking now gets a private **manage
+link** (shown after booking, e.g. `…/gobir-digital.html?manage=abc123`). The
+client opens it to **cancel** or **reschedule** themselves — the sheet and
+Google Calendar update automatically. There's also a "Manage / cancel booking"
+link in the footer where they can paste their link.
+
+> One session per time slot (a group of up to 5 still counts as one booking).
+> Cancelled bookings free the slot again automatically.
+
+---
+
 ## Updating prices later
 - **Price:** in `gobir-digital.html`, change `pricePerSeat: 5000` and the
   two places the text `₦5,000` appears (hero + pricing panel).

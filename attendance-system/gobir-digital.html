@@ -224,6 +224,20 @@ footer{background:var(--navy);color:#9fb0c4;padding:48px 0 30px}
   .hero-meta{gap:18px}
 }
 @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
+/* availability + manage */
+.slot-msg{font-size:.82rem;margin-top:7px;font-weight:600;min-height:1em}
+.slot-msg .ok,#mgBody .ok{color:#1b7a43}
+.slot-msg .bad,#mgBody .bad,#mgMsg .bad{color:#b4322b}
+select:disabled{opacity:.7;cursor:not-allowed}
+.modal{position:fixed;inset:0;z-index:200;background:rgba(10,18,30,.6);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px}
+.modal.open{display:flex}
+.modal-card{background:var(--paper);border:1px solid var(--line);border-radius:18px;max-width:460px;width:100%;padding:26px;position:relative;box-shadow:var(--shadow);max-height:90vh;overflow:auto}
+.modal-card h3{font-size:1.3rem;margin:0 0 14px}
+.modal-x{position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.7rem;line-height:1;color:var(--muted);cursor:pointer}
+.mg-detail{background:var(--cream);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:16px;font-size:.95rem}
+.mg-actions{display:flex;gap:10px;flex-wrap:wrap}
+.mg-actions .btn{flex:1;justify-content:center}
+#mgBody .ok,#mgBody p.ok{color:#1b7a43}
 </style>
 </head>
 <body>
@@ -413,11 +427,10 @@ footer{background:var(--navy);color:#9fb0c4;padding:48px 0 30px}
           </div>
           <div class="field">
             <label>Time slot <span class="req">*</span></label>
-            <select name="time" required>
-              <option value="" disabled selected>Choose a time…</option>
-              <option>4:00 PM</option><option>5:00 PM</option><option>6:00 PM</option>
-              <option>7:00 PM</option><option>8:00 PM</option><option>9:00 PM</option>
+            <select name="time" id="timeInput" required disabled>
+              <option value="" disabled selected>Pick a date first…</option>
             </select>
+            <div id="slotMsg" class="slot-msg"></div>
           </div>
         </div>
 
@@ -444,6 +457,7 @@ footer{background:var(--navy);color:#9fb0c4;padding:48px 0 30px}
         <button type="submit" class="btn btn-gold" id="submitBtn" style="width:100%;justify-content:center;margin-top:12px"><i class="bi bi-send"></i> Confirm booking</button>
         <p class="form-note"><i class="bi bi-shield-lock"></i> Secure (HTTPS) · stored privately in the owner's Google account · never sold or shared.</p>
         <div class="msg" id="formMsg"></div>
+        <p class="form-note" style="margin-top:12px">Already booked? <a href="#" class="manage-open" style="color:var(--gold);font-weight:700">Manage or cancel your booking</a></p>
       </form>
     </div>
   </div>
@@ -520,12 +534,21 @@ footer{background:var(--navy);color:#9fb0c4;padding:48px 0 30px}
         <a href="#why">Why Gobir</a>
         <a href="#faq">FAQ</a>
         <a href="#privacy">Privacy &amp; data</a>
+        <a href="#" class="manage-open">Manage / cancel booking</a>
         <a href="#book">Book a session</a>
       </div>
     </div>
     <div class="foot-bottom">© <span id="yr"></span> Gobir Digital. All rights reserved. · Open daily 4:00pm – 10:00pm (WAT)</div>
   </div>
 </footer>
+
+<div id="manageModal" class="modal" aria-hidden="true">
+  <div class="modal-card">
+    <button class="modal-x" id="mgClose" aria-label="Close">&times;</button>
+    <h3><i class="bi bi-calendar2-check"></i> Manage your booking</h3>
+    <div id="mgBody"></div>
+  </div>
+</div>
 
 <script>
 /* ============================================================
@@ -587,6 +610,103 @@ if (CONFIG.whatsapp) {
   document.querySelectorAll(".reveal").forEach(function(e){ io.observe(e); });
 })();
 
+/* ---- availability + manage (JSONP to Apps Script) ---- */
+var BASE_SLOTS = ["4:00 PM","5:00 PM","6:00 PM","7:00 PM","8:00 PM","9:00 PM"];
+var apiSeq = 0;
+function api(params){
+  return new Promise(function(resolve,reject){
+    if(!CONFIG.scriptUrl){ reject({reason:"noconfig"}); return; }
+    var cb="gcb"+Date.now()+(apiSeq++), s, timer;
+    function cleanup(){ clearTimeout(timer); try{delete window[cb];}catch(e){window[cb]=undefined;} if(s&&s.parentNode)s.parentNode.removeChild(s); }
+    timer=setTimeout(function(){ cleanup(); reject({reason:"timeout"}); },15000);
+    window[cb]=function(d){ cleanup(); resolve(d||{}); };
+    var q=Object.keys(params).map(function(k){ return encodeURIComponent(k)+"="+encodeURIComponent(params[k]==null?"":params[k]); }).join("&");
+    s=document.createElement("script");
+    s.src=CONFIG.scriptUrl+"?"+q+"&callback="+cb;
+    s.onerror=function(){ cleanup(); reject({reason:"network"}); };
+    document.body.appendChild(s);
+  });
+}
+var timeSel=$("#timeInput"), slotMsg=$("#slotMsg");
+function setTimes(list){
+  timeSel.innerHTML="";
+  var o=document.createElement("option"); o.value=""; o.disabled=true; o.selected=true;
+  o.textContent=(list&&list.length)?"Choose a time…":"No times available";
+  timeSel.appendChild(o);
+  (list||[]).forEach(function(t){ var op=document.createElement("option"); op.textContent=t; timeSel.appendChild(op); });
+  timeSel.disabled=!(list&&list.length);
+}
+function loadSlots(){
+  var date=$("#dateInput").value;
+  if(!date){ timeSel.innerHTML='<option value="" disabled selected>Pick a date first…</option>'; timeSel.disabled=true; slotMsg.textContent=""; return; }
+  if(!CONFIG.scriptUrl){ setTimes(BASE_SLOTS); slotMsg.textContent=""; return; }
+  slotMsg.innerHTML="Checking availability…"; timeSel.disabled=true;
+  api({action:"slots",date:date}).then(function(r){
+    if(r.open===false){ setTimes([]); slotMsg.innerHTML='<span class="bad">Booking is closed for this date.</span>'; }
+    else if(!r.slots||!r.slots.length){ setTimes([]); slotMsg.innerHTML='<span class="bad">Fully booked — please try another date.</span>'; }
+    else { setTimes(r.slots); slotMsg.innerHTML='<span class="ok">'+r.slots.length+" time"+(r.slots.length>1?"s":"")+" available</span>"; }
+  }).catch(function(){ setTimes(BASE_SLOTS); slotMsg.textContent=""; });
+}
+$("#dateInput").addEventListener("change", loadSlots);
+
+var modal=$("#manageModal"), mgBody=$("#mgBody");
+function openModal(){ modal.classList.add("open"); modal.setAttribute("aria-hidden","false"); }
+function closeModal(){ modal.classList.remove("open"); modal.setAttribute("aria-hidden","true"); }
+if($("#mgClose")) $("#mgClose").addEventListener("click", closeModal);
+if(modal) modal.addEventListener("click", function(e){ if(e.target===modal) closeModal(); });
+document.querySelectorAll(".manage-open").forEach(function(a){
+  a.addEventListener("click", function(e){ e.preventDefault();
+    var t=prompt("Paste your booking link or code:"); if(!t) return;
+    var mm=/manage=([^&]+)/.exec(t); manage(mm?decodeURIComponent(mm[1]):t.trim());
+  });
+});
+function manage(token){
+  openModal(); mgBody.innerHTML='<p class="sub">Loading your booking…</p>';
+  if(!CONFIG.scriptUrl){ mgBody.innerHTML='<p class="bad">Booking server not set up yet.</p>'; return; }
+  api({action:"booking",token:token}).then(function(r){
+    if(!r||!r.found){ mgBody.innerHTML='<p class="bad">We couldn\'t find that booking — it may already be cancelled.</p>'; return; }
+    renderManage(token, r.booking||{});
+  }).catch(function(){ mgBody.innerHTML='<p class="bad">Couldn\'t load it. Please try again later.</p>'; });
+}
+function renderManage(token, bk){
+  mgBody.innerHTML='<div class="mg-detail"><b>'+escapeHtml(bk.topic||"Session")+'</b><br>'+escapeHtml(bk.date||"")+" · "+escapeHtml(bk.time||"")+" · "+escapeHtml(bk.mode||"")+" · "+escapeHtml(String(bk.people||"1"))+' person(s)</div>'+
+    '<div class="mg-actions"><button class="btn btn-ghost" id="mgRes"><i class="bi bi-arrow-repeat"></i> Reschedule</button><button class="btn btn-ghost" id="mgCancel" style="color:#b4322b"><i class="bi bi-x-circle"></i> Cancel</button></div>'+
+    '<div id="mgArea"></div><div id="mgMsg" class="slot-msg"></div>';
+  $("#mgCancel").onclick=function(){
+    if(!confirm("Cancel this booking?")) return;
+    $("#mgMsg").textContent="Cancelling…";
+    api({action:"cancel",token:token}).then(function(r){
+      if(r&&r.ok){ mgBody.innerHTML='<p class="ok"><b>Booking cancelled.</b> Hope to see you another time!</p>'; }
+      else { $("#mgMsg").innerHTML='<span class="bad">Could not cancel — please WhatsApp us.</span>'; }
+    }).catch(function(){ $("#mgMsg").innerHTML='<span class="bad">Could not cancel — please WhatsApp us.</span>'; });
+  };
+  $("#mgRes").onclick=function(){
+    $("#mgArea").innerHTML='<div class="field" style="margin-top:14px"><label>New date</label><input type="date" id="mgDate"></div><div class="field"><label>New time</label><select id="mgTime" disabled><option>Pick a date first…</option></select></div><button class="btn btn-gold" id="mgConfirm" style="width:100%;justify-content:center"><i class="bi bi-check2"></i> Confirm new time</button>';
+    var md=$("#mgDate"), now=new Date(); md.min=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,10);
+    md.addEventListener("change", function(){
+      var mt=$("#mgTime"); mt.innerHTML="<option>Checking…</option>"; mt.disabled=true;
+      api({action:"slots",date:md.value}).then(function(r){
+        var list=(r&&r.open!==false&&r.slots)?r.slots:[]; mt.innerHTML="";
+        if(!list.length){ mt.innerHTML='<option value="">No times available</option>'; mt.disabled=true; return; }
+        var o=document.createElement("option"); o.value=""; o.disabled=true; o.selected=true; o.textContent="Choose a time…"; mt.appendChild(o);
+        list.forEach(function(t){ var op=document.createElement("option"); op.textContent=t; mt.appendChild(op); });
+        mt.disabled=false;
+      }).catch(function(){ mt.innerHTML='<option value="">Error</option>'; });
+    });
+    $("#mgConfirm").onclick=function(){
+      var d=$("#mgDate").value, t=$("#mgTime").value;
+      if(!d||!t){ $("#mgMsg").innerHTML='<span class="bad">Pick a new date and time.</span>'; return; }
+      $("#mgMsg").textContent="Rescheduling…";
+      api({action:"reschedule",token:token,date:d,time:t}).then(function(r){
+        if(r&&r.ok){ mgBody.innerHTML='<p class="ok"><b>Rescheduled!</b> Your session is now '+escapeHtml(d)+" · "+escapeHtml(t)+'.</p>'; }
+        else if(r&&r.reason==="taken"){ $("#mgMsg").innerHTML='<span class="bad">That slot was just taken — pick another.</span>'; }
+        else { $("#mgMsg").innerHTML='<span class="bad">Could not reschedule — WhatsApp us.</span>'; }
+      }).catch(function(){ $("#mgMsg").innerHTML='<span class="bad">Could not reschedule.</span>'; });
+    };
+  };
+}
+(function(){ var m=/[?&]manage=([^&#]+)/.exec(location.search); if(m){ manage(decodeURIComponent(m[1])); } })();
+
 /* booking submit */
 var form = $("#bookForm"), msg = $("#formMsg"), btn = $("#submitBtn");
 function showMsg(type, html){ msg.className = "msg " + type; msg.innerHTML = html; }
@@ -613,37 +733,36 @@ form.addEventListener("submit", function(e){
   };
 
   btn.disabled = true;
-  btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Sending…';
+  btn.innerHTML = '<i class="bi bi-hourglass-split"></i> Checking…';
 
-  function done(){
-    form.reset(); updateTotal();
-    var waBtn = CONFIG.whatsapp
-      ? ' <a href="'+buildWa(data)+'" target="_blank" rel="noopener" style="color:#1b6b3a;font-weight:700;text-decoration:underline">Confirm on WhatsApp</a>'
-      : '';
-    showMsg("ok", '<b>Booking received! ✅</b><br>Thank you, ' + escapeHtml(data.name.split(" ")[0] || "") + '. We\'ll confirm your session shortly.' + waBtn);
-    btn.disabled = false; btn.innerHTML = '<i class="bi bi-send"></i> Confirm booking';
-  }
+  if (!CONFIG.scriptUrl) { fallbackWa(data); resetBtn(); return; }
 
-  if (!CONFIG.scriptUrl) {
-    // No backend configured yet — fall back to WhatsApp / email so no booking is lost.
-    if (CONFIG.whatsapp) { window.open(buildWa(data), "_blank", "noopener"); }
-    showMsg("info", '<b>Almost there.</b> Online booking isn\'t connected yet. ' +
-      (CONFIG.whatsapp ? 'We\'ve opened WhatsApp with your details — just hit send.' :
-       'Please send these details to us: ' + escapeHtml(summary(data))));
-    btn.disabled = false; btn.innerHTML = '<i class="bi bi-send"></i> Confirm booking';
-    return;
-  }
-
-  fetch(CONFIG.scriptUrl, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(data)
-  }).then(done).catch(function(){
-    // no-cors responses are opaque; treat network-reached as success, else guide to WhatsApp
-    done();
-  });
+  api({ action:"book", name:data.name, phone:data.phone, email:data.email, topic:data.topic,
+        mode:data.mode, date:data.date, time:data.time, people:data.people, total:data.total,
+        notes:data.notes, company:"" })
+  .then(function(r){
+    if (r && r.ok) { bookingSuccess(data, r.token); }
+    else if (r && r.reason === "taken") { showMsg("err", "<b>Sorry — that time was just booked.</b> Please choose another slot."); loadSlots(); resetBtn(); }
+    else if (r && r.reason === "closed") { showMsg("err", "<b>Booking is closed for that date.</b> Please pick another day."); resetBtn(); }
+    else { fallbackWa(data); resetBtn(); }
+  })
+  .catch(function(){ fallbackWa(data); resetBtn(); });
 });
+
+function resetBtn(){ btn.disabled=false; btn.innerHTML='<i class="bi bi-send"></i> Confirm booking'; }
+function bookingSuccess(data, token){
+  form.reset(); updateTotal();
+  timeSel.innerHTML='<option value="" disabled selected>Pick a date first…</option>'; timeSel.disabled=true; slotMsg.textContent="";
+  var manageLink = location.origin + location.pathname + "?manage=" + encodeURIComponent(token||"");
+  var waBtn = CONFIG.whatsapp ? ' · <a target="_blank" rel="noopener" style="color:#1b7a43;font-weight:700" href="'+buildWa(data)+'">Confirm on WhatsApp</a>' : '';
+  showMsg("ok", '<b>Booking confirmed! ✅</b><br>Thank you, '+escapeHtml((data.name||"").split(" ")[0])+'. '+
+    (token ? 'To cancel or reschedule later, keep this link:<br><a href="'+manageLink+'" style="color:#1b7a43;font-weight:700;word-break:break-all">'+manageLink+'</a>' : '') + waBtn);
+  resetBtn();
+}
+function fallbackWa(data){
+  if (CONFIG.whatsapp) { window.open(buildWa(data), "_blank", "noopener"); }
+  showMsg("info", "<b>Almost there.</b> We couldn't reach the booking server, so we've opened WhatsApp with your details — just hit send and we'll confirm.");
+}
 
 function summary(d){
   return d.name + " | " + d.phone + " | " + d.topic + " | " + d.mode + " | " + d.date + " " + d.time + " | " + d.people + " person(s) | " + fmt(d.total);
