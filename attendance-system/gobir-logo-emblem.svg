@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="badge" cx="50%" cy="36%" r="78%">
+      <stop offset="0" stop-color="#223a61"/>
+      <stop offset="55%" stop-color="#15263f"/>
+      <stop offset="100%" stop-color="#091221"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0.25" y2="1">
+      <stop offset="0" stop-color="#fff0bf"/>
+      <stop offset="28%" stop-color="#f3d277"/>
+      <stop offset="58%" stop-color="#d7a63e"/>
+      <stop offset="82%" stop-color="#b9842a"/>
+      <stop offset="100%" stop-color="#8f6418"/>
+    </linearGradient>
+    <linearGradient id="goldDeep" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c89a34"/>
+      <stop offset="100%" stop-color="#6d4b12"/>
+    </linearGradient>
+    <linearGradient id="goldDark" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a87d21"/>
+      <stop offset="100%" stop-color="#53380d"/>
+    </linearGradient>
+    <radialGradient id="gloss" cx="38%" cy="26%" r="72%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.92"/>
+      <stop offset="60%" stop-color="#ffffff" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#ffd37a" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#ffd37a" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#000000" flood-opacity="0.5"/>
+    </filter>
+    <filter id="innerSoft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="0.6"/>
+    </filter>
+  </defs>
+
+  <!-- badge -->
+  <rect width="512" height="512" rx="116" fill="url(#badge)"/>
+  <circle cx="256" cy="236" r="168" fill="url(#glow)"/>
+  <rect x="16" y="16" width="480" height="480" rx="100" fill="none" stroke="url(#gold)" stroke-width="4" opacity="0.9"/>
+  <rect x="26" y="26" width="460" height="460" rx="92" fill="none" stroke="#ffffff" stroke-opacity="0.06" stroke-width="2"/>
+
+  <!-- graduation cap -->
+  <g filter="url(#shadow)">
+    <!-- head cap (under board) -->
+    <path d="M192 196 L320 196 Q322 240 298 258 Q256 274 214 258 Q190 240 192 196 Z" fill="url(#goldDark)" filter="url(#innerSoft)"/>
+    <path d="M200 206 L312 206 Q312 236 294 250 Q256 264 218 250 Q200 236 200 206 Z" fill="url(#goldDeep)" opacity="0.5"/>
+
+    <!-- board depth (3D thickness) -->
+    <polygon points="118,186 256,132 394,186 256,240" fill="url(#goldDeep)"/>
+    <!-- board top face -->
+    <polygon points="118,178 256,124 394,178 256,232" fill="url(#gold)" stroke="#fff6d6" stroke-opacity="0.55" stroke-width="1.5"/>
+    <!-- board gloss streak -->
+    <polygon points="118,178 256,124 256,178" fill="url(#gloss)" opacity="0.6"/>
+    <polygon points="256,124 394,178 256,178" fill="#ffffff" opacity="0.06"/>
+
+    <!-- centre button -->
+    <circle cx="256" cy="178" r="12" fill="url(#gold)" stroke="#7c591a" stroke-width="1.2"/>
+    <circle cx="251.5" cy="173.5" r="4" fill="#ffffff" opacity="0.85"/>
+
+    <!-- tassel cord -->
+    <path d="M256 178 Q376 180 388 196 L388 268" fill="none" stroke="url(#gold)" stroke-width="5.5" stroke-linecap="round"/>
+    <path d="M256 178 Q376 180 388 196" fill="none" stroke="#fff3cf" stroke-opacity="0.5" stroke-width="1.6" stroke-linecap="round"/>
+    <!-- tassel knot -->
+    <circle cx="388" cy="270" r="10" fill="url(#gold)" stroke="#7c591a" stroke-width="1"/>
+    <!-- tassel fringe -->
+    <g stroke-linecap="round">
+      <line x1="381" y1="276" x2="378" y2="308" stroke="url(#goldDark)" stroke-width="3.4"/>
+      <line x1="388" y1="278" x2="388" y2="312" stroke="url(#gold)" stroke-width="3.4"/>
+      <line x1="395" y1="276" x2="398" y2="308" stroke="url(#goldDark)" stroke-width="3.4"/>
+    </g>
+  </g>
+</svg>

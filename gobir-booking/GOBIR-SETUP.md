@@ -7,12 +7,18 @@ Total time: about 10 minutes. No coding needed — just copy & paste.
 
 ---
 
-## Part 1 — Connect bookings to your Google Sheet
+## Your links (already set up for you)
+- **Bookings Sheet** (created in your Drive):
+  <https://docs.google.com/spreadsheets/d/1QYqZi48TxxAVvPv2w4kbUQoVskg6HsTFt68iTlJ2b4s/edit>
+- **WhatsApp** already wired into the site: **+234 706 526 5144**
 
-### Step 1. Create the Google Sheet
-1. Go to <https://sheets.google.com> and create a **new blank spreadsheet**.
-2. Name it something like **"Gobir Digital — Bookings"**.
-   (You don't need to add any columns — the script adds them automatically.)
+---
+
+## Part 1 — Connect bookings to your Google Sheet + Calendar
+
+### Step 1. Open your Bookings Sheet
+Open the sheet linked above (**"Gobir Digital — Bookings"**). The columns are
+added automatically on the first booking — you don't need to add anything.
 
 ### Step 2. Open the script editor
 1. In that sheet, click the menu: **Extensions → Apps Script**.
@@ -32,6 +38,8 @@ Total time: about 10 minutes. No coding needed — just copy & paste.
 5. Google will ask you to **Authorize access** → choose your account →
    if it warns "Google hasn't verified this app", click **Advanced →
    Go to (your project) → Allow**. (This is normal for your own script.)
+   It will ask for permission to your **Spreadsheet, Calendar and Gmail** —
+   that's so it can save bookings, add classes to your calendar, and email you.
 6. Copy the **Web app URL** it gives you. It looks like:
    `https://script.google.com/macros/s/AKfy....../exec`
 
@@ -49,26 +57,24 @@ Total time: about 10 minutes. No coding needed — just copy & paste.
    ```
 4. Save the file and re-upload / re-deploy it (or tell me and I'll push it).
 
-**Done!** Every booking now appears as a new row in your sheet, and you get
-an email. Test it by submitting a booking on the site, then checking the
-"Bookings" tab of your sheet.
+### Step 5. Set your time zone (so class times are correct)
+In the Apps Script editor, click the **gear ⚙️ (Project Settings)** on the left
+and make sure **Time zone** is **(GMT+01:00) Lagos**. This keeps your 4–10pm
+Nigeria class times accurate on your calendar.
 
----
+**Done!** Now, every booking will:
+- appear as a new row in your **Bookings** sheet, and
+- create a **class event in your Google Calendar** with a **reminder 30 minutes
+  before** (a phone/desktop pop-up **and** an email), and
+- send you an **email** with the booking details.
 
-## Part 2 — (Optional) Add your WhatsApp number
+Test it: submit a booking on the site, then check your sheet and your
+Google Calendar for that date/time.
 
-Putting your number in `whatsapp` does two things:
-- The WhatsApp icon in the footer links to your chat.
-- After someone books, they get a **"Confirm on WhatsApp"** button that
-  opens a chat pre-filled with their booking details.
-
-Use the **full international format, digits only** (no `+`, no spaces):
-
-```js
-whatsapp: "2348030000000",   // 234 = Nigeria, then your number without the leading 0
-```
-
-So `0803 000 0000` becomes `2348030000000`.
+> **Note:** your WhatsApp number (**+234 706 526 5144**) is already built into
+> the site — the footer chat button and the "Confirm on WhatsApp" message after
+> booking both use it. To change it later, edit the `whatsapp` line in
+> `gobir-digital.html`.
 
 ---
 

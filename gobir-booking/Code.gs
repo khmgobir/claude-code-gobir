@@ -29,6 +29,29 @@ function doPost(e) {
 
     lock.releaseLock();
 
+    // Add it to your Google Calendar with a 30-minute reminder (popup + email)
+    try {
+      var start = parseStart(d.date, d.time);
+      if (start) {
+        var end = new Date(start.getTime() + 60 * 60 * 1000); // 60-minute class
+        var title = "Gobir class: " + (d.topic || "Session") + " — " + (d.name || "");
+        var desc = [
+          "Student: " + d.name,
+          "Phone:   " + d.phone,
+          "Email:   " + d.email,
+          "Topic:   " + d.topic,
+          "Mode:    " + d.mode,
+          "People:  " + d.people,
+          "Total:   NGN " + d.total,
+          "Notes:   " + (d.notes || "-")
+        ].join("\n");
+        var ev = CalendarApp.getDefaultCalendar().createEvent(title, start, end, { description: desc });
+        ev.removeAllReminders();
+        ev.addPopupReminder(30);   // notification 30 minutes before
+        ev.addEmailReminder(30);   // email 30 minutes before
+      }
+    } catch (calErr) { /* calendar is optional; ignore failures */ }
+
     // Email yourself a heads-up (optional — remove this block if you don't want it)
     try {
       MailApp.sendEmail({
@@ -59,6 +82,25 @@ function doPost(e) {
       .createTextOutput(JSON.stringify({ ok: false, error: String(err) }))
       .setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+/**
+ * Turn "2026-10-20" + "4:00 PM" into a Date in the script's time zone.
+ * Make sure the Apps Script project time zone is (GMT+01:00) Lagos
+ * (File/Project Settings) so class times match Nigeria time.
+ */
+function parseStart(dateStr, timeStr) {
+  if (!dateStr || !timeStr) return null;
+  var p = String(dateStr).split("-"); // YYYY-MM-DD
+  if (p.length !== 3) return null;
+  var y = parseInt(p[0], 10), mo = parseInt(p[1], 10) - 1, da = parseInt(p[2], 10);
+  var m = String(timeStr).match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if (!m) return null;
+  var h = parseInt(m[1], 10), mi = parseInt(m[2], 10), ap = m[3].toUpperCase();
+  if (ap === "PM" && h !== 12) h += 12;
+  if (ap === "AM" && h === 12) h = 0;
+  var dt = new Date(y, mo, da, h, mi, 0);
+  return isNaN(dt.getTime()) ? null : dt;
 }
 
 function doGet() {
