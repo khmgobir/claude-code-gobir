@@ -4,12 +4,15 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Gobir Digital — Learn AI &amp; Digital Skills</title>
-<meta name="description" content="Learn how to use AI, master computer basics, turn your idea into reality, and promote your business in the digital age. Book a 1-on-1 or group session — online or in person." />
+<meta name="description" content="Gobir Digital — learn smarter. AI & productivity, computer basics, kids digital learning, app building and business growth. Coaching in Sokoto, Nigeria and online worldwide. Book a session." />
+<meta name="keywords" content="Gobir Digital, learn AI Nigeria, computer training Sokoto, digital skills, AI coaching, kids coding, business online, Sokoto tutor" />
 <meta name="theme-color" content="#0f1b2d" />
 <meta property="og:title" content="Gobir Digital — Learn AI &amp; Digital Skills" />
 <meta property="og:description" content="Practical, friendly coaching in AI, computer skills, and growing your business online. Book a session." />
 <meta property="og:type" content="website" />
-<meta property="og:image" content="gobir-logo-emblem.png" />
+<meta property="og:image" content="gobir-og.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="gobir-og.png" />
 <link rel="icon" href="gobir-icon-192.png" sizes="192x192" />
 <link rel="icon" href="gobir-logo-emblem.png" />
 <link rel="apple-touch-icon" href="gobir-icon-180.png" />
@@ -224,6 +227,30 @@ footer{background:var(--navy);color:#9fb0c4;padding:48px 0 30px}
   .hero-meta{gap:18px}
 }
 @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
+/* trust strip */
+.trust{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.t-item{display:flex;align-items:center;gap:13px}
+.t-item i{width:46px;height:46px;flex:none;border-radius:12px;background:var(--gold-soft);color:var(--gold);display:grid;place-items:center;font-size:1.2rem}
+.t-item b{display:block;color:var(--navy);font-size:.95rem}
+.t-item span{color:var(--muted);font-size:.82rem}
+@media(max-width:760px){.trust{grid-template-columns:1fr 1fr}}
+@media(max-width:420px){.trust{grid-template-columns:1fr}}
+/* contact */
+.contact-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.contact-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:26px 22px;text-align:center;box-shadow:var(--shadow-sm);transition:transform .25s,box-shadow .25s}
+.contact-card:hover{transform:translateY(-4px);box-shadow:var(--shadow)}
+.contact-card>i{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--navy),var(--navy2));color:var(--gold2);display:grid;place-items:center;font-size:1.5rem;margin:0 auto 14px}
+.contact-card b{display:block;color:var(--navy);font-size:1.05rem}
+.contact-card p{margin:4px 0 6px;font-weight:600;color:var(--text)}
+.contact-card .sub{color:var(--muted);font-size:.84rem}
+@media(max-width:860px){.contact-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.contact-grid{grid-template-columns:1fr}}
+/* floating whatsapp */
+.wa-float{position:fixed;right:20px;bottom:20px;z-index:150;width:60px;height:60px;border-radius:50%;background:#25D366;color:#fff;display:grid;place-items:center;font-size:1.75rem;box-shadow:0 10px 26px rgba(37,211,102,.5);text-decoration:none;transition:transform .2s;animation:waPulse 2.6s ease-in-out infinite}
+.wa-float:hover{transform:scale(1.08)}
+@keyframes waPulse{0%,100%{box-shadow:0 10px 26px rgba(37,211,102,.5)}50%{box-shadow:0 10px 30px rgba(37,211,102,.75)}}
+@media(max-width:560px){.wa-float{right:16px;bottom:16px;width:56px;height:56px}}
+@media(prefers-reduced-motion:reduce){.wa-float{animation:none}}
 /* availability + manage */
 .slot-msg{font-size:.82rem;margin-top:7px;font-weight:600;min-height:1em}
 .slot-msg .ok,#mgBody .ok{color:#1b7a43}
@@ -239,6 +266,20 @@ select:disabled{opacity:.7;cursor:not-allowed}
 .mg-actions .btn{flex:1;justify-content:center}
 #mgBody .ok,#mgBody p.ok{color:#1b7a43}
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  "name": "Gobir Digital",
+  "description": "Learn smarter — AI & digital skills coaching: AI tools, computer basics, kids digital learning, app building and business growth.",
+  "slogan": "Learn Digital · Build Smart · Grow",
+  "areaServed": "Worldwide (online) and Sokoto, Nigeria (in person)",
+  "telephone": "+2347065265144",
+  "address": { "@type": "PostalAddress", "addressLocality": "Sokoto", "addressCountry": "NG" },
+  "openingHours": "Mo-Su 16:00-22:00",
+  "sameAs": ["https://wa.me/2347065265144"]
+}
+</script>
 </head>
 <body>
 
@@ -253,6 +294,7 @@ select:disabled{opacity:.7;cursor:not-allowed}
       <a href="#how">How it works</a>
       <a href="#why">Why Gobir</a>
       <a href="#faq">FAQ</a>
+      <a href="#contact">Contact</a>
       <a href="#book" class="only-mobile">Book a session</a>
     </nav>
     <div class="nav-cta">
@@ -268,8 +310,8 @@ select:disabled{opacity:.7;cursor:not-allowed}
   <div class="wrap hero-grid">
     <div>
       <span class="eyebrow on-dark"><i class="bi bi-stars"></i> Online &amp; in-person coaching</span>
-      <h1>Master <em>AI</em> &amp; digital skills — one friendly session at a time.</h1>
-      <p class="lead">Practical, beginner-friendly coaching to help you use AI with confidence, get comfortable with the computer, bring your ideas to life, and grow your business online.</p>
+      <h1>Learn <em>smarter</em>. Master AI &amp; digital skills.</h1>
+      <p class="lead">Practical, beginner-friendly coaching to help you use AI with confidence, get comfortable with the computer, bring your ideas to life, and grow your business online — <b>learn smarter, not harder.</b></p>
       <div class="hero-actions">
         <a href="#book" class="btn btn-gold"><i class="bi bi-calendar-check"></i> Book your session</a>
         <a href="#services" class="btn btn-light"><i class="bi bi-compass"></i> See what you'll learn</a>
@@ -332,6 +374,16 @@ select:disabled{opacity:.7;cursor:not-allowed}
         <span class="tag">Ages 6–15 · personalised</span>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- TRUST STRIP -->
+<section class="trust-sec" style="padding:34px 0">
+  <div class="wrap trust reveal">
+    <div class="t-item"><i class="bi bi-person-badge"></i><div><b>Expert instructor</b><span>Guided, personal attention</span></div></div>
+    <div class="t-item"><i class="bi bi-laptop"></i><div><b>Online &amp; flexible</b><span>Join from anywhere</span></div></div>
+    <div class="t-item"><i class="bi bi-wrench-adjustable"></i><div><b>Practical projects</b><span>Learn by doing</span></div></div>
+    <div class="t-item"><i class="bi bi-headset"></i><div><b>Ongoing support</b><span>We don't leave you stuck</span></div></div>
   </div>
 </section>
 
@@ -505,6 +557,23 @@ select:disabled{opacity:.7;cursor:not-allowed}
   </div>
 </section>
 
+<!-- CONTACT & LOCATION -->
+<section id="contact" class="steps-sec">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <span class="eyebrow"><i class="bi bi-geo-alt"></i> Find us</span>
+      <h2>Contact &amp; location</h2>
+      <p>Reach out any time — we usually reply fast on WhatsApp.</p>
+    </div>
+    <div class="contact-grid">
+      <div class="contact-card reveal"><i class="bi bi-whatsapp"></i><b>WhatsApp</b><p>+234 706 526 5144</p><a class="btn btn-gold" id="waContact" href="#"><i class="bi bi-whatsapp"></i> Chat now</a></div>
+      <div class="contact-card reveal"><i class="bi bi-geo-alt-fill"></i><b>In person</b><p>Sokoto, Nigeria</p><span class="sub">Book a face-to-face session</span></div>
+      <div class="contact-card reveal"><i class="bi bi-globe2"></i><b>Online worldwide</b><p>Google Meet / Zoom</p><span class="sub">Learn from anywhere</span></div>
+      <div class="contact-card reveal"><i class="bi bi-clock-history"></i><b>Open hours</b><p>4:00pm – 10:00pm</p><span class="sub">Daily · Nigeria time (WAT)</span></div>
+    </div>
+  </div>
+</section>
+
 <!-- CTA -->
 <section style="padding-top:0">
   <div class="wrap">
@@ -540,6 +609,7 @@ select:disabled{opacity:.7;cursor:not-allowed}
         <a href="#how">How it works</a>
         <a href="#why">Why Gobir</a>
         <a href="#faq">FAQ</a>
+        <a href="#contact">Contact &amp; location</a>
         <a href="#privacy">Privacy &amp; data</a>
         <a href="#" class="manage-open">Manage / cancel booking</a>
         <a href="#book">Book a session</a>
@@ -548,6 +618,8 @@ select:disabled{opacity:.7;cursor:not-allowed}
     <div class="foot-bottom">© <span id="yr"></span> Gobir Digital. All rights reserved. · Open daily 4:00pm – 10:00pm (WAT)</div>
   </div>
 </footer>
+
+<a id="waFloat" class="wa-float" href="#" target="_blank" rel="noopener" aria-label="Chat on WhatsApp" title="Chat on WhatsApp"><i class="bi bi-whatsapp"></i></a>
 
 <div id="manageModal" class="modal" aria-hidden="true">
   <div class="modal-card">
@@ -603,10 +675,13 @@ function updateTotal(){
 $("#peopleInput").addEventListener("change", updateTotal);
 updateTotal();
 
-/* optional WhatsApp footer link */
+/* WhatsApp links: footer icon, floating button, contact card */
 if (CONFIG.whatsapp) {
-  var wa = "https://wa.me/" + CONFIG.whatsapp;
-  $("#waFoot").href = wa; $("#waFoot").target = "_blank"; $("#waFoot").rel = "noopener";
+  var waBase = "https://wa.me/" + CONFIG.whatsapp;
+  var waHi = waBase + "?text=" + encodeURIComponent("Hello Gobir Digital! I'd like to learn more about booking a session.");
+  ["#waFoot","#waFloat","#waContact"].forEach(function(sel){
+    var el = $(sel); if (el) { el.href = waHi; el.target = "_blank"; el.rel = "noopener"; }
+  });
 }
 
 /* reveal on scroll */
