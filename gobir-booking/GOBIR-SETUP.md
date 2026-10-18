@@ -121,6 +121,15 @@ client opens it to **cancel** or **reschedule** themselves — the sheet and
 Google Calendar update automatically. There's also a "Manage / cancel booking"
 link in the footer where they can paste their link.
 
+**Clients are emailed automatically.** On every booking, the client gets a
+confirmation email with their session details **and their cancel/reschedule
+link**. For that link to be correct, tell the script your live site address:
+- In the **Settings** tab add a row: **SiteUrl** = `https://your-site-address`
+  (your Netlify or Pages URL, no trailing slash), **or**
+- set `SITE_URL` near the top of `Code.gs`.
+If you skip this, the email still sends — it just shows a booking reference
+instead of a clickable link.
+
 > One session per time slot (a group of up to 5 still counts as one booking).
 > Cancelled bookings free the slot again automatically.
 

@@ -16,6 +16,10 @@
 
 var SLOTS = ["4:00 PM","5:00 PM","6:00 PM","7:00 PM","8:00 PM","9:00 PM"];
 var TZ = "Africa/Lagos";
+// Your live site URL (for the client's cancel/reschedule link in emails).
+// Either set it here, or add a "SiteUrl" row in the Settings sheet.
+var SITE_URL = "";   // e.g. "https://gobir-digital.netlify.app"
+var WHATSAPP = "2347065265144";
 
 /* ---------------- entry points ---------------- */
 function doGet(e)  { return handle(e); }
@@ -86,6 +90,7 @@ function apiBook(p) {
       safe(p.name), safe(p.phone), safe(p.email), safe(p.topic), safe(p.mode),
       safe(p.date), safe(p.time), safe(p.people), safe(p.total), safe(p.notes), eventId || "" ]);
     notifyOwner(p);
+    sendClientEmail(p, token);
     return { ok:true, token:token };
   } finally { lock.releaseLock(); }
 }
@@ -222,6 +227,40 @@ function createCalendarEvent(p){
 }
 function deleteCalendarEvent(id){
   try { if (!id) return; var ev = CalendarApp.getDefaultCalendar().getEventById(id); if (ev) ev.deleteEvent(); } catch (e) {}
+}
+function getSiteUrl(){
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName("Settings");
+  if (sh) {
+    var v = sh.getDataRange().getValues();
+    for (var i=0;i<v.length;i++){ if (String(v[i][0]).trim().toLowerCase()==="siteurl" && String(v[i][1]).trim()) return String(v[i][1]).trim(); }
+  }
+  return SITE_URL;
+}
+function sendClientEmail(p, token){
+  try {
+    if (!p.email || p.email.indexOf("@") < 0) return;
+    var base = getSiteUrl().replace(/\/+$/,"");
+    var link = base ? (base + "/gobir-digital.html?manage=" + token) : "";
+    var body = [
+      "Hi " + (p.name || "") + ",", "",
+      "Your Gobir Digital session is booked ✅  Here are the details:", "",
+      "Topic:  " + p.topic,
+      "Mode:   " + p.mode,
+      "Date:   " + p.date,
+      "Time:   " + p.time + " (Nigeria time, WAT)",
+      "People: " + p.people,
+      "Total:  NGN " + p.total, "",
+      (link
+        ? ("Need to cancel or reschedule? Use your private link:\n" + link)
+        : ("Your booking reference: " + token)),
+      "",
+      "Questions? WhatsApp us: https://wa.me/" + WHATSAPP, "",
+      "See you soon!",
+      "Gobir Digital — Learn Digital · Build Smart · Grow"
+    ].join("\n");
+    MailApp.sendEmail({ to: p.email, subject: "Your Gobir Digital session is booked ✅", body: body });
+  } catch (e) {}
 }
 function notifyOwner(p){
   try {

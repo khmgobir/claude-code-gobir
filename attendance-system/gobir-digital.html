@@ -838,8 +838,8 @@ function bookingSuccess(data, token){
   timeSel.innerHTML='<option value="" disabled selected>Pick a date first…</option>'; timeSel.disabled=true; slotMsg.textContent="";
   var manageLink = location.origin + location.pathname + "?manage=" + encodeURIComponent(token||"");
   var waBtn = CONFIG.whatsapp ? ' · <a target="_blank" rel="noopener" style="color:#1b7a43;font-weight:700" href="'+buildWa(data)+'">Confirm on WhatsApp</a>' : '';
-  showMsg("ok", '<b>Booking confirmed! ✅</b><br>Thank you, '+escapeHtml((data.name||"").split(" ")[0])+'. '+
-    (token ? 'To cancel or reschedule later, keep this link:<br><a href="'+manageLink+'" style="color:#1b7a43;font-weight:700;word-break:break-all">'+manageLink+'</a>' : '') + waBtn);
+  showMsg("ok", '<b>Booking confirmed! ✅</b><br>Thank you, '+escapeHtml((data.name||"").split(" ")[0])+'. We\'ve emailed your confirmation'+(token?' and cancel/reschedule link':'')+'.'+
+    (token ? '<br>To cancel or reschedule later, keep this link:<br><a href="'+manageLink+'" style="color:#1b7a43;font-weight:700;word-break:break-all">'+manageLink+'</a>' : '') + waBtn);
   resetBtn();
 }
 function fallbackWa(data){
