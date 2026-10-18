@@ -10,8 +10,9 @@
 <meta property="og:description" content="Practical, friendly coaching in AI, computer skills, and growing your business online. Book a session." />
 <meta property="og:type" content="website" />
 <meta property="og:image" content="gobir-logo-emblem.png" />
+<link rel="icon" href="gobir-icon-192.png" sizes="192x192" />
 <link rel="icon" href="gobir-logo-emblem.png" />
-<link rel="apple-touch-icon" href="gobir-logo-emblem.png" />
+<link rel="apple-touch-icon" href="gobir-icon-180.png" />
 <link rel="manifest" href="gobir-manifest.webmanifest" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
@@ -97,6 +98,10 @@ section{padding:76px 0;scroll-margin-top:80px}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
 @media(prefers-reduced-motion:reduce){.scroll-cue i{animation:none}}
 @media(max-width:860px){.scroll-cue{display:none}}
+@media(min-width:861px) and (prefers-reduced-motion:no-preference){
+  html{scroll-snap-type:y proximity;scroll-padding-top:70px}
+  .hero,#services,#how,#why,#book,#faq,#privacy{scroll-snap-align:start}
+}
 .section-head{text-align:center;max-width:640px;margin:0 auto 48px}
 .section-head h2{font-size:clamp(1.9rem,3.6vw,2.6rem);margin:12px 0 12px}
 .section-head p{color:var(--muted);font-size:1.06rem;margin:0}
