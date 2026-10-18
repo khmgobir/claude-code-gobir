@@ -16,17 +16,32 @@ export default function Owner() {
   const [blkTime, setBlkTime] = useState("");
   const [blkMsg, setBlkMsg] = useState("");
   const [bookings, setBookings] = useState<any[] | null>(null);
+  const [cfg, setCfg] = useState({ priceSolo: "", priceGroup: "", duration: "" });
+  const [cfgMsg, setCfgMsg] = useState("");
   const today = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 
   function loadStatus(p: string) {
     setLoginMsg("Checking…");
     api<any>({ action: "ownerstatus", pin: p })
-      .then((r) => { if (r && r.ok) { localStorage.setItem("gobirPin", p); setPin(p); setUnlocked(true); setOpen(!!r.open); setLoginMsg(""); loadBookings(p); } else lock("Wrong PIN. Try again."); })
+      .then((r) => { if (r && r.ok) { localStorage.setItem("gobirPin", p); setPin(p); setUnlocked(true); setOpen(!!r.open); setLoginMsg(""); loadBookings(p); loadConfig(); } else lock("Wrong PIN. Try again."); })
       .catch(() => setLoginMsg("Couldn't reach the server."));
   }
   function loadBookings(p: string) {
     setBookings(null);
     api<any>({ action: "bookings", pin: p }).then((r) => { if (r && r.ok) setBookings(r.bookings || []); else setBookings([]); }).catch(() => setBookings([]));
+  }
+  function loadConfig() {
+    api<any>({ action: "config" }).then((r) => { if (r && r.ok) setCfg({ priceSolo: String(r.priceSolo), priceGroup: String(r.priceGroup), duration: String(r.duration) }); }).catch(() => {});
+  }
+  function saveConfig() {
+    setCfgMsg("Saving…");
+    api<any>({ action: "setconfig", pin, priceSolo: cfg.priceSolo, priceGroup: cfg.priceGroup, duration: cfg.duration })
+      .then((r) => { if (r && r.ok) { setCfg({ priceSolo: String(r.priceSolo), priceGroup: String(r.priceGroup), duration: String(r.duration) }); setCfgMsg("Saved ✓"); } else lock("Session expired."); })
+      .catch(() => setCfgMsg("Couldn't save."));
+  }
+  function cancelBooking(token: string) {
+    if (!token || !confirm("Cancel this booking?")) return;
+    api<any>({ action: "cancel", token }).then((r) => { if (r && r.ok) loadBookings(pin); }).catch(() => {});
   }
   const waOf = (phone: string) => "https://wa.me/" + (phone || "").replace(/[^0-9]/g, "").replace(/^0/, "234");
   function lock(m: string) { localStorage.removeItem("gobirPin"); setUnlocked(false); setPin(""); setLoginMsg(m); }
@@ -89,6 +104,21 @@ export default function Owner() {
             </div>
 
             <div className="mt-6 border-t border-white/15 pt-5 text-left">
+              <b className="mb-1.5 block text-[0.95rem] text-[#cfe0f5]">Pricing & session length</b>
+              <div className="grid grid-cols-3 gap-2">
+                {([["priceSolo", "Solo ₦"], ["priceGroup", "Group ₦"], ["duration", "Mins"]] as const).map(([k, lab]) => (
+                  <div key={k}>
+                    <label className="text-xs text-[#cfe0f5]">{lab}</label>
+                    <input inputMode="numeric" value={(cfg as any)[k]} onChange={(e) => setCfg({ ...cfg, [k]: e.target.value })}
+                      className="mt-1 w-full rounded-xl border-[1.5px] border-white/15 bg-white/[.07] p-2.5 text-white outline-none focus:border-brand2" />
+                  </div>
+                ))}
+              </div>
+              <button onClick={saveConfig} className="btn-blue mt-3 w-full"><i className="bi bi-save" /> Save pricing</button>
+              {cfgMsg && <p className="mt-2 text-sm text-[#9fb4d0]">{cfgMsg}</p>}
+            </div>
+
+            <div className="mt-6 border-t border-white/15 pt-5 text-left">
               <div className="flex items-center justify-between">
                 <b className="text-[0.95rem] text-[#cfe0f5]">Upcoming sessions{bookings ? ` (${bookings.length})` : ""}</b>
                 <button onClick={() => loadBookings(pin)} className="text-xs text-brand2 underline">Refresh</button>
@@ -106,6 +136,7 @@ export default function Owner() {
                       <div className="mt-1 flex flex-wrap gap-3 text-xs">
                         <a href={`tel:${b.phone}`} className="text-brand2">Call</a>
                         <a href={waOf(b.phone)} target="_blank" rel="noopener" className="text-brand2">WhatsApp</a>
+                        <button onClick={() => cancelBooking(b.token)} className="text-[#ff8a95]">Cancel</button>
                         {b.address && <span className="text-[#9fb4d0]"><i className="bi bi-geo-alt-fill" /> {b.address}</span>}
                       </div>
                     </li>

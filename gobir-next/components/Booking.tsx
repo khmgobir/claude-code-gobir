@@ -25,6 +25,10 @@ export default function Booking() {
     date: "", time: "", people: "1", notes: "", address: "", company: "",
   });
   const [consent, setConsent] = useState(false);
+  const [prices, setPrices] = useState({ solo: CONFIG.pricePerSeat, group: CONFIG.groupPrice, duration: 60 });
+  useEffect(() => {
+    api<any>({ action: "config" }).then((r) => { if (r && r.ok) setPrices({ solo: +r.priceSolo || CONFIG.pricePerSeat, group: +r.priceGroup || CONFIG.groupPrice, duration: +r.duration || 60 }); }).catch(() => {});
+  }, []);
   const [slots, setSlots] = useState<string[]>([]);
   const [slotMsg, setSlotMsg] = useState("");
   const [slotLoading, setSlotLoading] = useState(false);
@@ -32,7 +36,7 @@ export default function Booking() {
   const [msg, setMsg] = useState<Msg>(null);
 
   const isPerson = f.mode.toLowerCase().includes("person");
-  const total = priceFor(parseInt(f.people, 10) || 1);
+  const total = (parseInt(f.people, 10) || 1) > 1 ? prices.group : prices.solo;
   const set = (k: string, v: string) => setF((s) => ({ ...s, [k]: v }));
 
   const loadSlots = useCallback((date: string, mode: string) => {
@@ -102,9 +106,9 @@ export default function Booking() {
           <h2 className="h2 mt-3">Reserve your session</h2>
           <p className="mt-3 text-[1.04rem] text-muted">Pick a date — you'll only see times that are free. Quick, easy, and you can bring others.</p>
           <ul className="mt-5 space-y-0">
-            <InfoRow icon="bi-clock-history" b="60-minute sessions" s="Focused and hands-on" />
+            <InfoRow icon="bi-clock-history" b={`${prices.duration}-minute sessions`} s="Focused and hands-on" />
             <InfoRow icon="bi-sunset" b="Daily, 4:00pm – 10:00pm" s="Nigeria time (WAT)" />
-            <InfoRow icon="bi-cash-coin" b="₦5,000 solo · ₦10,000 group" s="2–5 people = flat ₦10k · pay after" />
+            <InfoRow icon="bi-cash-coin" b={`${ngn(prices.solo)} solo · ${ngn(prices.group)} group`} s={`2–5 people = flat ${ngn(prices.group)} · pay after`} />
             <InfoRow icon="bi-people-fill" b="Online up to 5 · in-person 1" s="Online sessions host up to 5" />
           </ul>
         </div>

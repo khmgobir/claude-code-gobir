@@ -52,6 +52,9 @@ function route(p) {
     case "setblock":   return apiSetBlock(p);
     case "unsetblock": return apiUnsetBlock(p);
     case "bookings":   return apiBookingsList(p);
+    case "config":     return apiConfig(p);
+    case "setconfig":  return apiSetConfig(p);
+    case "stats":      return apiStats(p);
     default:           return { ok:false, reason:"unknown_action" };
   }
 }
@@ -89,6 +92,7 @@ function apiBook(p) {
     if (!slotFree(slotUsage(p.date), normTime(p.time), p.mode || "Online")) return { ok:false, reason:"taken" };
 
     var sh = bookingsSheet();
+    p.total = ((parseInt(p.people,10)||1) > 1 ? priceGroup() : priceSolo());
     var token = Utilities.getUuid().replace(/-/g,"").slice(0,10);
     var eventId = createCalendarEvent(p);
     sh.appendRow([ new Date(), token, "Booked",
@@ -196,6 +200,7 @@ function apiBookingsList(p){
     if (String(v[i][idx("Status")]).toLowerCase()==="cancelled") continue;
     var d = fmtDate(v[i][idx("Date")]); if (d < today) continue;
     out.push({
+      token:String(v[i][idx("Token")]),
       date:d, time:String(v[i][idx("Time")]), name:String(v[i][idx("Name")]),
       phone:String(v[i][idx("Phone")]), topic:String(v[i][idx("Topic")]),
       mode:String(v[i][idx("Mode")]), people:String(v[i][idx("People")]),
@@ -204,6 +209,60 @@ function apiBookingsList(p){
   }
   out.sort(function(a,b){ return (a.date+" "+a.time) < (b.date+" "+b.time) ? -1 : 1; });
   return { ok:true, bookings: out.slice(0, 50) };
+}
+
+/* ---------- settings-driven price / duration ---------- */
+function getSetting(key){
+  var ss = SpreadsheetApp.getActiveSpreadsheet(); var sh = ss.getSheetByName("Settings");
+  if (!sh) { sh = ss.insertSheet("Settings"); sh.appendRow(["Setting","Value"]); sh.appendRow(["BookingOpen","YES"]); }
+  var v = sh.getDataRange().getValues();
+  for (var i=0;i<v.length;i++){ if (String(v[i][0]).trim().toLowerCase()===String(key).toLowerCase()) return v[i][1]; }
+  return null;
+}
+function setSetting(key, val){
+  var ss = SpreadsheetApp.getActiveSpreadsheet(); var sh = ss.getSheetByName("Settings");
+  if (!sh) { sh = ss.insertSheet("Settings"); sh.appendRow(["Setting","Value"]); }
+  var v = sh.getDataRange().getValues(), row = -1;
+  for (var i=0;i<v.length;i++){ if (String(v[i][0]).trim().toLowerCase()===String(key).toLowerCase()) row = i+1; }
+  if (row < 0) sh.appendRow([key, val]); else sh.getRange(row,2).setValue(val);
+}
+function numSetting(key, def){ var x = getSetting(key); var n = parseFloat(x); return (x===null||x===""||isNaN(n)) ? def : n; }
+function priceSolo(){ return numSetting("PriceSolo", 5000); }
+function priceGroup(){ return numSetting("PriceGroup", 10000); }
+function durationMin(){ return numSetting("Duration", 60); }
+
+function apiConfig(p){
+  return { ok:true, priceSolo:priceSolo(), priceGroup:priceGroup(), duration:durationMin() };
+}
+function apiSetConfig(p){
+  if (String(p.pin) !== ownerPin()) return { ok:false, reason:"pin" };
+  if (p.priceSolo !== undefined && p.priceSolo !== "")   setSetting("PriceSolo", parseFloat(p.priceSolo) || priceSolo());
+  if (p.priceGroup !== undefined && p.priceGroup !== "") setSetting("PriceGroup", parseFloat(p.priceGroup) || priceGroup());
+  if (p.duration !== undefined && p.duration !== "")     setSetting("Duration", parseInt(p.duration,10) || durationMin());
+  return { ok:true, priceSolo:priceSolo(), priceGroup:priceGroup(), duration:durationMin() };
+}
+
+function apiStats(p){
+  if (String(p.pin) !== ownerPin()) return { ok:false, reason:"pin" };
+  var sh = bookingsSheet(), v = sh.getDataRange().getValues();
+  var today = Utilities.formatDate(new Date(), TZ, "yyyy-MM-dd");
+  var month = today.slice(0,7);
+  var weekDt = new Date(); weekDt.setDate(weekDt.getDate()+7);
+  var weekEnd = Utilities.formatDate(weekDt, TZ, "yyyy-MM-dd");
+  var active=0, upcoming=0, people=0, revTotal=0, revMonth=0, wk=[];
+  for (var i=1;i<v.length;i++){
+    if (String(v[i][idx("Status")]).toLowerCase()==="cancelled") continue;
+    active++;
+    var tot = parseFloat(v[i][idx("Total")]) || 0; revTotal += tot;
+    var d = fmtDate(v[i][idx("Date")]);
+    if (d.slice(0,7) === month) revMonth += tot;
+    if (d >= today) {
+      upcoming++; people += parseInt(v[i][idx("People")],10) || 0;
+      if (d <= weekEnd) wk.push({ date:d, time:String(v[i][idx("Time")]), name:String(v[i][idx("Name")]), topic:String(v[i][idx("Topic")]), mode:String(v[i][idx("Mode")]), people:String(v[i][idx("People")]) });
+    }
+  }
+  wk.sort(function(a,b){ return (a.date+" "+a.time) < (b.date+" "+b.time) ? -1 : 1; });
+  return { ok:true, active:active, upcoming:upcoming, people:people, revenueTotal:revTotal, revenueMonth:revMonth, week:wk };
 }
 function apiSetOpen(p){
   if (String(p.pin) !== ownerPin()) return { ok:false, reason:"pin" };
@@ -280,7 +339,7 @@ function findByToken(token){
 function createCalendarEvent(p){
   try {
     var start = parseStart(p.date, p.time); if (!start) return "";
-    var end = new Date(start.getTime() + 60*60*1000);
+    var end = new Date(start.getTime() + durationMin()*60*1000);
     var title = "Gobir class: " + (p.topic||"Session") + " — " + (p.name||"");
     var desc = ["Student: "+p.name,"Phone: "+p.phone,"Email: "+p.email,"Topic: "+p.topic,
                 "Mode: "+p.mode,"People: "+p.people,"Total: NGN "+p.total,"Notes: "+(p.notes||"-")].join("\n");
