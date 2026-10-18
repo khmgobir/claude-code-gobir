@@ -43,6 +43,12 @@ input:focus{outline:none;border-color:var(--blue2);box-shadow:0 0 0 3px rgba(70,
 .foot{margin-top:18px;font-size:.78rem;color:var(--muted)}
 .foot a{color:var(--blue2);text-decoration:none}
 .logout{background:none;border:none;color:var(--muted);font-size:.82rem;cursor:pointer;margin-top:8px;text-decoration:underline}
+.block{margin-top:22px;padding-top:18px;border-top:1px solid var(--line);text-align:left}
+.block>b{display:block;font-size:.95rem;color:#cfe0f5;margin-bottom:6px}
+.lf{text-align:left;letter-spacing:0;margin-top:4px;background:rgba(255,255,255,.07);color:#fff}
+select.lf{appearance:none;-webkit-appearance:none}
+.brow{display:flex;gap:10px;margin-top:12px}
+.brow .btn{flex:1;margin-top:0;font-size:.95rem;padding:12px}
 </style>
 </head>
 <body>
@@ -65,6 +71,24 @@ input:focus{outline:none;border-color:var(--blue2);box-shadow:0 0 0 3px rgba(70,
       <p class="sub" id="statusHint">&nbsp;</p>
       <button class="btn" id="toggle" disabled>…</button>
       <div class="msg" id="panelMsg"></div>
+
+      <div class="block">
+        <b>Block a specific day / time</b>
+        <label for="blkDate">Date</label>
+        <input id="blkDate" type="date" class="lf" />
+        <label for="blkTime">Time (optional)</label>
+        <select id="blkTime" class="lf">
+          <option value="">Whole day</option>
+          <option>4:00 PM</option><option>5:00 PM</option><option>6:00 PM</option>
+          <option>7:00 PM</option><option>8:00 PM</option><option>9:00 PM</option>
+        </select>
+        <div class="brow">
+          <button class="btn btn-red" id="blkAdd"><i class="bi bi-slash-circle"></i> Block</button>
+          <button class="btn btn-ok" id="blkDel"><i class="bi bi-check2-circle"></i> Unblock</button>
+        </div>
+        <div class="msg" id="blkMsg"></div>
+      </div>
+
       <button class="logout" id="logout">Lock / change PIN</button>
     </div>
 
@@ -125,6 +149,23 @@ $("#toggle").addEventListener("click",function(){
     if(r&&r.ok){ showPanel(!!r.open); $("#panelMsg").textContent="Saved ✓"; }
     else { lock("Session expired — enter PIN again."); }
   }).catch(function(){ tg.disabled=false; $("#panelMsg").className="msg err"; $("#panelMsg").textContent="Couldn't update. Try again."; });
+});
+// block / unblock a day or slot
+(function(){ var d=$("#blkDate"); if(d){ var n=new Date(); d.min=new Date(n.getTime()-n.getTimezoneOffset()*60000).toISOString().slice(0,10); } })();
+function blkLabel(){ var t=$("#blkTime").value; return $("#blkDate").value + (t?(" "+t):" (whole day)"); }
+$("#blkAdd").addEventListener("click",function(){
+  if(!$("#blkDate").value){$("#blkMsg").className="msg err";$("#blkMsg").textContent="Pick a date.";return;}
+  $("#blkMsg").className="msg";$("#blkMsg").textContent="Blocking…";
+  api({action:"setblock",pin:pin,date:$("#blkDate").value,time:$("#blkTime").value}).then(function(r){
+    if(r&&r.ok){$("#blkMsg").textContent="Blocked "+blkLabel()+" ✓";}else{lock("Session expired — enter PIN again.");}
+  }).catch(function(){$("#blkMsg").className="msg err";$("#blkMsg").textContent="Couldn't block. Try again.";});
+});
+$("#blkDel").addEventListener("click",function(){
+  if(!$("#blkDate").value){$("#blkMsg").className="msg err";$("#blkMsg").textContent="Pick a date.";return;}
+  $("#blkMsg").className="msg";$("#blkMsg").textContent="Unblocking…";
+  api({action:"unsetblock",pin:pin,date:$("#blkDate").value,time:$("#blkTime").value}).then(function(r){
+    if(r&&r.ok){$("#blkMsg").textContent="Unblocked "+blkLabel()+" ✓";}else{lock("Session expired.");}
+  }).catch(function(){$("#blkMsg").className="msg err";$("#blkMsg").textContent="Couldn't unblock.";});
 });
 $("#logout").addEventListener("click",function(){ lock(""); });
 // auto-unlock if PIN remembered on this device

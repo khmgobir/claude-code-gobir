@@ -274,10 +274,10 @@ select:disabled{opacity:.7;cursor:not-allowed}
   "description": "Learn smarter — AI & digital skills coaching: AI tools, computer basics, kids digital learning, app building and business growth.",
   "slogan": "Learn Digital · Build Smart · Grow",
   "areaServed": "Worldwide (online) and Sokoto, Nigeria (in person)",
-  "telephone": "+2347065265144",
+  "telephone": "+2347066637888",
   "address": { "@type": "PostalAddress", "addressLocality": "Sokoto", "addressCountry": "NG" },
   "openingHours": "Mo-Su 16:00-22:00",
-  "sameAs": ["https://wa.me/2347065265144"]
+  "sameAs": ["https://wa.me/2347066637888"]
 }
 </script>
 </head>
@@ -477,6 +477,11 @@ select:disabled{opacity:.7;cursor:not-allowed}
           </div>
         </div>
 
+        <div class="field" id="addrField" style="display:none">
+          <label><i class="bi bi-geo-alt"></i> Your address (for in-person) <span class="req">*</span></label>
+          <textarea name="address" placeholder="Where should we meet? Street / area, landmark, city…"></textarea>
+        </div>
+
         <div class="two">
           <div class="field"><label><i class="bi bi-calendar3"></i>Preferred date <span class="req">*</span></label>
             <div class="date-wrap">
@@ -566,7 +571,7 @@ select:disabled{opacity:.7;cursor:not-allowed}
       <p>Reach out any time — we usually reply fast on WhatsApp.</p>
     </div>
     <div class="contact-grid">
-      <div class="contact-card reveal"><i class="bi bi-whatsapp"></i><b>WhatsApp</b><p>+234 706 526 5144</p><a class="btn btn-gold" id="waContact" href="#"><i class="bi bi-whatsapp"></i> Chat now</a></div>
+      <div class="contact-card reveal"><i class="bi bi-whatsapp"></i><b>WhatsApp</b><p>+234 706 663 7888</p><a class="btn btn-gold" id="waContact" href="#"><i class="bi bi-whatsapp"></i> Chat now</a></div>
       <div class="contact-card reveal"><i class="bi bi-geo-alt-fill"></i><b>In person</b><p>Sokoto, Nigeria</p><span class="sub">Book a face-to-face session</span></div>
       <div class="contact-card reveal"><i class="bi bi-globe2"></i><b>Online worldwide</b><p>Google Meet / Zoom</p><span class="sub">Learn from anywhere</span></div>
       <div class="contact-card reveal"><i class="bi bi-clock-history"></i><b>Open hours</b><p>4:00pm – 10:00pm</p><span class="sub">Daily · Nigeria time (WAT)</span></div>
@@ -636,7 +641,7 @@ select:disabled{opacity:.7;cursor:not-allowed}
    ============================================================ */
 var CONFIG = {
   scriptUrl: "https://script.google.com/macros/s/AKfycbwxvoeuikW6ovZBp6axU4Tmz9GYsTOLsQAMyfjxq_Q14oOlwRkVV92zLoDOgiT4_dpo7Q/exec",
-  whatsapp:  "2347065265144", // Gobir Digital WhatsApp
+  whatsapp:  "2347066637888", // Gobir Digital WhatsApp Business
   pricePerSeat: 5000,
   groupPrice: 10000,
   currency: "₦"      // ₦
@@ -727,12 +732,25 @@ function loadSlots(){
   if(!date){ timeSel.innerHTML='<option value="" disabled selected>Pick a date first…</option>'; timeSel.disabled=true; slotMsg.textContent=""; return; }
   if(!CONFIG.scriptUrl){ setTimes(BASE_SLOTS); slotMsg.textContent=""; return; }
   slotMsg.innerHTML="Checking availability…"; timeSel.disabled=true;
-  api({action:"slots",date:date}).then(function(r){
+  api({action:"slots",date:date,mode:currentMode()}).then(function(r){
     if(r.open===false){ setTimes([]); slotMsg.innerHTML='<span class="bad">Booking is closed for this date.</span>'; }
     else if(!r.slots||!r.slots.length){ setTimes([]); slotMsg.innerHTML='<span class="bad">Fully booked — please try another date.</span>'; }
     else { setTimes(r.slots); slotMsg.innerHTML='<span class="ok">'+r.slots.length+" time"+(r.slots.length>1?"s":"")+" available</span>"; }
   }).catch(function(){ setTimes(BASE_SLOTS); slotMsg.textContent=""; });
 }
+function currentMode(){ var m=document.querySelector('input[name="mode"]:checked'); return m?m.value:"Online"; }
+/* show address only for in-person; reload availability when mode changes */
+(function(){
+  var addr=$("#addrField"), ta=addr?addr.querySelector("textarea"):null;
+  function sync(){
+    var person = currentMode().toLowerCase().indexOf("person")>=0;
+    if(addr) addr.style.display = person ? "" : "none";
+    if(ta) person ? ta.setAttribute("required","required") : ta.removeAttribute("required");
+    if($("#dateInput").value) loadSlots();
+  }
+  document.querySelectorAll('input[name="mode"]').forEach(function(r){ r.addEventListener("change", sync); });
+  sync();
+})();
 $("#dateInput").addEventListener("change", loadSlots);
 
 var modal=$("#manageModal"), mgBody=$("#mgBody");
@@ -814,6 +832,7 @@ form.addEventListener("submit", function(e){
     time:   form.time.value,
     people: form.people.value,
     notes:  form.notes.value.trim(),
+    address: (form.address ? form.address.value.trim() : ""),
     total:  priceFor(form.people.value),
     submittedAt: new Date().toISOString()
   };
@@ -825,7 +844,7 @@ form.addEventListener("submit", function(e){
 
   api({ action:"book", name:data.name, phone:data.phone, email:data.email, topic:data.topic,
         mode:data.mode, date:data.date, time:data.time, people:data.people, total:data.total,
-        notes:data.notes, company:"" })
+        notes:data.notes, address:data.address, company:"" })
   .then(function(r){
     if (r && r.ok) { bookingSuccess(data, r.token); }
     else if (r && r.reason === "taken") { showMsg("err", "<b>Sorry — that time was just booked.</b> Please choose another slot."); loadSlots(); resetBtn(); }

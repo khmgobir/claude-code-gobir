@@ -110,10 +110,23 @@ screen.
   yourself.)
 - You can still toggle manually: Settings tab → **BookingOpen** = `YES`/`NO`.
 
-**Block specific days or times.** Open the **Blocked** tab (created
-automatically) and add a row:
+**Block specific days or times — from your phone.** On the **owner.html** page
+(after entering your PIN) use **Block / Unblock**: pick a date, optionally a
+time (or leave "Whole day"), and tap **Block**. Or add rows manually to the
+**Blocked** tab:
 - `2026-11-02` with an **empty** time → blocks the **whole day**
 - `2026-11-02` and `6:00 PM` → blocks just that **one slot**
+
+**Online vs in-person capacity.** In-person slots are exclusive (one booking).
+**Online** slots accept up to **5 independent clients** at the same time
+(set by `ONLINE_CAP` in `Code.gs`). In-person bookings also collect the
+client's **address** (new "Address" column, far right of the Bookings sheet).
+
+**Summary & Analytics tabs.** Two sheets are built automatically — **Summary**
+(active bookings, revenue, people taught, upcoming) and **Analytics** (tables +
+charts: bookings by topic, online vs in-person, bookings per day). They refresh
+on each booking; you can also refresh manually via the **Gobir Digital** menu
+(reload the spreadsheet once after deploying to see the menu).
 
 **Cancellations & rescheduling.** Every booking now gets a private **manage
 link** (shown after booking, e.g. `…/gobir-digital.html?manage=abc123`). The
