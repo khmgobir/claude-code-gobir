@@ -1,45 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="gold" x1="0" y1="0" x2="0.25" y2="1">
-      <stop offset="0" stop-color="#fff0bf"/>
-      <stop offset="28%" stop-color="#f3d277"/>
-      <stop offset="58%" stop-color="#d7a63e"/>
-      <stop offset="82%" stop-color="#b9842a"/>
-      <stop offset="100%" stop-color="#8f6418"/>
+      <stop offset="0" stop-color="#fff0bf"/><stop offset="28%" stop-color="#f3d277"/><stop offset="58%" stop-color="#d7a63e"/><stop offset="82%" stop-color="#b9842a"/><stop offset="100%" stop-color="#8f6418"/>
     </linearGradient>
-    <linearGradient id="goldDeep" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#c89a34"/>
-      <stop offset="100%" stop-color="#6d4b12"/>
-    </linearGradient>
-    <linearGradient id="goldDark" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#a87d21"/>
-      <stop offset="100%" stop-color="#53380d"/>
-    </linearGradient>
-    <radialGradient id="gloss" cx="38%" cy="26%" r="72%">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0.92"/>
-      <stop offset="60%" stop-color="#ffffff" stop-opacity="0.12"/>
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
-    </radialGradient>
-    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%">
-      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#000000" flood-opacity="0.4"/>
-    </filter>
+    <linearGradient id="goldDeep" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c89a34"/><stop offset="100%" stop-color="#6d4b12"/></linearGradient>
+    <linearGradient id="goldDark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a87d21"/><stop offset="100%" stop-color="#53380d"/></linearGradient>
+    <radialGradient id="gloss" cx="38%" cy="26%" r="72%"><stop offset="0" stop-color="#ffffff" stop-opacity="0.92"/><stop offset="60%" stop-color="#ffffff" stop-opacity="0.12"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+    <radialGradient id="navyWin" cx="50%" cy="35%" r="78%"><stop offset="0" stop-color="#1d3052"/><stop offset="100%" stop-color="#0a1626"/></radialGradient>
+    <radialGradient id="bgDark" cx="50%" cy="34%" r="82%"><stop offset="0" stop-color="#1d3153"/><stop offset="55%" stop-color="#14263f"/><stop offset="100%" stop-color="#0a1320"/></radialGradient>
+    <linearGradient id="ivory" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fdf9f0"/><stop offset="100%" stop-color="#efe6d2"/></linearGradient>
+    <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity="0.14"/><stop offset="100%" stop-color="#ffffff" stop-opacity="0"/></linearGradient>
+    <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000000" flood-opacity="0.42"/></filter>
+    <filter id="softdrop" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#8a6a1e" flood-opacity="0.3"/></filter>
   </defs>
-  <g transform="translate(0,22)" filter="url(#shadow)">
-    <path d="M192 196 L320 196 Q322 240 298 258 Q256 274 214 258 Q190 240 192 196 Z" fill="url(#goldDark)"/>
-    <path d="M200 206 L312 206 Q312 236 294 250 Q256 264 218 250 Q200 236 200 206 Z" fill="url(#goldDeep)" opacity="0.5"/>
-    <polygon points="118,186 256,132 394,186 256,240" fill="url(#goldDeep)"/>
-    <polygon points="118,178 256,124 394,178 256,232" fill="url(#gold)" stroke="#fff6d6" stroke-opacity="0.55" stroke-width="1.5"/>
-    <polygon points="118,178 256,124 256,178" fill="url(#gloss)" opacity="0.6"/>
-    <polygon points="256,124 394,178 256,178" fill="#ffffff" opacity="0.06"/>
-    <circle cx="256" cy="178" r="12" fill="url(#gold)" stroke="#7c591a" stroke-width="1.2"/>
-    <circle cx="251.5" cy="173.5" r="4" fill="#ffffff" opacity="0.85"/>
-    <path d="M256 178 Q376 180 388 196 L388 268" fill="none" stroke="url(#gold)" stroke-width="5.5" stroke-linecap="round"/>
-    <path d="M256 178 Q376 180 388 196" fill="none" stroke="#fff3cf" stroke-opacity="0.5" stroke-width="1.6" stroke-linecap="round"/>
-    <circle cx="388" cy="270" r="10" fill="url(#gold)" stroke="#7c591a" stroke-width="1"/>
-    <g stroke-linecap="round">
-      <line x1="381" y1="276" x2="378" y2="308" stroke="url(#goldDark)" stroke-width="3.4"/>
-      <line x1="388" y1="278" x2="388" y2="312" stroke="url(#gold)" stroke-width="3.4"/>
-      <line x1="395" y1="276" x2="398" y2="308" stroke="url(#goldDark)" stroke-width="3.4"/>
+  <g filter="url(#shadow)">
+    <g transform="translate(0,6)">
+      <circle cx="256" cy="256" r="98" fill="none" stroke="url(#goldDeep)" stroke-width="44" pathLength="100" stroke-dasharray="76 24" stroke-dashoffset="12" stroke-linecap="round"/>
+      <rect x="250" y="240" width="92" height="40" rx="20" fill="url(#goldDeep)"/>
     </g>
+    <circle cx="256" cy="256" r="98" fill="none" stroke="url(#gold)" stroke-width="44" pathLength="100" stroke-dasharray="76 24" stroke-dashoffset="12" stroke-linecap="round"/>
+    <rect x="250" y="236" width="92" height="40" rx="20" fill="url(#gold)" stroke="#fff6d6" stroke-opacity="0.4" stroke-width="1.2"/>
+    <circle cx="256" cy="256" r="98" fill="none" stroke="#fff7da" stroke-opacity="0.5" stroke-width="9" pathLength="100" stroke-dasharray="15 85" stroke-dashoffset="55" stroke-linecap="round"/>
+
   </g>
+
 </svg>
