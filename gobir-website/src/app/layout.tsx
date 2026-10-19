@@ -51,8 +51,38 @@ export const metadata: Metadata = {
     title: "Gobir Digital — Learn Digital. Build Smart. Grow Business.",
     description:
       "Practical coaching in AI, computer basics and growing your business online. Book a session today.",
+    images: ["/gobir-og.png"],
   },
+  alternates: { canonical: "/" },
   manifest: "/gobir-manifest.webmanifest",
+};
+
+// Local business / organization structured data for Google (local schema)
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "EducationalOrganization",
+  name: "Gobir Digital",
+  url: APP_URL,
+  logo: `${APP_URL}/gobir-icon-512.png`,
+  image: `${APP_URL}/gobir-og.png`,
+  description:
+    "Practical, beginner-friendly coaching in AI, computer basics, app ideas and online business growth — online or in person in Sokoto, Nigeria.",
+  telephone: "+2347066637888",
+  email: "khmgobir@gmail.com",
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Sokoto",
+    addressRegion: "Sokoto",
+    addressCountry: "NG",
+  },
+  areaServed: ["Sokoto", "Nigeria", "Online"],
+  sameAs: ["https://wa.me/2347066637888"],
+  openingHoursSpecification: {
+    "@type": "OpeningHoursSpecification",
+    dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    opens: "16:00",
+    closes: "22:00",
+  },
 };
 
 export const viewport: Viewport = {
@@ -68,6 +98,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body
         className={`${inter.variable} ${sora.variable} font-sans antialiased bg-background text-foreground`}
       >

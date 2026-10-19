@@ -15,6 +15,7 @@ import { Contact } from "@/components/site/contact";
 import { Footer } from "@/components/site/footer";
 import { ManageDialog } from "@/components/site/manage-dialog";
 import { OwnerDialog } from "@/components/site/owner-dialog";
+import { StickyCta } from "@/components/site/sticky-cta";
 
 export default function Home() {
   const [manageOpen, setManageOpen] = useState(false);
@@ -63,6 +64,7 @@ export default function Home() {
         initialToken={manageToken}
       />
       <OwnerDialog open={ownerOpen} onOpenChange={setOwnerOpen} />
+      <StickyCta />
     </div>
   );
 }

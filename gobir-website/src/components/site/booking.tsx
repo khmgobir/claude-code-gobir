@@ -145,6 +145,14 @@ export function Booking() {
       setErrorMsg("Please fill in every required field (and pick a time slot).");
       return;
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setErrorMsg("Please enter a valid email address so we can send your booking link.");
+      return;
+    }
+    if (phone.replace(/\D/g, "").length < 7) {
+      setErrorMsg("Please enter a valid phone number for your WhatsApp confirmation.");
+      return;
+    }
     if (!agree) {
       setErrorMsg("Please agree to the privacy note so we can arrange your session.");
       return;
@@ -609,7 +617,16 @@ export function Booking() {
                       <span>
                         I agree that Gobir Digital may store and use my details{" "}
                         <strong className="font-semibold text-foreground">only</strong>{" "}
-                        to arrange and deliver my session.
+                        to arrange and deliver my session (see our{" "}
+                        <a
+                          href="/privacy/"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-semibold text-primary underline-offset-2 hover:underline"
+                        >
+                          privacy policy
+                        </a>
+                        ).
                       </span>
                     </label>
 

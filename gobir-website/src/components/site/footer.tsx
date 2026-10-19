@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 import { WHATSAPP_LINK } from "@/lib/booking";
 
@@ -91,13 +92,21 @@ export function Footer({ onManage, onOwner }: { onManage: () => void; onOwner: (
 
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-background/10 pt-6 text-xs text-background/50 sm:flex-row">
           <p>© 2026 Gobir Digital · Open daily 4:00pm – 10:00pm (WAT)</p>
-          <button
-            onClick={onOwner}
-            className="rounded-full px-3 py-1.5 text-background/35 transition-colors hover:bg-background/10 hover:text-background/70"
-            title="Owner console"
-          >
-            Owner
-          </button>
+          <div className="flex items-center gap-4">
+            <Link href="/privacy/" className="text-background/70 transition-colors hover:text-background">
+              Privacy
+            </Link>
+            <Link href="/terms/" className="text-background/70 transition-colors hover:text-background">
+              Terms
+            </Link>
+            <button
+              onClick={onOwner}
+              className="rounded-full px-3 py-1.5 text-background/35 transition-colors hover:bg-background/10 hover:text-background/70"
+              title="Owner console"
+            >
+              Owner
+            </button>
+          </div>
         </div>
       </div>
     </footer>
