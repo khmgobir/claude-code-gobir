@@ -11,11 +11,11 @@ import { Reveal, SectionHeading } from "./reveal";
 const FAQS = [
   {
     q: "Do I need any experience?",
-    a: "Not at all. Sessions are built for complete beginners and improvers alike. We start from wherever you are and keep it simple — no jargon, no rushing. If you can send a WhatsApp message, you can do this.",
+    a: "Not at all. I teach complete beginners all the time. I start from wherever you are and keep it simple — no jargon, no rushing, no making you feel small. If you can send a WhatsApp message, you can do this.",
   },
   {
     q: "How do online sessions work?",
-    a: "You'll get a Google Meet or Zoom link after your booking is confirmed. All you need is a phone or laptop and internet. We share screens, practice live, and you follow along step by step.",
+    a: "You'll get a Google Meet or Zoom link once your booking is confirmed. All you need is a phone or laptop and internet. I share my screen, we practise live together, and you follow along step by step.",
   },
   {
     q: "How do I pay?",
@@ -42,7 +42,7 @@ export function Faq() {
               Good to <span className="text-gradient">know</span>
             </>
           }
-          sub="Everything people usually ask before their first session. Still unsure? WhatsApp us — we reply fast."
+          sub="The things people usually ask me before their first session. Still unsure? WhatsApp me — I reply fast."
         />
         <Reveal className="mt-10">
           <Accordion type="single" collapsible className="space-y-3">

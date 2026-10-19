@@ -76,7 +76,7 @@ export function Courses() {
               <span className="text-gradient">made simple</span>
             </>
           }
-          sub="Pick what you need. Every session is tailored to your level, whether you're starting out or sharpening what you know."
+          sub="Pick what you need — I'll tailor the session to your level, whether you're starting from zero or sharpening what you already know."
         />
 
         <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-6">

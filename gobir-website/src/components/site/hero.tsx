@@ -41,7 +41,7 @@ export function Hero() {
             className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-white/70 px-4 py-1.5 text-xs font-semibold shadow-soft backdrop-blur"
           >
             <span className="animate-pulse-ring h-2 w-2 rounded-full bg-brand-green" />
-            Online &amp; in-person coaching — Sokoto &amp; worldwide
+            Hi, I&apos;m Gobir — your coach in Sokoto &amp; online
           </motion.div>
 
           <motion.h1
@@ -76,11 +76,12 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.16 }}
             className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-foreground/70 sm:text-lg lg:mx-0"
           >
-            Practical, beginner-friendly coaching to help you use AI with
-            confidence, get comfortable with the computer, bring your ideas to
-            life, and grow your business online —{" "}
+            I sit with you one-to-one and help you use AI with confidence, get
+            comfortable on the computer, turn that idea in your head into a real
+            plan, and grow your business online. We go at your pace, hands-on,
+            until it clicks —{" "}
             <strong className="font-semibold text-foreground">
-              learn smarter, not harder.
+              no jargon, no rushing.
             </strong>
           </motion.p>
 
@@ -204,10 +205,10 @@ export function Hero() {
 
 export function HeroBadgeRow() {
   const items = [
-    { icon: GraduationCap, text: "Expert instructor" },
-    { icon: Clock3, text: "Online & flexible" },
-    { icon: Zap, text: "Practical projects" },
-    { icon: Users, text: "Ongoing support" },
+    { icon: GraduationCap, text: "Taught one-to-one" },
+    { icon: Clock3, text: "Evenings that fit you" },
+    { icon: Zap, text: "You practise, not just watch" },
+    { icon: Users, text: "I don't leave you stuck" },
   ];
   return (
     <div className="border-y bg-white/60 py-4 backdrop-blur">

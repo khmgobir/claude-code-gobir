@@ -13,13 +13,13 @@ const ITEMS = [
   {
     icon: MonitorSmartphone,
     title: "Online or face-to-face",
-    body: "Join on Google Meet or Zoom from anywhere, or sit with us in person in Sokoto. Same quality, either way.",
+    body: "Join me on Google Meet or Zoom from anywhere, or sit with me in person in Sokoto. Same care, either way.",
     grad: "from-brand-blue to-brand-cyan",
   },
   {
     icon: Users2,
     title: "Solo or with friends",
-    body: "Bring up to 5 people to one online session and split the flat group price — learning together is better value.",
+    body: "Bring up to 5 people to one online session and split the flat group price — learning with friends is less scary and better value.",
     grad: "from-brand-coral to-brand-coral-deep",
   },
   {
@@ -42,7 +42,7 @@ export function Benefits() {
               <span className="text-gradient">a working session</span>
             </>
           }
-          sub="Every Gobir Digital session is designed around one thing: you leaving with real skills you can use the same day."
+          sub="I build every session around one thing: you walking away with a skill you can actually use that same day."
         />
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {ITEMS.map((item, i) => (

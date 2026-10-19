@@ -146,7 +146,7 @@ export function Booking() {
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setErrorMsg("Please enter a valid email address so we can send your booking link.");
+      setErrorMsg("Please enter a valid email address so I can send your booking link.");
       return;
     }
     if (phone.replace(/\D/g, "").length < 7) {
@@ -154,7 +154,7 @@ export function Booking() {
       return;
     }
     if (!agree) {
-      setErrorMsg("Please agree to the privacy note so we can arrange your session.");
+      setErrorMsg("Please agree to the privacy note so I can arrange your session.");
       return;
     }
     setStage("submitting");
@@ -180,7 +180,7 @@ export function Booking() {
         setStage("form");
         setErrorMsg(
           REASON_TEXT[res.reason ?? ""] ??
-            "Something went wrong. Please try again or WhatsApp us."
+            "Something went wrong. Please try again or WhatsApp me."
         );
       }
     } catch (err) {
@@ -266,7 +266,7 @@ export function Booking() {
                   className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-brand-green-deep hover:text-brand-green-deep"
                 >
                   <MessageCircle className="h-4 w-4" />
-                  Questions? WhatsApp us first
+                  Questions? WhatsApp me first
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               </div>
@@ -322,7 +322,7 @@ export function Booking() {
                       <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
                         <Button className="rounded-full bg-gradient-to-br from-brand-green to-brand-wa px-6 font-semibold text-white">
                           <MessageCircle className="mr-2 h-4 w-4" />
-                          Message us on WhatsApp
+                          Message me on WhatsApp
                         </Button>
                       </a>
                       <Button
@@ -470,7 +470,7 @@ export function Booking() {
                       </div>
                       {mode === "In person" && (
                         <p className="pt-1 text-xs text-muted-foreground">
-                          In-person sessions are exclusive — just you. Tell us where
+                          In-person sessions are exclusive — just you. Tell me where
                           to meet:
                         </p>
                       )}
@@ -544,7 +544,7 @@ export function Booking() {
                       <Label>Time slot *</Label>
                       {!date ? (
                         <p className="rounded-xl border border-dashed bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-                          Pick a date first — then we&apos;ll show the free times.
+                          Pick a date first — then I&apos;ll show the free times.
                         </p>
                       ) : slotsState.loading ? (
                         <div className="flex items-center gap-2 rounded-xl border border-dashed bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
@@ -590,7 +590,7 @@ export function Booking() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label htmlFor="bk-notes">Anything we should know? (optional)</Label>
+                      <Label htmlFor="bk-notes">Anything I should know? (optional)</Label>
                       <Textarea
                         id="bk-notes"
                         className="min-h-[76px] rounded-xl bg-white/80"
