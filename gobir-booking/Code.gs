@@ -240,7 +240,8 @@ function priceGroup(){ return numSetting("PriceGroup", 10000); }
 function durationMin(){ return numSetting("Duration", 60); }
 
 function apiConfig(p){
-  return { ok:true, priceSolo:priceSolo(), priceGroup:priceGroup(), duration:durationMin() };
+  return { ok:true, priceSolo:priceSolo(), priceGroup:priceGroup(), duration:durationMin(),
+           online:modeOpen("Online"), inperson:modeOpen("In person") };
 }
 function apiSetConfig(p){
   if (String(p.pin) !== ownerPin()) return { ok:false, reason:"pin" };

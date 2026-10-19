@@ -3,11 +3,14 @@
 import { useState } from "react";
 import {
   AlertCircle,
+  CalendarClock,
   CalendarOff,
   Loader2,
   Lock,
   Power,
+  TrendingUp,
   Unlock,
+  Users,
 } from "lucide-react";
 import {
   Dialog,
@@ -19,7 +22,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { api, SLOTS, type OwnerStatusResponse } from "@/lib/booking";
+import {
+  api,
+  SLOTS,
+  naira,
+  prettyDateSafe,
+  type OwnerStatusResponse,
+  type StatsResponse,
+} from "@/lib/booking";
 
 export function OwnerDialog({
   open,
@@ -40,6 +50,17 @@ export function OwnerDialog({
   const [blockDate, setBlockDate] = useState("");
   const [blockTime, setBlockTime] = useState("");
 
+  const [stats, setStats] = useState<StatsResponse | null>(null);
+
+  async function loadStats() {
+    try {
+      const r = await api<StatsResponse>("stats", { pin });
+      if (r && r.ok) setStats(r);
+    } catch {
+      /* keep dashboard hidden if it fails */
+    }
+  }
+
   async function login() {
     setBusy(true);
     setError("");
@@ -50,6 +71,7 @@ export function OwnerDialog({
         setIsOpen(!!r.open);
         setOnline(!!(r as any).online);
         setInperson(!!(r as any).inperson);
+        loadStats();
       } else {
         setError("Wrong PIN. Try again.");
       }
@@ -130,7 +152,7 @@ export function OwnerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm rounded-3xl">
+      <DialogContent className="max-h-[90vh] max-w-sm overflow-y-auto rounded-3xl">
         <DialogHeader>
           <DialogTitle className="font-display flex items-center gap-2 text-xl">
             <Lock className="h-5 w-5 text-primary" /> Owner console
@@ -178,6 +200,70 @@ export function OwnerDialog({
             {error && (
               <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
                 <AlertCircle className="h-4 w-4" /> {error}
+              </div>
+            )}
+
+            {stats && (
+              <div className="space-y-3 rounded-2xl border bg-primary/5 p-4">
+                <div className="flex items-center gap-2 text-sm font-bold">
+                  <TrendingUp className="h-4 w-4 text-primary" /> At a glance
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="rounded-xl bg-white p-3 shadow-sm">
+                    <div className="text-xs text-muted-foreground">Revenue this month</div>
+                    <div className="font-display text-lg font-bold text-brand-green-deep">
+                      {naira(stats.revenueMonth)}
+                    </div>
+                  </div>
+                  <div className="rounded-xl bg-white p-3 shadow-sm">
+                    <div className="text-xs text-muted-foreground">Revenue all time</div>
+                    <div className="font-display text-lg font-bold">
+                      {naira(stats.revenueTotal)}
+                    </div>
+                  </div>
+                  <div className="rounded-xl bg-white p-3 shadow-sm">
+                    <div className="text-xs text-muted-foreground">Upcoming sessions</div>
+                    <div className="font-display text-lg font-bold">{stats.upcoming}</div>
+                  </div>
+                  <div className="rounded-xl bg-white p-3 shadow-sm">
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Users className="h-3 w-3" /> People booked
+                    </div>
+                    <div className="font-display text-lg font-bold">{stats.people}</div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-2 pb-1.5 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                    <CalendarClock className="h-3.5 w-3.5" /> This week
+                  </div>
+                  {stats.week.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      No sessions booked in the next 7 days.
+                    </p>
+                  ) : (
+                    <ul className="space-y-1.5">
+                      {stats.week.map((w, i) => (
+                        <li
+                          key={i}
+                          className="flex items-center justify-between rounded-lg bg-white px-3 py-2 text-xs shadow-sm"
+                        >
+                          <div className="min-w-0">
+                            <div className="truncate font-semibold">{w.name}</div>
+                            <div className="truncate text-muted-foreground">
+                              {w.topic} · {w.mode}
+                              {Number(w.people) > 1 ? ` · ${w.people} people` : ""}
+                            </div>
+                          </div>
+                          <div className="shrink-0 pl-2 text-right">
+                            <div className="font-semibold">{prettyDateSafe(w.date)}</div>
+                            <div className="text-muted-foreground">{w.time}</div>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
               </div>
             )}
 

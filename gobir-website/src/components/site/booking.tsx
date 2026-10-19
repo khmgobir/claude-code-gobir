@@ -86,12 +86,26 @@ export function Booking() {
   const [token, setToken] = useState("");
   const [copied, setCopied] = useState(false);
   const [agree, setAgree] = useState(false);
+  const [avail, setAvail] = useState<{ online: boolean; inperson: boolean }>({ online: true, inperson: true });
 
   // date min is client-only to avoid SSR/CSR timezone hydration mismatch
   const [minDate, setMinDate] = useState("");
   useEffect(() => {
     const id = window.setTimeout(() => setMinDate(todayISO()), 0);
     return () => window.clearTimeout(id);
+  }, []);
+
+  // which modes are currently open (for greying out a closed mode)
+  useEffect(() => {
+    api<any>("config")
+      .then((r) => {
+        if (r && r.ok) {
+          const next = { online: r.online !== false, inperson: r.inperson !== false };
+          setAvail(next);
+          setMode((m) => (m === "In person" && !next.inperson ? "Online" : m === "Online" && !next.online ? "In person" : m));
+        }
+      })
+      .catch(() => {});
   }, []);
   const total = priceFor(people);
 
@@ -415,25 +429,36 @@ export function Booking() {
                     <div className="space-y-1.5">
                       <Label>How would you like to meet? *</Label>
                       <div className="grid grid-cols-2 gap-2">
-                        {(["Online", "In person"] as BookMode[]).map((m) => (
-                          <button
-                            key={m}
-                            type="button"
-                            onClick={() => {
-                              setMode(m);
-                              // In-person sessions are exclusive → 1 person only
-                              if (m === "In person") setPeople(1);
-                            }}
-                            aria-pressed={mode === m}
-                            className={`rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all ${
-                              mode === m
-                                ? "border-transparent bg-brand-gradient text-white shadow-soft"
-                                : "bg-white/80 hover:bg-primary/5"
-                            }`}
-                          >
-                            {m}
-                          </button>
-                        ))}
+                        {(["Online", "In person"] as BookMode[]).map((m) => {
+                          const closed =
+                            (m === "Online" && !avail.online) ||
+                            (m === "In person" && !avail.inperson);
+                          return (
+                            <button
+                              key={m}
+                              type="button"
+                              disabled={closed}
+                              onClick={() => {
+                                if (closed) return;
+                                setMode(m);
+                                // In-person sessions are exclusive → 1 person only
+                                if (m === "In person") setPeople(1);
+                              }}
+                              aria-pressed={mode === m}
+                              title={closed ? `${m} sessions are closed right now` : undefined}
+                              className={`rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all ${
+                                closed
+                                  ? "cursor-not-allowed border-dashed bg-muted/50 text-muted-foreground opacity-60"
+                                  : mode === m
+                                    ? "border-transparent bg-brand-gradient text-white shadow-soft"
+                                    : "bg-white/80 hover:bg-primary/5"
+                              }`}
+                            >
+                              {m}
+                              {closed ? " · closed" : ""}
+                            </button>
+                          );
+                        })}
                       </div>
                       {mode === "In person" && (
                         <p className="pt-1 text-xs text-muted-foreground">

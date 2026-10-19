@@ -150,6 +150,26 @@ export interface OwnerStatusResponse {
   reason?: string;
 }
 
+export interface StatsWeekItem {
+  date: string;
+  time: string;
+  name: string;
+  topic: string;
+  mode: string;
+  people: string;
+}
+
+export interface StatsResponse {
+  ok: boolean;
+  active: number;
+  upcoming: number;
+  people: number;
+  revenueTotal: number;
+  revenueMonth: number;
+  week: StatsWeekItem[];
+  reason?: string;
+}
+
 export type BookMode = "Online" | "In person";
 
 export const REASON_TEXT: Record<string, string> = {
