@@ -63,10 +63,10 @@ function route(p) {
 function apiSlots(p) {
   var date = p.date;
   if (!date) return { ok:false, reason:"nodate" };
-  if (!bookingOpen()) return { ok:true, open:false, date:date, slots:[] };
+  var mode = p.mode || "Online";
+  if (!modeOpen(mode)) return { ok:true, open:false, date:date, slots:[] };
   var bl = blockedFor(date);
   if (bl.wholeDay) return { ok:true, open:false, date:date, slots:[] };
-  var mode = p.mode || "Online";
   var usage = slotUsage(date);
   var free = SLOTS.filter(function(t){ return bl.times.indexOf(t) < 0 && slotFree(usage, t, mode); });
   return { ok:true, open:true, date:date, slots:free };
@@ -86,7 +86,7 @@ function apiBook(p) {
   if (!p.name || !p.phone || !p.email || !p.date || !p.time) return { ok:false, reason:"invalid" };
   var lock = LockService.getScriptLock(); lock.waitLock(20000);
   try {
-    if (!bookingOpen()) return { ok:false, reason:"closed" };
+    if (!modeOpen(p.mode || "Online")) return { ok:false, reason:"closed" };
     var bl = blockedFor(p.date);
     if (bl.wholeDay || bl.times.indexOf(p.time) >= 0) return { ok:false, reason:"closed" };
     if (!slotFree(slotUsage(p.date), normTime(p.time), p.mode || "Online")) return { ok:false, reason:"taken" };
@@ -122,11 +122,11 @@ function apiReschedule(p) {
     var f = findByToken(p.token);
     if (!f) return { ok:false, reason:"notfound" };
     if (!p.date || !p.time) return { ok:false, reason:"invalid" };
-    if (!bookingOpen()) return { ok:false, reason:"closed" };
+    var rmode = f.row[idx("Mode")] || "Online";
+    if (!modeOpen(rmode)) return { ok:false, reason:"closed" };
     var bl = blockedFor(p.date);
     if (bl.wholeDay || bl.times.indexOf(p.time) >= 0) return { ok:false, reason:"closed" };
     // slot must be free for this booking's mode (ignoring this same booking)
-    var rmode = f.row[idx("Mode")] || "Online";
     if (!slotFree(slotUsage(p.date, p.token), normTime(p.time), rmode)) return { ok:false, reason:"taken" };
 
     f.sheet.getRange(f.rowIndex, idx("Date")+1).setValue(p.date);
@@ -187,9 +187,17 @@ function setBookingOpen(open){
   if (row < 0) sh.appendRow(["BookingOpen", open?"YES":"NO"]);
   else sh.getRange(row,2).setValue(open?"YES":"NO");
 }
+function flagOpen(key){ var x = getSetting(key); return x===null || String(x).trim().toUpperCase()!=="NO"; }
+function onlineOpen(){ return flagOpen("OnlineOpen"); }
+function inPersonOpen(){ return flagOpen("InPersonOpen"); }
+/** overall must be open AND the specific mode must be open */
+function modeOpen(mode){
+  if (!bookingOpen()) return false;
+  return String(mode).toLowerCase().indexOf("person") >= 0 ? inPersonOpen() : onlineOpen();
+}
 function apiOwnerStatus(p){
   if (String(p.pin) !== ownerPin()) return { ok:false, reason:"pin" };
-  return { ok:true, open:bookingOpen() };
+  return { ok:true, open:bookingOpen(), online:onlineOpen(), inperson:inPersonOpen() };
 }
 function apiBookingsList(p){
   if (String(p.pin) !== ownerPin()) return { ok:false, reason:"pin" };
@@ -268,8 +276,11 @@ function apiSetOpen(p){
   if (String(p.pin) !== ownerPin()) return { ok:false, reason:"pin" };
   var val = String(p.value).toLowerCase();
   var open = (val==="yes"||val==="open"||val==="true"||val==="1");
-  setBookingOpen(open);
-  return { ok:true, open:open };
+  var which = String(p.which||"all").toLowerCase();
+  if (which==="online") setSetting("OnlineOpen", open?"YES":"NO");
+  else if (which==="inperson"||which==="in person"||which==="person") setSetting("InPersonOpen", open?"YES":"NO");
+  else setBookingOpen(open);
+  return { ok:true, open:bookingOpen(), online:onlineOpen(), inperson:inPersonOpen() };
 }
 function blockedFor(date){
   var ss = SpreadsheetApp.getActiveSpreadsheet();

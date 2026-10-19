@@ -31,6 +31,8 @@ export function OwnerDialog({
   const [pin, setPin] = useState("");
   const [authed, setAuthed] = useState(false);
   const [isOpen, setIsOpen] = useState<boolean | null>(null);
+  const [online, setOnline] = useState<boolean | null>(null);
+  const [inperson, setInperson] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
@@ -46,6 +48,8 @@ export function OwnerDialog({
       if (r.ok) {
         setAuthed(true);
         setIsOpen(!!r.open);
+        setOnline(!!(r as any).online);
+        setInperson(!!(r as any).inperson);
       } else {
         setError("Wrong PIN. Try again.");
       }
@@ -56,17 +60,17 @@ export function OwnerDialog({
     }
   }
 
-  async function toggleOpen(next: boolean) {
+  async function toggleOpen(which: "all" | "online" | "inperson", next: boolean) {
     setBusy(true);
     setError("");
     try {
-      const r = await api<{ ok: boolean }>("setopen", {
-        pin,
-        value: next ? "YES" : "NO",
-      });
+      const r = await api<any>("setopen", { pin, which, value: next ? "YES" : "NO" });
       if (r.ok) {
-        setIsOpen(next);
-        setMsg(next ? "Bookings are now OPEN." : "Bookings are now CLOSED.");
+        setIsOpen(!!r.open);
+        setOnline(!!r.online);
+        setInperson(!!r.inperson);
+        const label = which === "online" ? "Online" : which === "inperson" ? "In-person" : "All";
+        setMsg(`${label} bookings are now ${next ? "OPEN" : "CLOSED"}.`);
       } else setError("Couldn't update — check PIN.");
     } catch (e) {
       setError((e as Error).message);
@@ -177,38 +181,31 @@ export function OwnerDialog({
               </div>
             )}
 
-            <div className="rounded-2xl border p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm font-bold">Bookings</div>
-                  <div
-                    className={`text-xs font-semibold ${
-                      isOpen ? "text-brand-green-deep" : "text-destructive"
-                    }`}
-                  >
-                    {isOpen === null ? "—" : isOpen ? "Currently OPEN" : "Currently CLOSED"}
+            <div className="space-y-2.5">
+              {([
+                ["All bookings (master)", "all", isOpen],
+                ["Online sessions", "online", online],
+                ["In-person sessions", "inperson", inperson],
+              ] as const).map(([label, which, state]) => (
+                <div key={which} className="flex items-center justify-between rounded-2xl border p-4">
+                  <div>
+                    <div className="text-sm font-bold">{label}</div>
+                    <div className={`text-xs font-semibold ${state ? "text-brand-green-deep" : "text-destructive"}`}>
+                      {state === null ? "—" : state ? "OPEN" : "CLOSED"}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button size="sm" disabled={busy || state === true} onClick={() => toggleOpen(which, true)}
+                      className="h-9 rounded-full bg-brand-green px-4 text-white hover:bg-brand-green-deep">
+                      <Power className="mr-1 h-3.5 w-3.5" /> Open
+                    </Button>
+                    <Button size="sm" variant="outline" disabled={busy || state === false} onClick={() => toggleOpen(which, false)}
+                      className="h-9 rounded-full border-destructive/40 px-4 text-destructive hover:bg-destructive/5">
+                      <Unlock className="mr-1 h-3.5 w-3.5" /> Close
+                    </Button>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    disabled={busy || isOpen === true}
-                    onClick={() => toggleOpen(true)}
-                    className="h-9 rounded-full bg-brand-green px-4 text-white hover:bg-brand-green-deep"
-                  >
-                    <Power className="mr-1 h-3.5 w-3.5" /> Open
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={busy || isOpen === false}
-                    onClick={() => toggleOpen(false)}
-                    className="h-9 rounded-full border-destructive/40 px-4 text-destructive hover:bg-destructive/5"
-                  >
-                    <Unlock className="mr-1 h-3.5 w-3.5" /> Close
-                  </Button>
-                </div>
-              </div>
+              ))}
             </div>
 
             <div className="rounded-2xl border p-4">
