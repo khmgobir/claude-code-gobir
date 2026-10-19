@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { LegalShell, LegalSection } from "@/components/site/legal-shell";
 
 export const metadata: Metadata = {
-  title: "Terms & Conditions — Gobir Digital",
+  title: "Terms & Conditions · Gobir Digital",
   description:
     "The simple terms for booking and attending a Gobir Digital coaching session.",
   alternates: { canonical: "/terms/" },

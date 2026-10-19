@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { LegalShell, LegalSection } from "@/components/site/legal-shell";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy — Gobir Digital",
+  title: "Privacy Policy · Gobir Digital",
   description:
     "How Gobir Digital collects, uses and protects the information you share when you book a coaching session.",
   alternates: { canonical: "/privacy/" },

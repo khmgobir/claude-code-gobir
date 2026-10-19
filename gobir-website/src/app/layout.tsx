@@ -20,7 +20,7 @@ const APP_URL = "https://gobir-digital.netlify.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://gobir-digital.netlify.app"),
-  title: "Gobir Digital — Learn Smarter. Master AI & Digital Skills",
+  title: "Gobir Digital: Learn Smarter. Master AI & Digital Skills",
   description:
     "Practical, beginner-friendly coaching in AI, computer basics, app ideas and online business growth. Online or in person in Sokoto, Nigeria. Evening sessions, ₦5,000 solo or ₦10,000 for a group of 2–5.",
   keywords: [
@@ -38,9 +38,9 @@ export const metadata: Metadata = {
     apple: "/gobir-icon-512.png",
   },
   openGraph: {
-    title: "Gobir Digital — Learn Digital. Build Smart. Grow Business.",
+    title: "Gobir Digital: Learn Digital. Build Smart. Grow Business.",
     description:
-      "Friendly, practical coaching in AI and digital skills — online or in person (Sokoto, Nigeria). Sessions daily 4pm–10pm WAT.",
+      "Friendly, practical coaching in AI and digital skills, online or in person (Sokoto, Nigeria). Sessions daily 4pm–10pm WAT.",
     url: APP_URL,
     siteName: "Gobir Digital",
     images: [{ url: "/gobir-og.png", width: 2400, height: 1260 }],
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Gobir Digital — Learn Digital. Build Smart. Grow Business.",
+    title: "Gobir Digital: Learn Digital. Build Smart. Grow Business.",
     description:
       "Practical coaching in AI, computer basics and growing your business online. Book a session today.",
     images: ["/gobir-og.png"],
@@ -66,7 +66,7 @@ const jsonLd = {
   logo: `${APP_URL}/gobir-icon-512.png`,
   image: `${APP_URL}/gobir-og.png`,
   description:
-    "Practical, beginner-friendly coaching in AI, computer basics, app ideas and online business growth — online or in person in Sokoto, Nigeria.",
+    "Practical, beginner-friendly coaching in AI, computer basics, app ideas and online business growth, online or in person in Sokoto, Nigeria.",
   telephone: "+2347066637888",
   email: "khmgobir@gmail.com",
   address: {

@@ -108,7 +108,7 @@ export function ManageDialog({
         setSlots(r.slots);
         setSlotsMsg("");
       } else {
-        setSlotsMsg("No free times that day — try another date.");
+        setSlotsMsg("No free times that day, try another date.");
       }
     } catch (e) {
       setSlotsMsg((e as Error).message);
@@ -132,7 +132,7 @@ export function ManageDialog({
         setSlots([]);
         setReschedTime("");
       } else {
-        setError(REASON_TEXT[r.reason ?? ""] ?? "Couldn't reschedule — try again.");
+        setError(REASON_TEXT[r.reason ?? ""] ?? "Couldn't reschedule, try again.");
       }
     } catch (e) {
       setError((e as Error).message);
@@ -151,7 +151,7 @@ export function ManageDialog({
         setBooking(null);
         setView("lookup");
       } else {
-        setError(REASON_TEXT[r.reason ?? ""] ?? "Couldn't cancel — try again.");
+        setError(REASON_TEXT[r.reason ?? ""] ?? "Couldn't cancel, try again.");
       }
     } catch (e) {
       setError((e as Error).message);
@@ -238,7 +238,7 @@ export function ManageDialog({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-semibold">Reschedule — pick a new date</Label>
+              <Label className="text-sm font-semibold">Reschedule, pick a new date</Label>
               <Input
                 type="date"
                 min={minDate}

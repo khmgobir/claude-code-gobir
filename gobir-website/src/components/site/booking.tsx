@@ -171,7 +171,7 @@ export function Booking() {
         total,
         notes,
         address: mode === "In person" ? address : "",
-        company, // honeypot — bots only
+        company, // honeypot, bots only
       });
       if (res.ok && res.token) {
         setToken(res.token);
@@ -203,7 +203,7 @@ export function Booking() {
               Reserve your <span className="text-gradient">session</span>
             </>
           }
-          sub="Pick a date — you'll only see times that are free. Quick, easy, and you can bring others."
+          sub="Pick a date, you'll only see times that are free. Quick, easy, and you can bring others."
         />
 
         <div className="mt-12 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
@@ -255,7 +255,7 @@ export function Booking() {
                   Private &amp; secure
                 </div>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  Your details are only used to arrange and deliver your session —
+                  Your details are only used to arrange and deliver your session,
                   never sold or shared. You&apos;ll get a private link to cancel or
                   reschedule any time.
                 </p>
@@ -362,7 +362,7 @@ export function Booking() {
                       </p>
                     </div>
 
-                    {/* honeypot — hidden from humans */}
+                    {/* honeypot, hidden from humans */}
                     <input
                       type="text"
                       name="company"
@@ -470,7 +470,7 @@ export function Booking() {
                       </div>
                       {mode === "In person" && (
                         <p className="pt-1 text-xs text-muted-foreground">
-                          In-person sessions are exclusive — just you. Tell me where
+                          In-person sessions are exclusive, just you. Tell me where
                           to meet:
                         </p>
                       )}
@@ -544,7 +544,7 @@ export function Booking() {
                       <Label>Time slot *</Label>
                       {!date ? (
                         <p className="rounded-xl border border-dashed bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-                          Pick a date first — then I&apos;ll show the free times.
+                          Pick a date first, then I&apos;ll show the free times.
                         </p>
                       ) : slotsState.loading ? (
                         <div className="flex items-center gap-2 rounded-xl border border-dashed bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
@@ -560,7 +560,7 @@ export function Booking() {
                         <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-700">
                           {slotsState.open === false
                             ? "Bookings are closed for this date (or fully booked). Try another day."
-                            : "No free times on this date — try another day."}
+                            : "No free times on this date, try another day."}
                         </div>
                       ) : (
                         <div className="grid grid-cols-3 gap-2">

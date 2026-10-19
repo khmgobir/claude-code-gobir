@@ -7,7 +7,7 @@ const ITEMS = [
   {
     icon: HandHeart,
     title: "Real, hands-on practice",
-    body: "Learn by doing, not just watching — every session is a workshop, not a lecture. You practice live with guidance.",
+    body: "Learn by doing, not just watching, every session is a workshop, not a lecture. You practice live with guidance.",
     grad: "from-brand-royal to-brand-blue",
   },
   {
@@ -19,13 +19,13 @@ const ITEMS = [
   {
     icon: Users2,
     title: "Solo or with friends",
-    body: "Bring up to 5 people to one online session and split the flat group price — learning with friends is less scary and better value.",
+    body: "Bring up to 5 people to one online session and split the flat group price, learning with friends is less scary and better value.",
     grad: "from-brand-coral to-brand-coral-deep",
   },
   {
     icon: Route,
     title: "Clear next steps",
-    body: "Leave every session knowing exactly what to do next — a simple plan you can act on immediately.",
+    body: "Leave every session knowing exactly what to do next, a simple plan you can act on immediately.",
     grad: "from-brand-green to-brand-cyan",
   },
 ];
@@ -38,7 +38,7 @@ export function Benefits() {
           eyebrow="What a session gives you"
           title={
             <>
-              Not just a class —{" "}
+              Not just a class,{" "}
               <span className="text-gradient">a working session</span>
             </>
           }

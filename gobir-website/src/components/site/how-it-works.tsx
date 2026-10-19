@@ -15,7 +15,7 @@ const STEPS = [
     icon: Send,
     step: "02",
     title: "Get confirmed",
-    body: "You'll get an email with the meeting link (online) or venue details (in person) — plus simple payment details to lock in your slot.",
+    body: "You'll get an email with the meeting link (online) or venue details (in person), plus simple payment details to lock in your slot.",
     grad: "from-brand-blue to-brand-cyan",
   },
   {

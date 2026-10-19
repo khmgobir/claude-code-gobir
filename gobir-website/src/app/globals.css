@@ -136,7 +136,7 @@
     font-family: var(--font-sora), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   }
 
-  /* Vibrant brand gradient — original Gobir blues, brightened: royal → blue → cyan */
+  /* Vibrant brand gradient, original Gobir blues, brightened: royal → blue → cyan */
   .text-gradient {
     background: linear-gradient(94deg, #1a6dff 0%, #2f9dff 46%, #1fd0ff 100%);
     -webkit-background-clip: text;

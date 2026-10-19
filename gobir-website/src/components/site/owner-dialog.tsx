@@ -93,7 +93,7 @@ export function OwnerDialog({
         setInperson(!!r.inperson);
         const label = which === "online" ? "Online" : which === "inperson" ? "In-person" : "All";
         setMsg(`${label} bookings are now ${next ? "OPEN" : "CLOSED"}.`);
-      } else setError("Couldn't update — check PIN.");
+      } else setError("Couldn't update, check PIN.");
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -277,7 +277,7 @@ export function OwnerDialog({
                   <div>
                     <div className="text-sm font-bold">{label}</div>
                     <div className={`text-xs font-semibold ${state ? "text-brand-green-deep" : "text-destructive"}`}>
-                      {state === null ? "—" : state ? "OPEN" : "CLOSED"}
+                      {state === null ? "-" : state ? "OPEN" : "CLOSED"}
                     </div>
                   </div>
                   <div className="flex gap-2">

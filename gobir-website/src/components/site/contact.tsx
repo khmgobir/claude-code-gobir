@@ -16,7 +16,7 @@ const CARDS = [
     icon: MessageCircle,
     title: "WhatsApp",
     main: WHATSAPP_DISPLAY,
-    sub: "Chat now — I usually reply fast",
+    sub: "Chat now, I usually reply fast",
     cta: "Chat now",
     href: WHATSAPP_LINK,
     grad: "from-brand-green to-brand-wa",
@@ -61,7 +61,7 @@ export function Contact() {
               Contact &amp; <span className="text-gradient">location</span>
             </>
           }
-          sub="Reach out any time — WhatsApp is fastest, and I usually reply within minutes during open hours."
+          sub="Reach out any time, WhatsApp is fastest, and I usually reply within minutes during open hours."
         />
 
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -103,7 +103,7 @@ export function Contact() {
                 Want to just ask me something first?
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Message me on WhatsApp at {WHATSAPP_DISPLAY} — no commitment, just a real answer.
+                Message me on WhatsApp at {WHATSAPP_DISPLAY}, no commitment, just a real answer.
               </p>
             </div>
             <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">

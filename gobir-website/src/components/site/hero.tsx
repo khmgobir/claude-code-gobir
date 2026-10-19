@@ -41,7 +41,7 @@ export function Hero() {
             className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-white/70 px-4 py-1.5 text-xs font-semibold shadow-soft backdrop-blur"
           >
             <span className="animate-pulse-ring h-2 w-2 rounded-full bg-brand-green" />
-            Hi, I&apos;m Gobir — your coach in Sokoto &amp; online
+            Hi, I&apos;m Gobir, your coach in Sokoto &amp; online
           </motion.div>
 
           <motion.h1
@@ -79,7 +79,7 @@ export function Hero() {
             I sit with you one-to-one and help you use AI with confidence, get
             comfortable on the computer, turn that idea in your head into a real
             plan, and grow your business online. We go at your pace, hands-on,
-            until it clicks —{" "}
+            until it clicks,{" "}
             <strong className="font-semibold text-foreground">
               no jargon, no rushing.
             </strong>

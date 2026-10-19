@@ -1,5 +1,5 @@
 /**
- * Gobir Digital — Booking API client (JSONP → Google Apps Script)
+ * Gobir Digital: Booking API client (JSONP → Google Apps Script)
  * Mirrors the exact contract in Code.gs:
  *   slots / book / cancel / reschedule / booking /
  *   ownerstatus / setopen / setblock / unsetblock
@@ -27,7 +27,7 @@ export const TOPICS = [
   "Turn Your Idea Into Reality",
   "Promote Your Business Online",
   "Kids Digital Learning (personalised)",
-  "Not sure yet — help me choose",
+  "Not sure yet, help me choose",
 ] as const;
 
 export const SOLO_PRICE = 5000;
@@ -91,7 +91,7 @@ export function api<T = Record<string, unknown>>(
     const timer = setTimeout(() => {
       if (done) return;
       cleanup();
-      reject(new Error("Request timed out — check your internet connection."));
+      reject(new Error("Request timed out, check your internet connection."));
     }, timeoutMs);
 
     (window as unknown as Record<string, unknown>)[cbName] = (data: unknown) => {
@@ -174,7 +174,7 @@ export type BookMode = "Online" | "In person";
 
 export const REASON_TEXT: Record<string, string> = {
   closed: "Bookings are currently closed. Please check back soon or WhatsApp us.",
-  taken: "Sorry — that slot was just taken. Please pick another time.",
+  taken: "Sorry, that slot was just taken. Please pick another time.",
   invalid: "Please fill in every required field.",
   pin: "Wrong PIN. Try again.",
   notfound: "We couldn't find that booking reference.",

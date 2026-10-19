@@ -19,7 +19,7 @@ export function Footer({ onManage, onOwner }: { onManage: () => void; onOwner: (
               <span className="font-display text-lg font-bold">Gobir Digital</span>
             </div>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-background/60">
-              I&apos;m Gobir — I help people and small businesses in Sokoto (and
+              I&apos;m Gobir, I help people and small businesses in Sokoto (and
               anywhere online) get confident with AI and digital skills, one
               patient session at a time. Learn Digital · Build Smart · Grow.
             </p>

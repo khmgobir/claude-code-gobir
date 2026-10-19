@@ -23,21 +23,21 @@ const QUOTES = [
     name: "Fatima & Zainab",
     role: "Group session (3 friends)",
     topic: "Computer Basics & Skills",
-    text: "We booked together and split the price. From typing to email and staying safe online — everything was explained slowly and clearly. No shame at all.",
+    text: "We booked together and split the price. From typing to email and staying safe online, everything was explained slowly and clearly. No shame at all.",
     grad: "from-brand-green to-brand-cyan",
   },
   {
     name: "Emeka O.",
     role: "Founder",
     topic: "Turn Your Idea Into Reality",
-    text: "I came with just an idea in my head. I left with a name, a simple plan and my first next steps. The follow-up support is real — he doesn't leave you stuck.",
+    text: "I came with just an idea in my head. I left with a name, a simple plan and my first next steps. The follow-up support is real, he doesn't leave you stuck.",
     grad: "from-brand-navy to-brand-royal",
   },
   {
     name: "Hauwa B.",
     role: "Parent",
     topic: "Kids Digital Learning",
-    text: "My son (9) now types, draws and explores safely on the computer — and talks about AI at dinner! Patient, warm and professional with children.",
+    text: "My son (9) now types, draws and explores safely on the computer, and talks about AI at dinner! Patient, warm and professional with children.",
     grad: "from-brand-blue to-brand-royal",
   },
   {
@@ -76,7 +76,7 @@ export function Testimonials() {
               Real people, <span className="text-gradient">real results</span>
             </>
           }
-          sub="From complete beginners to business owners — here's what sessions with Gobir Digital feel like."
+          sub="From complete beginners to business owners, here's what sessions with Gobir Digital feel like."
         />
 
         <Reveal className="mt-12">

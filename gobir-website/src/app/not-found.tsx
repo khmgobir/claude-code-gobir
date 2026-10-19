@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Page not found — Gobir Digital",
+  title: "Page not found · Gobir Digital",
   description: "That page doesn't exist. Head back home to book a session or explore our courses.",
 };
 
