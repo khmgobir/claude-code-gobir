@@ -1,0 +1,264 @@
+"use client";
+
+import { useState } from "react";
+import {
+  AlertCircle,
+  CalendarOff,
+  Loader2,
+  Lock,
+  Power,
+  Unlock,
+} from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { api, SLOTS, type OwnerStatusResponse } from "@/lib/booking";
+
+export function OwnerDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
+  const [pin, setPin] = useState("");
+  const [authed, setAuthed] = useState(false);
+  const [isOpen, setIsOpen] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [error, setError] = useState("");
+
+  const [blockDate, setBlockDate] = useState("");
+  const [blockTime, setBlockTime] = useState("");
+
+  async function login() {
+    setBusy(true);
+    setError("");
+    try {
+      const r = await api<OwnerStatusResponse>("ownerstatus", { pin });
+      if (r.ok) {
+        setAuthed(true);
+        setIsOpen(!!r.open);
+      } else {
+        setError("Wrong PIN. Try again.");
+      }
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function toggleOpen(next: boolean) {
+    setBusy(true);
+    setError("");
+    try {
+      const r = await api<{ ok: boolean }>("setopen", {
+        pin,
+        value: next ? "YES" : "NO",
+      });
+      if (r.ok) {
+        setIsOpen(next);
+        setMsg(next ? "Bookings are now OPEN." : "Bookings are now CLOSED.");
+      } else setError("Couldn't update — check PIN.");
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function block() {
+    if (!blockDate) {
+      setError("Pick a date to block first.");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    try {
+      const r = await api<{ ok: boolean }>("setblock", {
+        pin,
+        date: blockDate,
+        time: blockTime,
+      });
+      if (r.ok) {
+        setMsg(
+          blockTime
+            ? `Blocked ${blockDate} at ${blockTime}.`
+            : `Blocked the whole day ${blockDate}.`
+        );
+      } else setError("Couldn't block that date.");
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function unblock() {
+    if (!blockDate) {
+      setError("Pick the date to unblock first.");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    try {
+      const r = await api<{ ok: boolean }>("unsetblock", {
+        pin,
+        date: blockDate,
+        time: blockTime,
+      });
+      if (r.ok) setMsg(`Unblocked ${blockDate}${blockTime ? ` at ${blockTime}` : ""}.`);
+      else setError("Couldn't unblock.");
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-sm rounded-3xl">
+        <DialogHeader>
+          <DialogTitle className="font-display flex items-center gap-2 text-xl">
+            <Lock className="h-5 w-5 text-primary" /> Owner console
+          </DialogTitle>
+          <DialogDescription>
+            Open / close bookings and block dates. Changes apply instantly.
+          </DialogDescription>
+        </DialogHeader>
+
+        {!authed ? (
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="ow-pin">Owner PIN</Label>
+              <Input
+                id="ow-pin"
+                type="password"
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && login()}
+                placeholder="Your PIN"
+                className="h-11 rounded-xl"
+              />
+            </div>
+            {error && (
+              <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                <AlertCircle className="h-4 w-4" /> {error}
+              </div>
+            )}
+            <Button
+              onClick={login}
+              disabled={busy}
+              className="bg-brand-gradient h-11 w-full rounded-full font-semibold text-white"
+            >
+              {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Unlock console
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-5">
+            {msg && (
+              <div className="rounded-xl border border-brand-green/30 bg-brand-green/5 px-4 py-3 text-sm text-brand-green-deep">
+                {msg}
+              </div>
+            )}
+            {error && (
+              <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                <AlertCircle className="h-4 w-4" /> {error}
+              </div>
+            )}
+
+            <div className="rounded-2xl border p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-bold">Bookings</div>
+                  <div
+                    className={`text-xs font-semibold ${
+                      isOpen ? "text-brand-green-deep" : "text-destructive"
+                    }`}
+                  >
+                    {isOpen === null ? "—" : isOpen ? "Currently OPEN" : "Currently CLOSED"}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    disabled={busy || isOpen === true}
+                    onClick={() => toggleOpen(true)}
+                    className="h-9 rounded-full bg-brand-green px-4 text-white hover:bg-brand-green-deep"
+                  >
+                    <Power className="mr-1 h-3.5 w-3.5" /> Open
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={busy || isOpen === false}
+                    onClick={() => toggleOpen(false)}
+                    className="h-9 rounded-full border-destructive/40 px-4 text-destructive hover:bg-destructive/5"
+                  >
+                    <Unlock className="mr-1 h-3.5 w-3.5" /> Close
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border p-4">
+              <div className="flex items-center gap-2 text-sm font-bold">
+                <CalendarOff className="h-4 w-4 text-primary" />
+                Block / unblock a date
+              </div>
+              <div className="mt-3 space-y-2.5">
+                <Input
+                  type="date"
+                  value={blockDate}
+                  onChange={(e) => setBlockDate(e.target.value)}
+                  className="h-10 rounded-xl"
+                />
+                <select
+                  value={blockTime}
+                  onChange={(e) => setBlockTime(e.target.value)}
+                  className="h-10 w-full rounded-xl border border-input bg-white px-3 text-sm"
+                >
+                  <option value="">Whole day</option>
+                  {SLOTS.map((s) => (
+                    <option key={s} value={s}>
+                      {s} only
+                    </option>
+                  ))}
+                </select>
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    onClick={block}
+                    disabled={busy}
+                    className="bg-brand-gradient h-9 flex-1 rounded-full text-white"
+                  >
+                    Block
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={unblock}
+                    disabled={busy}
+                    className="h-9 flex-1 rounded-full"
+                  >
+                    Unblock
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
