@@ -1,7 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Sora } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { CookieConsent } from "@/components/site/cookie-consent";
+
+const GA_ID = "G-B99P54VLV3";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -103,12 +107,28 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        {/* Google Consent Mode v2 — default denied until the visitor accepts */}
+        <Script id="ga-consent-default" strategy="beforeInteractive">
+          {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+gtag('consent','default',{'analytics_storage':'denied','ad_storage':'denied','ad_user_data':'denied','ad_personalization':'denied'});`}
+        </Script>
       </head>
       <body
         className={`${inter.variable} ${sora.variable} font-sans antialiased bg-background text-foreground`}
       >
         {children}
         <Toaster />
+        <CookieConsent />
+
+        {/* Google Analytics 4 */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="ga-init" strategy="afterInteractive">
+          {`gtag('js', new Date());
+gtag('config', '${GA_ID}', { anonymize_ip: true });`}
+        </Script>
       </body>
     </html>
   );

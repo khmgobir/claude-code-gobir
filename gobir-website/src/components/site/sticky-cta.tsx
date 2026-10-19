@@ -10,10 +10,20 @@ import { CalendarCheck } from "lucide-react";
  */
 export function StickyCta() {
   const [show, setShow] = useState(false);
+  const [consentDone, setConsentDone] = useState(true);
 
   useEffect(() => {
-    const book = document.getElementById("book");
+    // Hold the CTA back while the cookie notice is still on screen so the two
+    // bottom bars never overlap on mobile.
+    try {
+      setConsentDone(!!localStorage.getItem("gobir-consent"));
+    } catch {
+      setConsentDone(true);
+    }
+    const onConsent = () => setConsentDone(true);
+    window.addEventListener("gobir-consent-set", onConsent);
 
+    const book = document.getElementById("book");
     function onScroll() {
       const scrolledEnough = window.scrollY > 500;
       let bookingVisible = false;
@@ -28,6 +38,7 @@ export function StickyCta() {
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
     return () => {
+      window.removeEventListener("gobir-consent-set", onConsent);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
@@ -36,7 +47,9 @@ export function StickyCta() {
   return (
     <div
       className={`fixed inset-x-0 bottom-0 z-40 p-3 transition-all duration-300 sm:hidden ${
-        show ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-full opacity-0"
+        show && consentDone
+          ? "translate-y-0 opacity-100"
+          : "pointer-events-none translate-y-full opacity-0"
       }`}
       style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
     >

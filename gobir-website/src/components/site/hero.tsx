@@ -5,7 +5,6 @@ import {
   ArrowRight,
   CalendarClock,
   Clock3,
-  GraduationCap,
   Sparkles,
   Users,
   Wallet,
@@ -150,7 +149,7 @@ export function Hero() {
           </div>
 
           <motion.div
-            className="glass-dark animate-float-y absolute -left-3 top-8 flex items-center gap-2.5 rounded-2xl border border-white/15 px-4 py-3 text-white shadow-brand sm:-left-6"
+            className="glass-dark animate-float-y absolute -left-3 top-8 hidden items-center gap-2.5 rounded-2xl border border-white/15 px-4 py-3 text-white shadow-brand lg:flex sm:-left-6"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.6, duration: 0.5 }}
@@ -167,7 +166,7 @@ export function Hero() {
           </motion.div>
 
           <motion.div
-            className="glass-dark animate-float-y absolute -right-2 bottom-10 flex items-center gap-2.5 rounded-2xl border border-white/15 px-4 py-3 text-white shadow-brand sm:-right-5"
+            className="glass-dark animate-float-y absolute -right-2 bottom-10 hidden items-center gap-2.5 rounded-2xl border border-white/15 px-4 py-3 text-white shadow-brand lg:flex sm:-right-5"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.75, duration: 0.5 }}
@@ -183,7 +182,7 @@ export function Hero() {
           </motion.div>
 
           <motion.div
-            className="glass absolute -bottom-5 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full border px-4 py-2 shadow-soft"
+            className="glass absolute -bottom-5 left-1/2 hidden -translate-x-1/2 items-center gap-2 rounded-full border px-4 py-2 shadow-soft sm:flex"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.9, duration: 0.5 }}
@@ -200,28 +199,5 @@ export function Hero() {
         </motion.div>
       </div>
     </section>
-  );
-}
-
-export function HeroBadgeRow() {
-  const items = [
-    { icon: GraduationCap, text: "Taught one-to-one" },
-    { icon: Clock3, text: "Evenings that fit you" },
-    { icon: Zap, text: "You practise, not just watch" },
-    { icon: Users, text: "I don't leave you stuck" },
-  ];
-  return (
-    <div className="border-y bg-white/60 py-4 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-10 gap-y-3 px-4 sm:justify-between sm:px-6">
-        {items.map((i) => (
-          <div key={i.text} className="flex items-center gap-2 text-sm font-semibold text-foreground/75">
-            <span className="bg-brand-gradient-soft grid h-8 w-8 place-items-center rounded-lg text-primary">
-              <i.icon className="h-4 w-4" />
-            </span>
-            {i.text}
-          </div>
-        ))}
-      </div>
-    </div>
   );
 }

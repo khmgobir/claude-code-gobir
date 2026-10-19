@@ -190,7 +190,10 @@ export function Booking() {
   }
 
   const formInput =
-    "h-11 rounded-xl border-input bg-white/80 text-[15px] focus-visible:ring-primary/40";
+    "h-12 rounded-xl border-input bg-white text-base shadow-sm transition-shadow focus-visible:shadow-md focus-visible:ring-2 focus-visible:ring-primary/40";
+  const selectInput =
+    "h-12 w-full appearance-none rounded-xl border border-input bg-white px-3.5 pr-10 text-base shadow-sm outline-none transition-shadow focus:border-primary focus:shadow-md focus:ring-2 focus:ring-primary/30";
+  const labelCls = "text-[15px] font-semibold text-foreground/90";
 
   return (
     <section id="book" className="relative py-16 sm:py-24" aria-label="Book a session">
@@ -357,7 +360,7 @@ export function Booking() {
                   >
                     <div className="mb-2">
                       <h3 className="font-display text-lg font-bold">Booking details</h3>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-sm text-muted-foreground">
                         Fields marked * are required.
                       </p>
                     </div>
@@ -376,7 +379,7 @@ export function Booking() {
 
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-1.5">
-                        <Label htmlFor="bk-name">Full name *</Label>
+                        <Label htmlFor="bk-name" className={labelCls}>Full name *</Label>
                         <Input
                           id="bk-name"
                           className={formInput}
@@ -387,7 +390,7 @@ export function Booking() {
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <Label htmlFor="bk-phone">Phone / WhatsApp *</Label>
+                        <Label htmlFor="bk-phone" className={labelCls}>Phone / WhatsApp *</Label>
                         <Input
                           id="bk-phone"
                           className={formInput}
@@ -401,7 +404,7 @@ export function Booking() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label htmlFor="bk-email">Email *</Label>
+                      <Label htmlFor="bk-email" className={labelCls}>Email *</Label>
                       <Input
                         id="bk-email"
                         className={formInput}
@@ -414,11 +417,11 @@ export function Booking() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label htmlFor="bk-topic">What do you want to learn? *</Label>
+                      <Label htmlFor="bk-topic" className={labelCls}>What do you want to learn? *</Label>
                       <div className="relative">
                         <select
                           id="bk-topic"
-                          className="h-11 w-full appearance-none rounded-xl border border-input bg-white/80 px-3.5 pr-10 text-[15px] shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30"
+                          className={selectInput}
                           value={topic}
                           onChange={(e) => setTopic(e.target.value)}
                           required
@@ -435,7 +438,7 @@ export function Booking() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label>How would you like to meet? *</Label>
+                      <Label className={labelCls}>How would you like to meet? *</Label>
                       <div className="grid grid-cols-2 gap-2">
                         {(["Online", "In person"] as BookMode[]).map((m) => {
                           const closed =
@@ -454,7 +457,7 @@ export function Booking() {
                               }}
                               aria-pressed={mode === m}
                               title={closed ? `${m} sessions are closed right now` : undefined}
-                              className={`rounded-xl border px-4 py-2.5 text-sm font-semibold transition-all ${
+                              className={`rounded-xl border px-4 py-3 text-[15px] font-semibold shadow-sm transition-all ${
                                 closed
                                   ? "cursor-not-allowed border-dashed bg-muted/50 text-muted-foreground opacity-60"
                                   : mode === m
@@ -469,7 +472,7 @@ export function Booking() {
                         })}
                       </div>
                       {mode === "In person" && (
-                        <p className="pt-1 text-xs text-muted-foreground">
+                        <p className="pt-1 text-sm text-muted-foreground">
                           In-person sessions are exclusive, just you. Tell me where
                           to meet:
                         </p>
@@ -486,7 +489,7 @@ export function Booking() {
 
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="space-y-1.5">
-                        <Label htmlFor="bk-date">Preferred date *</Label>
+                        <Label htmlFor="bk-date" className={labelCls}>Preferred date *</Label>
                         <Input
                           id="bk-date"
                           type="date"
@@ -519,11 +522,11 @@ export function Booking() {
                         </div>
                       </div>
                       <div className="space-y-1.5">
-                        <Label htmlFor="bk-people">Number of people *</Label>
+                        <Label htmlFor="bk-people" className={labelCls}>Number of people *</Label>
                         <div className="relative">
                           <select
                             id="bk-people"
-                            className="h-11 w-full appearance-none rounded-xl border border-input bg-white/80 px-3.5 pr-10 text-[15px] shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/30 disabled:opacity-60"
+                            className={`${selectInput} disabled:opacity-60`}
                             value={people}
                             onChange={(e) => setPeople(Number(e.target.value))}
                             disabled={mode === "In person"}
@@ -541,7 +544,7 @@ export function Booking() {
 
                     {/* slots */}
                     <div className="space-y-1.5">
-                      <Label>Time slot *</Label>
+                      <Label className={labelCls}>Time slot *</Label>
                       {!date ? (
                         <p className="rounded-xl border border-dashed bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
                           Pick a date first, then I&apos;ll show the free times.
@@ -573,7 +576,7 @@ export function Booking() {
                                 disabled={!free}
                                 onClick={() => setTime(s)}
                                 aria-pressed={time === s}
-                                className={`rounded-xl border px-2 py-2.5 text-[13px] font-semibold transition-all ${
+                                className={`rounded-xl border px-2 py-3 text-sm font-semibold shadow-sm transition-all ${
                                   time === s
                                     ? "border-transparent bg-brand-gradient text-white shadow-soft"
                                     : free
@@ -590,10 +593,10 @@ export function Booking() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label htmlFor="bk-notes">Anything I should know? (optional)</Label>
+                      <Label htmlFor="bk-notes" className={labelCls}>Anything I should know? (optional)</Label>
                       <Textarea
                         id="bk-notes"
-                        className="min-h-[76px] rounded-xl bg-white/80"
+                        className="min-h-[88px] rounded-xl bg-white text-base shadow-sm transition-shadow focus-visible:shadow-md"
                         placeholder="Your goal, current level, or anything to prepare…"
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
@@ -607,7 +610,7 @@ export function Booking() {
                       </span>
                     </div>
 
-                    <label className="flex cursor-pointer items-start gap-3 text-xs leading-relaxed text-muted-foreground">
+                    <label className="flex cursor-pointer items-start gap-3 text-[13px] leading-relaxed text-muted-foreground">
                       <input
                         type="checkbox"
                         checked={agree}

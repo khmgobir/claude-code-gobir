@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Navbar } from "@/components/site/navbar";
-import { Hero, HeroBadgeRow } from "@/components/site/hero";
+import { Hero } from "@/components/site/hero";
 import { Benefits } from "@/components/site/benefits";
 import { Courses } from "@/components/site/courses";
 import { Counters } from "@/components/site/counters";
@@ -43,7 +43,6 @@ export default function Home() {
       <Navbar onManage={() => setManageOpen(true)} />
       <main className="flex-1">
         <Hero />
-        <HeroBadgeRow />
         <Benefits />
         <Courses />
         <Counters />
