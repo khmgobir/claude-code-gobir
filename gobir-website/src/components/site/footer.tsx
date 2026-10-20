@@ -6,8 +6,16 @@ import { WHATSAPP_LINK } from "@/lib/booking";
 
 export function Footer({ onManage, onOwner }: { onManage: () => void; onOwner: () => void }) {
   return (
-    <footer className="mt-auto border-t bg-foreground text-background">
-      <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+    <footer className="relative mt-auto overflow-hidden border-t bg-foreground text-background">
+      {/* Subtle brand-collage texture (kept faint and behind a dark wash so it
+          reads as texture, not legible posters). */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-[0.06] blur-[1px]"
+        style={{ backgroundImage: "url(/img/collage.webp)" }}
+      />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-foreground/80 via-foreground/70 to-foreground/90" />
+      <div className="relative mx-auto max-w-6xl px-4 py-12 sm:px-6">
         <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr]">
           <div>
             <div className="flex items-center gap-2.5">

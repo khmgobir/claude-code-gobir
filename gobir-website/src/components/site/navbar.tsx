@@ -6,10 +6,10 @@ import { Menu, X, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const LINKS = [
-  { href: "#courses", label: "What you'll learn" },
-  { href: "#book", label: "Book" },
+  { href: "#courses", label: "Courses" },
+  { href: "#gallery", label: "Gallery" },
   { href: "#pricing", label: "Pricing" },
-  { href: "#testimonials", label: "Stories" },
+  { href: "#testimonials", label: "Reviews" },
   { href: "#faq", label: "FAQ" },
   { href: "#contact", label: "Contact" },
 ];
