@@ -42,8 +42,8 @@ export default function Home() {
       <Navbar onManage={() => setManageOpen(true)} />
       <main className="flex-1">
         <Hero />
-        <Courses />
         <Booking />
+        <Courses />
         <Pricing />
         <Testimonials />
         <Gallery />

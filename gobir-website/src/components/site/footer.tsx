@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { MessageCircle } from "lucide-react";
+import { Download, MessageCircle } from "lucide-react";
 import { WHATSAPP_LINK } from "@/lib/booking";
 
 export function Footer({ onManage, onOwner }: { onManage: () => void; onOwner: () => void }) {
@@ -31,15 +31,25 @@ export function Footer({ onManage, onOwner }: { onManage: () => void; onOwner: (
               anywhere online) get confident with AI and digital skills, one
               patient session at a time. Learn Digital · Build Smart · Grow.
             </p>
-            <a
-              href={WHATSAPP_LINK}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-5 inline-flex items-center gap-2 rounded-full bg-brand-green px-5 py-2.5 text-sm font-semibold text-white transition-transform hover:scale-[1.03]"
-            >
-              <MessageCircle className="h-4 w-4" />
-              WhatsApp us
-            </a>
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <a
+                href={WHATSAPP_LINK}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-full bg-brand-green px-5 py-2.5 text-sm font-semibold text-white transition-transform hover:scale-[1.03]"
+              >
+                <MessageCircle className="h-4 w-4" />
+                WhatsApp us
+              </a>
+              <a
+                href="/gobir-flyer.jpg"
+                download="Gobir-Digital-flyer.jpg"
+                className="inline-flex items-center gap-2 rounded-full border border-background/25 px-5 py-2.5 text-sm font-semibold text-background/85 transition-colors hover:bg-background/10 hover:text-background"
+              >
+                <Download className="h-4 w-4" />
+                Download flyer
+              </a>
+            </div>
           </div>
 
           <nav aria-label="Learn">

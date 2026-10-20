@@ -14,6 +14,7 @@ import {
   Loader2,
   Lock,
   MessageCircle,
+  Star,
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -196,8 +197,11 @@ export function Booking() {
   const labelCls = "text-[15px] font-semibold text-foreground/90";
 
   return (
-    <section id="book" className="relative py-16 sm:py-24" aria-label="Book a session">
+    <section id="book" className="relative overflow-hidden py-16 sm:py-24" aria-label="Book a session">
       <div className="pointer-events-none absolute inset-0 -z-10 bg-hero-mesh opacity-60" />
+      <div className="dots-pattern pointer-events-none absolute inset-0 -z-10 opacity-30" />
+      <div className="pointer-events-none absolute -top-24 right-[-10%] -z-10 h-96 w-96 rounded-full bg-gradient-to-br from-brand-royal/20 to-brand-cyan/10 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-[-20%] left-[-10%] -z-10 h-96 w-96 rounded-full bg-gradient-to-tr from-brand-coral/20 to-brand-royal/10 blur-3xl" />
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <SectionHeading
           eyebrow="Start today"
@@ -254,6 +258,16 @@ export function Booking() {
                     </li>
                   ))}
                 </ul>
+                <div className="mt-6 flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3 backdrop-blur">
+                  <div className="flex text-amber-300">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-4 w-4 fill-current" />
+                    ))}
+                  </div>
+                  <p className="text-sm font-medium text-white/90">
+                    Loved by beginners &amp; hustlers in Sokoto
+                  </p>
+                </div>
               </div>
               <div className="flex-1 rounded-3xl border bg-card p-6 shadow-soft">
                 <div className="flex items-center gap-2 text-sm font-semibold">
@@ -280,8 +294,9 @@ export function Booking() {
           </Reveal>
 
           {/* Form panel */}
-          <Reveal delay={0.1}>
-            <div className="relative overflow-hidden rounded-3xl border bg-card p-6 shadow-brand ring-1 ring-black/[0.03] sm:p-8">
+          <Reveal delay={0.1} className="relative">
+            <div className="bg-brand-gradient pointer-events-none absolute -inset-2 -z-10 rounded-[2.4rem] opacity-20 blur-2xl" />
+            <div className="relative overflow-hidden rounded-[2rem] border bg-card p-6 shadow-brand ring-1 ring-black/[0.04] sm:p-8">
               <div className="bg-brand-gradient pointer-events-none absolute inset-x-0 top-0 h-1.5" />
               <AnimatePresence mode="wait">
                 {stage === "done" ? (
