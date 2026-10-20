@@ -8,6 +8,7 @@ import {
   Loader2,
   Lock,
   Power,
+  Trash2,
   TrendingUp,
   Unlock,
   Users,
@@ -49,6 +50,8 @@ export function OwnerDialog({
 
   const [blockDate, setBlockDate] = useState("");
   const [blockTime, setBlockTime] = useState("");
+
+  const [delToken, setDelToken] = useState("");
 
   const [stats, setStats] = useState<StatsResponse | null>(null);
 
@@ -94,6 +97,43 @@ export function OwnerDialog({
         const label = which === "online" ? "Online" : which === "inperson" ? "In-person" : "All";
         setMsg(`${label} bookings are now ${next ? "OPEN" : "CLOSED"}.`);
       } else setError("Couldn't update, check PIN.");
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function removeBooking() {
+    const token = delToken.trim();
+    if (!token) {
+      setError("Enter the booking reference to remove.");
+      return;
+    }
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(
+        `Permanently delete booking ${token}? This removes the row and its calendar event, and can't be undone.`
+      )
+    )
+      return;
+    setBusy(true);
+    setError("");
+    setMsg("");
+    try {
+      const r = await api<{ ok: boolean; name?: string; reason?: string }>("delete", {
+        pin,
+        token,
+      });
+      if (r.ok) {
+        setMsg(`Deleted booking ${token}${r.name ? ` (${r.name})` : ""}.`);
+        setDelToken("");
+        loadStats();
+      } else if (r.reason === "notfound") {
+        setError(`No booking found with reference ${token}.`);
+      } else {
+        setError("Couldn't delete that booking, check the reference.");
+      }
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -254,6 +294,16 @@ export function OwnerDialog({
                               {w.topic} · {w.mode}
                               {Number(w.people) > 1 ? ` · ${w.people} people` : ""}
                             </div>
+                            {w.token ? (
+                              <button
+                                type="button"
+                                onClick={() => setDelToken(w.token!)}
+                                title="Use this reference in Remove a booking"
+                                className="mt-0.5 font-mono text-[10px] text-primary hover:underline"
+                              >
+                                {w.token}
+                              </button>
+                            ) : null}
                           </div>
                           <div className="shrink-0 pl-2 text-right">
                             <div className="font-semibold">{prettyDateSafe(w.date)}</div>
@@ -337,6 +387,38 @@ export function OwnerDialog({
                     Unblock
                   </Button>
                 </div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-destructive/25 p-4">
+              <div className="flex items-center gap-2 text-sm font-bold text-destructive">
+                <Trash2 className="h-4 w-4" />
+                Remove a booking
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Deletes the row and its calendar event for good — use it to clear
+                test or duplicate bookings.
+              </p>
+              <div className="mt-3 flex gap-2">
+                <Input
+                  value={delToken}
+                  onChange={(e) => setDelToken(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && removeBooking()}
+                  placeholder="Booking reference"
+                  className="h-10 flex-1 rounded-xl font-mono"
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={removeBooking}
+                  disabled={busy}
+                  className="h-10 rounded-full border-destructive/40 px-4 text-destructive hover:bg-destructive/5"
+                >
+                  Delete
+                </Button>
               </div>
             </div>
           </div>

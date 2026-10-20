@@ -157,6 +157,7 @@ export interface StatsWeekItem {
   topic: string;
   mode: string;
   people: string;
+  token?: string;
 }
 
 export interface StatsResponse {

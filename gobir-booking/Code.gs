@@ -46,6 +46,7 @@ function route(p) {
     case "booking":    return apiBooking(p);
     case "book":       return apiBook(p);
     case "cancel":     return apiCancel(p);
+    case "delete":     return apiDeleteBooking(p);
     case "reschedule": return apiReschedule(p);
     case "ownerstatus":return apiOwnerStatus(p);
     case "setopen":    return apiSetOpen(p);
@@ -113,6 +114,22 @@ function apiCancel(p) {
     f.sheet.getRange(f.rowIndex, idx("Status")+1).setValue("Cancelled");
     deleteCalendarEvent(f.row[idx("EventId")]);
     return { ok:true };
+  } finally { lock.releaseLock(); }
+}
+
+function apiDeleteBooking(p) {
+  // Owner-only: permanently remove a booking row (and its calendar event) by
+  // reference, so test/cancelled rows stop counting toward revenue and stats.
+  if (String(p.pin) !== ownerPin()) return { ok:false, reason:"pin" };
+  var lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    var f = findByToken(p.token);
+    if (!f) return { ok:false, reason:"notfound" };
+    var name = String(f.row[idx("Name")] || "");
+    deleteCalendarEvent(f.row[idx("EventId")]);
+    f.sheet.deleteRow(f.rowIndex);
+    buildAnalytics();
+    return { ok:true, name:name };
   } finally { lock.releaseLock(); }
 }
 
@@ -267,7 +284,7 @@ function apiStats(p){
     if (d.slice(0,7) === month) revMonth += tot;
     if (d >= today) {
       upcoming++; people += parseInt(v[i][idx("People")],10) || 0;
-      if (d <= weekEnd) wk.push({ date:d, time:normTime(v[i][idx("Time")]), name:String(v[i][idx("Name")]), topic:String(v[i][idx("Topic")]), mode:String(v[i][idx("Mode")]), people:String(v[i][idx("People")]) });
+      if (d <= weekEnd) wk.push({ date:d, time:normTime(v[i][idx("Time")]), name:String(v[i][idx("Name")]), topic:String(v[i][idx("Topic")]), mode:String(v[i][idx("Mode")]), people:String(v[i][idx("People")]), token:String(v[i][idx("Token")]) });
     }
   }
   wk.sort(function(a,b){ return (a.date+" "+a.time) < (b.date+" "+b.time) ? -1 : 1; });
