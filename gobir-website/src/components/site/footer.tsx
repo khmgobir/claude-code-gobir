@@ -60,8 +60,8 @@ export function Footer({ onManage, onOwner }: { onManage: () => void; onOwner: (
             </h3>
             <ul className="mt-4 space-y-2.5 text-sm">
               <li>
-                <a href="#how" className="text-background/70 transition-colors hover:text-background">
-                  How it works
+                <a href="#pricing" className="text-background/70 transition-colors hover:text-background">
+                  Pricing
                 </a>
               </li>
               <li>

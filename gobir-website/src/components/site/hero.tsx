@@ -75,13 +75,10 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.16 }}
             className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-foreground/70 sm:text-lg lg:mx-0"
           >
-            I sit with you one-to-one and help you use AI with confidence, get
-            comfortable on the computer, turn that idea in your head into a real
-            plan, and grow your business online. We go at your pace, hands-on,
-            until it clicks,{" "}
-            <strong className="font-semibold text-foreground">
-              no jargon, no rushing.
-            </strong>
+            In one evening session I help you actually{" "}
+            <strong className="font-semibold text-foreground">use AI</strong>, get
+            confident on the computer, and grow your business online. One-to-one,
+            hands-on, at your pace, and you leave knowing exactly what to do next.
           </motion.p>
 
           <motion.div

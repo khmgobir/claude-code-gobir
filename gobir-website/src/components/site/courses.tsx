@@ -16,7 +16,7 @@ const COURSES = [
     badge: "Most popular",
     badgeClass: "bg-brand-gradient text-white",
     title: "How to Use AI",
-    body: "Work smarter with tools like ChatGPT, Claude and Gemini, write, plan, research, create and solve everyday problems in minutes.",
+    body: "Get your work done in minutes with ChatGPT, Claude and Gemini, instead of staring at a blank page.",
     tag: "All levels",
     grad: "from-brand-royal to-brand-coral",
     soft: "bg-brand-royal/10 text-brand-royal",
@@ -26,7 +26,7 @@ const COURSES = [
     badge: "Great for beginners",
     badgeClass: "bg-brand-green/15 text-brand-green-deep",
     title: "Computer Basics & Skills",
-    body: "From switching on to confident daily use, typing, files & folders, the internet, email, online safety and the essentials.",
+    body: "Go from nervous to confident on any computer, typing, email, the internet and staying safe online.",
     tag: "Start from zero",
     grad: "from-brand-green to-brand-cyan",
     soft: "bg-brand-green/10 text-brand-green-deep",
@@ -36,7 +36,7 @@ const COURSES = [
     badge: "For creators & founders",
     badgeClass: "bg-brand-sky/15 text-brand-royal",
     title: "Turn Your Idea Into Reality",
-    body: "Have an idea but don't know where to start? We'll shape it into a clear, do-able plan, product, service or project, step by step.",
+    body: "Walk in with an idea, walk out with a clear, do-able plan and your first real steps.",
     tag: "Idea → plan",
     grad: "from-brand-navy to-brand-royal",
     soft: "bg-brand-sky/10 text-brand-royal",
@@ -46,7 +46,7 @@ const COURSES = [
     badge: "For hustlers & SMEs",
     badgeClass: "bg-brand-coral/15 text-brand-coral-deep",
     title: "Promote Your Business Online",
-    body: "Get found and grow in the digital age, social media, simple content, and digital marketing that actually brings customers.",
+    body: "Get real customers from social media, with simple content and marketing that actually works.",
     tag: "Grow & sell",
     grad: "from-brand-coral to-brand-coral-deep",
     soft: "bg-brand-coral/10 text-brand-coral-deep",
@@ -56,7 +56,7 @@ const COURSES = [
     badge: "Ages 6–15 · personalised",
     badgeClass: "bg-brand-blue/15 text-brand-royal",
     title: "Kids Digital Learning",
-    body: "Personalised, fun lessons for children, safe computer use, typing, creativity, and a friendly early start with AI, paced to each child.",
+    body: "Fun, safe, personalised lessons that give your child a real head start with computers and AI.",
     tag: "Parent approved",
     grad: "from-brand-blue to-brand-royal",
     soft: "bg-brand-blue/10 text-brand-royal",
@@ -76,7 +76,7 @@ export function Courses() {
               <span className="text-gradient">made simple</span>
             </>
           }
-          sub="Pick what you need, I'll tailor the session to your level, whether you're starting from zero or sharpening what you already know."
+          sub="Five ways to level up. Pick one, and I'll tailor the whole session to you, whether you're starting from zero or leveling up."
         />
 
         <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-6">

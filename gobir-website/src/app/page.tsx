@@ -3,10 +3,7 @@
 import { useEffect, useState } from "react";
 import { Navbar } from "@/components/site/navbar";
 import { Hero } from "@/components/site/hero";
-import { Benefits } from "@/components/site/benefits";
 import { Courses } from "@/components/site/courses";
-import { Counters } from "@/components/site/counters";
-import { HowItWorks } from "@/components/site/how-it-works";
 import { Testimonials } from "@/components/site/testimonials";
 import { Pricing } from "@/components/site/pricing";
 import { Booking } from "@/components/site/booking";
@@ -43,13 +40,10 @@ export default function Home() {
       <Navbar onManage={() => setManageOpen(true)} />
       <main className="flex-1">
         <Hero />
-        <Benefits />
         <Courses />
-        <Counters />
-        <HowItWorks />
-        <Testimonials />
-        <Pricing />
         <Booking />
+        <Pricing />
+        <Testimonials />
         <Faq />
         <Contact />
       </main>

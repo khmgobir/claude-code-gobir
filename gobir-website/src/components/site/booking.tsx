@@ -200,13 +200,13 @@ export function Booking() {
       <div className="pointer-events-none absolute inset-0 -z-10 bg-hero-mesh opacity-60" />
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <SectionHeading
-          eyebrow="Book now"
+          eyebrow="Start today"
           title={
             <>
-              Reserve your <span className="text-gradient">session</span>
+              Book your first <span className="text-gradient">session</span>
             </>
           }
-          sub="Pick a date, you'll only see times that are free. Quick, easy, and you can bring others."
+          sub="One evening can change how you work. Pick a time that suits you, I confirm on WhatsApp, and we get started."
         />
 
         <div className="mt-12 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
@@ -214,30 +214,33 @@ export function Booking() {
           <Reveal>
             <div className="flex h-full flex-col gap-4">
               <div className="bg-brand-gradient rounded-3xl p-7 text-white shadow-brand">
-                <h3 className="font-display text-xl font-bold">
+                <h3 className="font-display text-2xl font-extrabold leading-tight">
                   Book in under 2 minutes
                 </h3>
-                <ul className="mt-5 space-y-4 text-sm">
+                <p className="mt-1.5 text-sm text-white/80">
+                  No experience needed. I start from wherever you are.
+                </p>
+                <ul className="mt-6 space-y-4 text-[15px]">
                   {[
                     {
                       icon: Clock3,
-                      t: "60-minute sessions",
-                      s: "Focused and hands-on",
+                      t: "60 minutes, all hands-on",
+                      s: "You practise, I guide, it sticks",
                     },
                     {
                       icon: CalendarDays,
-                      t: "Daily, 4:00pm – 10:00pm",
-                      s: "Nigeria time (WAT)",
+                      t: "Evenings, 4pm – 10pm daily",
+                      s: "Fits around work and school",
                     },
                     {
                       icon: Users,
                       t: `${naira(5000)} solo · ${naira(10000)} group`,
-                      s: "2–5 people = flat ₦10k · pay after",
+                      s: "Bring up to 5 friends and split it",
                     },
                     {
                       icon: BadgeCheck,
-                      t: "Online up to 5 · in-person 1",
-                      s: "You'll get email confirmation instantly",
+                      t: "Instant confirmation",
+                      s: "Plus a private link to manage it",
                     },
                   ].map((r) => (
                     <li key={r.t} className="flex items-start gap-3">
@@ -278,7 +281,8 @@ export function Booking() {
 
           {/* Form panel */}
           <Reveal delay={0.1}>
-            <div className="rounded-3xl border bg-card p-6 shadow-brand sm:p-8">
+            <div className="relative overflow-hidden rounded-3xl border bg-card p-6 shadow-brand ring-1 ring-black/[0.03] sm:p-8">
+              <div className="bg-brand-gradient pointer-events-none absolute inset-x-0 top-0 h-1.5" />
               <AnimatePresence mode="wait">
                 {stage === "done" ? (
                   <motion.div
@@ -358,11 +362,18 @@ export function Booking() {
                     className="space-y-4"
                     noValidate
                   >
-                    <div className="mb-2">
-                      <h3 className="font-display text-lg font-bold">Booking details</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Fields marked * are required.
-                      </p>
+                    <div className="mb-3 flex items-center gap-3">
+                      <span className="bg-brand-gradient grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-white shadow-soft">
+                        <CalendarDays className="h-5 w-5" />
+                      </span>
+                      <div>
+                        <h3 className="font-display text-xl font-bold leading-tight">
+                          Your details
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Takes about 2 minutes · fields marked * are required.
+                        </p>
+                      </div>
                     </div>
 
                     {/* honeypot, hidden from humans */}
