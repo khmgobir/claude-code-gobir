@@ -5,6 +5,7 @@ import { Navbar } from "@/components/site/navbar";
 import { Hero } from "@/components/site/hero";
 import { Courses } from "@/components/site/courses";
 import { Testimonials } from "@/components/site/testimonials";
+import { Gallery } from "@/components/site/gallery";
 import { Pricing } from "@/components/site/pricing";
 import { Booking } from "@/components/site/booking";
 import { Faq } from "@/components/site/faq";
@@ -44,6 +45,7 @@ export default function Home() {
         <Booking />
         <Pricing />
         <Testimonials />
+        <Gallery />
         <Faq />
         <Contact />
       </main>
