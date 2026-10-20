@@ -209,7 +209,7 @@ function apiBookingsList(p){
     var d = fmtDate(v[i][idx("Date")]); if (d < today) continue;
     out.push({
       token:String(v[i][idx("Token")]),
-      date:d, time:String(v[i][idx("Time")]), name:String(v[i][idx("Name")]),
+      date:d, time:normTime(v[i][idx("Time")]), name:String(v[i][idx("Name")]),
       phone:String(v[i][idx("Phone")]), topic:String(v[i][idx("Topic")]),
       mode:String(v[i][idx("Mode")]), people:String(v[i][idx("People")]),
       address:String(v[i][idx("Address")]||"")
@@ -267,7 +267,7 @@ function apiStats(p){
     if (d.slice(0,7) === month) revMonth += tot;
     if (d >= today) {
       upcoming++; people += parseInt(v[i][idx("People")],10) || 0;
-      if (d <= weekEnd) wk.push({ date:d, time:String(v[i][idx("Time")]), name:String(v[i][idx("Name")]), topic:String(v[i][idx("Topic")]), mode:String(v[i][idx("Mode")]), people:String(v[i][idx("People")]) });
+      if (d <= weekEnd) wk.push({ date:d, time:normTime(v[i][idx("Time")]), name:String(v[i][idx("Name")]), topic:String(v[i][idx("Topic")]), mode:String(v[i][idx("Mode")]), people:String(v[i][idx("People")]) });
     }
   }
   wk.sort(function(a,b){ return (a.date+" "+a.time) < (b.date+" "+b.time) ? -1 : 1; });
@@ -336,7 +336,7 @@ function apiUnsetBlock(p){
   if (!sh) return { ok:true };
   var v = sh.getDataRange().getValues();
   for (var i=v.length-1;i>=1;i--){
-    if (fmtDate(v[i][0]) === p.date && String(v[i][1]||"").trim() === String(p.time||"").trim()) sh.deleteRow(i+1);
+    if (fmtDate(v[i][0]) === p.date && normTime(v[i][1]) === normTime(p.time)) sh.deleteRow(i+1);
   }
   return { ok:true };
 }
@@ -423,6 +423,9 @@ function fmtDate(v){
   return String(v).trim();
 }
 function normTime(t){
+  // A Time cell can come back as a Date value (Sheets auto-parsed "8:00 PM"),
+  // so format it to a clean "h:mm a" string before normalising.
+  if (t instanceof Date) t = Utilities.formatDate(t, TZ, "h:mm a");
   t = String(t).trim().toUpperCase().replace(/\s+/g," ");
   var m = t.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/); if (!m) return t;
   return parseInt(m[1],10)+":"+m[2]+" "+m[3];
