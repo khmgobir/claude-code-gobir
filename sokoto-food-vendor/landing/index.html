@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Order food in Sokoto · delivered anywhere</title>
+<meta name="description" content="Hot, tasty formal meals and fast food delivered anywhere in Sokoto. Order on WhatsApp — fast delivery from UDUTH." />
+<meta property="og:title" content="Order food in Sokoto, delivered anywhere" />
+<meta property="og:description" content="Hot meals and fast food delivered anywhere in Sokoto. Order on WhatsApp." />
+<meta property="og:type" content="website" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --red:#e23b2e; --red-deep:#b81f14; --green:#128a3b; --green-deep:#0c6c2d;
+    --amber:#f5a623; --ink:#231712; --muted:#7a6a60; --cream:#fff8f1; --card:#ffffff;
+    --shadow:0 10px 30px -12px rgba(120,40,20,.28);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,sans-serif;color:var(--ink);background:var(--cream);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:720px;margin:0 auto;padding:0 16px}
+  .display{font-family:"Baloo 2",system-ui,sans-serif}
+  /* hero */
+  header.hero{position:relative;overflow:hidden;color:#fff;
+    background:radial-gradient(1200px 500px at 80% -10%,rgba(245,166,35,.55),transparent),
+               linear-gradient(135deg,var(--red) 0%,var(--red-deep) 55%,#7d140b 100%);}
+  .hero-inner{padding:26px 16px 30px;max-width:720px;margin:0 auto;position:relative;z-index:1}
+  .brandrow{display:flex;align-items:center;gap:12px}
+  .logo{width:52px;height:52px;border-radius:16px;background:#fff;display:grid;place-items:center;font-size:28px;box-shadow:var(--shadow)}
+  .brandname{font-weight:800;font-size:1.5rem;line-height:1.05;letter-spacing:-.01em}
+  .brandloc{font-size:.8rem;opacity:.9;display:flex;align-items:center;gap:5px;margin-top:2px}
+  h1{font-size:2rem;line-height:1.08;margin:18px 0 8px;font-weight:800;letter-spacing:-.02em}
+  .sub{opacity:.95;font-size:1.02rem;margin:0;max-width:34ch}
+  .badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .badge{background:rgba(255,255,255,.16);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.25);
+    padding:7px 12px;border-radius:999px;font-size:.82rem;font-weight:600;display:flex;align-items:center;gap:6px}
+  .wave{display:block;width:100%;height:28px;margin-top:-1px}
+  /* delivery strip */
+  .strip{background:var(--green);color:#fff;text-align:center;font-weight:600;font-size:.92rem;padding:10px 16px}
+  /* menu */
+  section{padding:22px 0}
+  .cat{font-family:"Baloo 2";font-weight:700;font-size:1.15rem;margin:22px 0 10px;display:flex;align-items:center;gap:8px}
+  .cat .dot{width:9px;height:9px;border-radius:50%;background:var(--amber)}
+  .item{background:var(--card);border:1px solid #f0e4da;border-radius:16px;padding:12px 12px 12px 14px;
+    display:flex;align-items:center;gap:12px;margin-bottom:10px;box-shadow:0 2px 8px -4px rgba(120,40,20,.12)}
+  .item .emoji{font-size:1.6rem;width:40px;text-align:center;flex:none}
+  .item .info{flex:1;min-width:0}
+  .item .nm{font-weight:600;font-size:.98rem}
+  .item .pr{color:var(--green-deep);font-weight:700;font-size:.9rem;margin-top:1px}
+  .qty{display:flex;align-items:center;gap:0;flex:none}
+  .qbtn{width:34px;height:34px;border-radius:10px;border:none;font-size:1.2rem;font-weight:700;cursor:pointer;
+    background:var(--cream);color:var(--red-deep);display:grid;place-items:center}
+  .qbtn:active{transform:scale(.94)}
+  .qnum{min-width:26px;text-align:center;font-weight:700}
+  .add{background:var(--red);color:#fff;border:none;border-radius:11px;padding:8px 14px;font-weight:700;cursor:pointer;font-size:.9rem}
+  .add:active{transform:scale(.96)}
+  /* info cards */
+  .infogrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+  .infocard{background:var(--card);border:1px solid #f0e4da;border-radius:16px;padding:14px}
+  .infocard .t{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+  .infocard .v{font-weight:600;margin-top:3px;font-size:.95rem}
+  .socials{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .social{flex:1;min-width:120px;text-align:center;background:var(--card);border:1px solid #f0e4da;border-radius:12px;
+    padding:11px;font-weight:600;text-decoration:none;color:var(--ink);font-size:.9rem}
+  footer{padding:26px 16px 120px;text-align:center;color:var(--muted);font-size:.82rem}
+  /* sticky order bar */
+  .orderbar{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+    background:linear-gradient(to top,var(--cream) 70%,rgba(255,248,241,0));}
+  .orderbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;max-width:720px;margin:0 auto;
+    background:#25D366;color:#fff;border:none;border-radius:999px;padding:16px;font-weight:800;font-size:1.05rem;
+    box-shadow:0 10px 24px -8px rgba(18,138,59,.6);cursor:pointer;text-decoration:none;font-family:"Baloo 2"}
+  .orderbtn:active{transform:scale(.99)}
+  .orderbtn .count{background:rgba(255,255,255,.25);border-radius:999px;padding:2px 10px;font-size:.9rem}
+  .call{display:inline-flex;align-items:center;gap:7px;color:#fff;text-decoration:none;font-weight:700;
+    background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);padding:9px 15px;border-radius:999px;margin-top:16px;font-size:.92rem}
+  @media(min-width:560px){h1{font-size:2.4rem}.infogrid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="brandrow">
+        <div class="logo" id="logo">🍲</div>
+        <div>
+          <div class="brandname display" id="brandname">Loading…</div>
+          <div class="brandloc">📍 <span id="brandloc"></span></div>
+        </div>
+      </div>
+      <h1 class="display" id="headline"></h1>
+      <p class="sub" id="tagline"></p>
+      <div class="badges" id="badges"></div>
+      <a class="call" id="callbtn" href="#">📞 Call us</a>
+    </div>
+    <svg class="wave" viewBox="0 0 720 28" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 28 L0 10 Q180 28 360 14 Q540 0 720 14 L720 28 Z" fill="#fff8f1"/>
+    </svg>
+  </header>
+
+  <div class="strip" id="deliverystrip"></div>
+
+  <main class="wrap">
+    <section>
+      <div id="menu"></div>
+    </section>
+
+    <section>
+      <div class="cat display"><span class="dot"></span>Good to know</div>
+      <div class="infogrid">
+        <div class="infocard"><div class="t">Hours</div><div class="v" id="i-hours"></div></div>
+        <div class="infocard"><div class="t">Delivery</div><div class="v" id="i-delivery"></div></div>
+        <div class="infocard"><div class="t">Payment</div><div class="v" id="i-payment"></div></div>
+        <div class="infocard"><div class="t">Pickup / base</div><div class="v" id="i-location"></div></div>
+      </div>
+      <div class="socials" id="socials"></div>
+    </section>
+  </main>
+
+  <footer>
+    <div id="footname" class="display" style="font-weight:700;color:var(--ink);font-size:1rem"></div>
+    <div style="margin-top:4px">Tap items to build your order, then send it on WhatsApp.</div>
+  </footer>
+
+  <div class="orderbar">
+    <a class="orderbtn" id="orderbtn" href="#" target="_blank" rel="noopener">
+      <span>🟢 Order on WhatsApp</span><span class="count" id="count">0 items · ₦0</span>
+    </a>
+  </div>
+
+<script>
+const EMOJI = {Rice:"🍛","Rice & Mains":"🍛","Local Dishes":"🍲","Fast Food":"🍔","Drinks":"🥤"};
+const FOOD_EMOJI = {jollof:"🍛",fried:"🍚",rice:"🍚",beans:"🫘",plantain:"🍌",pounded:"🍠",amala:"🍲",spaghetti:"🍝",
+  shawarma:"🌯",burger:"🍔",chips:"🍟",pie:"🥟",chops:"🍢",water:"💧",soft:"🥤",zobo:"🧃"};
+function foodEmoji(name){const n=name.toLowerCase();for(const k in FOOD_EMOJI)if(n.includes(k))return FOOD_EMOJI[k];return "🍽️";}
+const naira = n => "₦" + Number(n).toLocaleString("en-NG");
+const cart = {}; // id -> {item, qty}
+let CFG = null;
+
+fetch("./config.json").then(r=>r.json()).then(cfg=>{ CFG = cfg; render(cfg); }).catch(()=>{
+  document.getElementById("brandname").textContent = "Could not load menu";
+});
+
+function render(cfg){
+  const b = cfg.business;
+  document.title = b.name + " · food delivery in Sokoto";
+  document.getElementById("brandname").textContent = b.name;
+  document.getElementById("brandloc").textContent = b.location;
+  document.getElementById("headline").textContent = b.tagline;
+  document.getElementById("tagline").textContent = "Formal meals + fast food, delivered hot to your door anywhere in Sokoto.";
+  document.getElementById("footname").textContent = b.name;
+  document.getElementById("deliverystrip").textContent = "🛵 " + cfg.delivery.label;
+  document.getElementById("callbtn").href = "tel:" + (b.phone||"").replace(/\s/g,"");
+
+  // badges
+  const badges = [["⏰", cfg.hours.label],["🛵","Delivery anywhere in Sokoto"],["💳", "Pay on delivery or transfer"]];
+  document.getElementById("badges").innerHTML = badges.map(([e,t])=>`<span class="badge">${e} ${t}</span>`).join("");
+
+  // info cards
+  document.getElementById("i-hours").textContent = cfg.hours.label.replace("Open daily, ","");
+  document.getElementById("i-delivery").textContent = cfg.delivery.label;
+  document.getElementById("i-payment").textContent = cfg.payment.label;
+  document.getElementById("i-location").textContent = b.locationNote || b.location;
+
+  // socials
+  const s = b.socials||{}; const sicon={instagram:"📸 Instagram",facebook:"👍 Facebook",tiktok:"🎵 TikTok",x:"𝕏 Twitter"};
+  document.getElementById("socials").innerHTML = Object.keys(sicon)
+    .filter(k=>s[k] && !s[k].includes("your_")).map(k=>`<a class="social" target="_blank" rel="noopener" href="${s[k]}">${sicon[k]}</a>`).join("")
+    || `<div style="color:var(--muted);font-size:.85rem">Add your social links in config.json</div>`;
+
+  // menu grouped by category (preserve order of first appearance)
+  const cats = [];
+  cfg.menu.forEach(m=>{ if(!cats.includes(m.cat)) cats.push(m.cat); });
+  const menuEl = document.getElementById("menu");
+  menuEl.innerHTML = cats.map(cat=>{
+    const items = cfg.menu.filter(m=>m.cat===cat).map(m=>`
+      <div class="item">
+        <div class="emoji">${foodEmoji(m.name)}</div>
+        <div class="info"><div class="nm">${m.name}</div><div class="pr">${naira(m.price)}</div></div>
+        <div class="qty" data-id="${m.id}">
+          <button class="qbtn minus" aria-label="Remove one" style="display:none">−</button>
+          <span class="qnum" style="display:none">0</span>
+          <button class="add" aria-label="Add ${m.name}">Add +</button>
+        </div>
+      </div>`).join("");
+    return `<div class="cat display"><span class="dot"></span>${cat}</div>${items}`;
+  }).join("");
+
+  menuEl.addEventListener("click", e=>{
+    const qty = e.target.closest(".qty"); if(!qty) return;
+    const id = +qty.dataset.id; const m = cfg.menu.find(x=>x.id===id);
+    if(e.target.classList.contains("add")||e.target.classList.contains("plus")) changeQty(m,+1,qty);
+    else if(e.target.classList.contains("minus")) changeQty(m,-1,qty);
+  });
+  updateBar();
+}
+
+function changeQty(m, d, qtyEl){
+  const cur = (cart[m.id]?.qty)||0; const next = Math.max(0, cur+d);
+  if(next===0) delete cart[m.id]; else cart[m.id] = {item:m, qty:next};
+  const minus = qtyEl.querySelector(".minus"), num = qtyEl.querySelector(".qnum"), add = qtyEl.querySelector(".add");
+  if(next>0){
+    minus.style.display="grid"; num.style.display="inline-block"; num.textContent=next;
+    add.textContent="+"; add.classList.remove("add"); add.classList.add("qbtn","plus");
+  } else {
+    minus.style.display="none"; num.style.display="none";
+    add.textContent="Add +"; add.classList.remove("qbtn","plus"); add.classList.add("add");
+  }
+  updateBar();
+}
+
+function cartTotals(){
+  let items=0, sub=0; Object.values(cart).forEach(c=>{items+=c.qty; sub+=c.qty*c.item.price;});
+  return {items, sub};
+}
+function updateBar(){
+  const {items, sub} = cartTotals();
+  document.getElementById("count").textContent = items ? `${items} item${items>1?"s":""} · ${naira(sub)}` : "0 items · ₦0";
+  document.getElementById("orderbtn").href = waLink();
+}
+function waLink(){
+  const b = CFG.business; const {items, sub} = cartTotals();
+  let msg = `Hi ${b.name}! I'd like to order:\n`;
+  if(items===0){ msg += "(I'll pick from your menu)"; }
+  else {
+    Object.values(cart).forEach(c=> msg += `• ${c.qty} x ${c.item.name} — ${naira(c.qty*c.item.price)}\n`);
+    const fee = (CFG.delivery.freeFrom && sub>=CFG.delivery.freeFrom) ? 0 : CFG.delivery.feeFlat;
+    msg += `\nSubtotal: ${naira(sub)}\nDelivery: ${fee?naira(fee):"FREE"}\nTotal: ${naira(sub+fee)}\n`;
+  }
+  msg += `\nMy delivery address in Sokoto: ______`;
+  return `https://wa.me/${b.whatsapp}?text=${encodeURIComponent(msg)}`;
+}
+</script>
+</body>
+</html>

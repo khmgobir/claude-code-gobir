@@ -1,0 +1,18 @@
+{
+  "name": "sokoto-food-whatsapp-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "WhatsApp ordering bot for a Sokoto food vendor (whatsapp-web.js). Takes orders, computes totals, then hands off to the owner.",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "qrcode-terminal": "0.12.0",
+    "whatsapp-web.js": "1.26.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

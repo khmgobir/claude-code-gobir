@@ -1,0 +1,59 @@
+{
+  "_comment": "SINGLE SOURCE OF TRUTH. Edit this file to change the brand, number, menu and prices everywhere (landing page + WhatsApp bot read it). All prices are in Naira (NGN). The bot reads this same file at ../landing/config.json.",
+  "business": {
+    "name": "Sokoto Tasty Kitchen",
+    "_name_note": "SAMPLE NAME — replace with your real business name.",
+    "tagline": "Hot, tasty meals delivered anywhere in Sokoto",
+    "location": "UDUTH, Sokoto",
+    "locationNote": "Inside/near Usmanu Danfodiyo University Teaching Hospital (UDUTH)",
+    "whatsapp": "2348000000000",
+    "_whatsapp_note": "PLACEHOLDER — the business WhatsApp number in full international format, digits only, no + (e.g. 2347012345678). This is the number customers chat and the bot runs on.",
+    "ownerNotify": "2348000000000",
+    "_ownerNotify_note": "PLACEHOLDER — YOUR personal number (digits only, no +). The bot sends new-order alerts here. Keep it different from the business number above.",
+    "phone": "+234 800 000 0000",
+    "siteUrl": "https://sokoto-tasty-kitchen.netlify.app",
+    "currency": "₦",
+    "socials": {
+      "instagram": "https://instagram.com/your_handle",
+      "facebook": "https://facebook.com/your_page",
+      "tiktok": "https://tiktok.com/@your_handle",
+      "x": "https://x.com/your_handle"
+    }
+  },
+  "hours": {
+    "open": "09:00",
+    "close": "21:00",
+    "label": "Open daily, 9:00am – 9:00pm",
+    "_note": "24-hour times. The bot uses open/close to tell customers if you're open now."
+  },
+  "delivery": {
+    "feeFlat": 1000,
+    "freeFrom": 15000,
+    "label": "₦1,000 delivery within Sokoto metropolis. Free delivery on orders from ₦15,000.",
+    "note": "Exact fee for far areas is confirmed on WhatsApp before you pay."
+  },
+  "payment": {
+    "label": "Pay on delivery or bank transfer (sent on WhatsApp after you confirm).",
+    "bankName": "YOUR BANK",
+    "accountName": "YOUR ACCOUNT NAME",
+    "accountNumber": "0000000000"
+  },
+  "menu": [
+    { "id": 1,  "cat": "Rice & Mains",  "name": "Jollof Rice + Chicken",        "price": 2500 },
+    { "id": 2,  "cat": "Rice & Mains",  "name": "Fried Rice + Chicken",         "price": 2500 },
+    { "id": 3,  "cat": "Rice & Mains",  "name": "White Rice + Stew + Beef",     "price": 2200 },
+    { "id": 4,  "cat": "Rice & Mains",  "name": "Jollof Spaghetti + Chicken",   "price": 2300 },
+    { "id": 5,  "cat": "Local Dishes",  "name": "Beans + Plantain (Ewa Dodo)",  "price": 1800 },
+    { "id": 6,  "cat": "Local Dishes",  "name": "Pounded Yam + Egusi + Meat",   "price": 2800 },
+    { "id": 7,  "cat": "Local Dishes",  "name": "Amala + Ewedu + Gbegiri + Meat","price": 2800 },
+    { "id": 8,  "cat": "Fast Food",     "name": "Chicken Shawarma",             "price": 2500 },
+    { "id": 9,  "cat": "Fast Food",     "name": "Shawarma + Sausage",           "price": 3000 },
+    { "id": 10, "cat": "Fast Food",     "name": "Beef Burger",                  "price": 2000 },
+    { "id": 11, "cat": "Fast Food",     "name": "Chips + Chicken",              "price": 2500 },
+    { "id": 12, "cat": "Fast Food",     "name": "Meat Pie",                     "price": 800  },
+    { "id": 13, "cat": "Fast Food",     "name": "Small Chops (pack)",           "price": 2500 },
+    { "id": 14, "cat": "Drinks",        "name": "Bottled Water",                "price": 300  },
+    { "id": 15, "cat": "Drinks",        "name": "Soft Drink (can)",             "price": 600  },
+    { "id": 16, "cat": "Drinks",        "name": "Zobo (bottle)",                "price": 700  }
+  ]
+}
