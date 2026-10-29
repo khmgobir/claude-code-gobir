@@ -38,6 +38,14 @@
     "accountName": "YOUR ACCOUNT NAME",
     "accountNumber": "0000000000"
   },
+  "ai": {
+    "_note": "Voice-note + natural-language understanding for the bot. Needs an API key in bot/.env (OPENAI_API_KEY). If no key is set, the bot still works with typed item numbers.",
+    "provider": "openai",
+    "transcribeVoiceNotes": true,
+    "understandOrders": true,
+    "replyWithVoice": false,
+    "language": "auto"
+  },
   "menu": [
     { "id": 1,  "cat": "Rice & Mains",  "name": "Jollof Rice + Chicken",        "price": 2500 },
     { "id": 2,  "cat": "Rice & Mains",  "name": "Fried Rice + Chicken",         "price": 2500 },
