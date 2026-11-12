@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useBooking } from "./booking-context";
 
 const LINKS = [
   { href: "#courses", label: "Courses" },
+  { href: "#learn", label: "Programs" },
   { href: "#gallery", label: "Gallery" },
   { href: "#pricing", label: "Pricing" },
   { href: "#testimonials", label: "Reviews" },
@@ -17,6 +19,7 @@ const LINKS = [
 export function Navbar({ onManage }: { onManage: () => void }) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { openBooking } = useBooking();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -62,12 +65,13 @@ export function Navbar({ onManage }: { onManage: () => void }) {
           >
             Manage booking
           </button>
-          <a href="#book" className="hidden sm:block">
-            <Button className="bg-brand-gradient shadow-brand rounded-full px-5 font-semibold text-white transition-transform hover:scale-[1.03]">
-              <Sparkles className="mr-1.5 h-4 w-4" />
-              Book a session
-            </Button>
-          </a>
+          <Button
+            onClick={() => openBooking()}
+            className="bg-brand-gradient shadow-brand hidden rounded-full px-5 font-semibold text-white transition-transform hover:scale-[1.03] sm:inline-flex"
+          >
+            <Sparkles className="mr-1.5 h-4 w-4" />
+            Book a session
+          </Button>
           <button
             className="grid h-10 w-10 place-items-center rounded-full border bg-background/80 lg:hidden"
             onClick={() => setOpen((v) => !v)}
@@ -109,11 +113,15 @@ export function Navbar({ onManage }: { onManage: () => void }) {
               >
                 Manage booking
               </button>
-              <a href="#book" onClick={() => setOpen(false)} className="mt-2">
-                <Button className="bg-brand-gradient w-full rounded-full font-semibold text-white">
-                  Book a session
-                </Button>
-              </a>
+              <Button
+                onClick={() => {
+                  setOpen(false);
+                  openBooking();
+                }}
+                className="bg-brand-gradient w-full rounded-full font-semibold text-white"
+              >
+                Book a session
+              </Button>
             </div>
           </motion.nav>
         )}

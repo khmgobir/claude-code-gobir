@@ -1,45 +1,38 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertCircle,
   BadgeCheck,
   CalendarDays,
-  ChevronDown,
-  Copy,
   Check,
-  Clock3,
-  ExternalLink,
+  ChevronDown,
+  ChevronLeft,
+  Copy,
   Loader2,
-  Lock,
   MessageCircle,
-  Star,
-  Users,
+  PartyPopper,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Reveal, SectionHeading } from "./reveal";
 import {
-  api,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   naira,
-  priceFor,
-  REASON_TEXT,
+  manageUrl,
   SLOTS,
   TOPICS,
-  WHATSAPP_LINK,
-  type BookResponse,
+  waLink,
   type BookMode,
-  type SlotsResponse,
 } from "@/lib/booking";
-
-function todayISO(): string {
-  const d = new Date();
-  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-  return d.toISOString().slice(0, 10);
-}
+import { useBooking } from "./booking-context";
 
 function isoPlusDays(days: number): string {
   const d = new Date();
@@ -60,639 +53,526 @@ function prettyDate(iso: string): string {
   }
 }
 
-type Stage = "form" | "submitting" | "done";
+const formInput =
+  "h-11 rounded-xl border-input bg-white text-base shadow-sm transition-shadow focus-visible:shadow-md focus-visible:ring-2 focus-visible:ring-primary/40";
+const selectInput =
+  "h-11 w-full appearance-none rounded-xl border border-input bg-white px-3.5 pr-10 text-base shadow-sm outline-none transition-shadow focus:border-primary focus:shadow-md focus:ring-2 focus:ring-primary/30";
+const labelCls = "text-sm font-semibold text-foreground/90";
 
-export function Booking() {
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [topic, setTopic] = useState("");
-  const [mode, setMode] = useState<BookMode>("Online");
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  const [people, setPeople] = useState(1);
-  const [notes, setNotes] = useState("");
-  const [address, setAddress] = useState("");
-  const [company, setCompany] = useState(""); // honeypot
+export function BookingDialog() {
+  const b = useBooking();
+  const f = b.fields;
 
-  const [slotsState, setSlotsState] = useState<{
-    loading: boolean;
-    open: boolean | null;
-    slots: string[];
-    error: string | null;
-  }>({ loading: false, open: null, slots: [], error: null });
-
-  const [stage, setStage] = useState<Stage>("form");
-  const [errorMsg, setErrorMsg] = useState("");
-  const [token, setToken] = useState("");
-  const [copied, setCopied] = useState(false);
-  const [agree, setAgree] = useState(false);
-  const [avail, setAvail] = useState<{ online: boolean; inperson: boolean }>({ online: true, inperson: true });
-
-  // date min is client-only to avoid SSR/CSR timezone hydration mismatch
-  const [minDate, setMinDate] = useState("");
-  useEffect(() => {
-    const id = window.setTimeout(() => setMinDate(todayISO()), 0);
-    return () => window.clearTimeout(id);
-  }, []);
-
-  // which modes are currently open (for greying out a closed mode)
-  useEffect(() => {
-    api<any>("config")
-      .then((r) => {
-        if (r && r.ok) {
-          const next = { online: r.online !== false, inperson: r.inperson !== false };
-          setAvail(next);
-          setMode((m) => (m === "In person" && !next.inperson ? "Online" : m === "Online" && !next.online ? "In person" : m));
-        }
-      })
-      .catch(() => {});
-  }, []);
-  const total = priceFor(people);
-
-  // fetch free slots whenever date/mode changes
-  useEffect(() => {
-    if (!date) return;
-    let cancelled = false;
-    // defer state reset to the next tick (avoids cascading renders)
-    const kick = window.setTimeout(() => {
-      setSlotsState({ loading: true, open: null, slots: [], error: null });
-      setTime("");
-    }, 0);
-    api<SlotsResponse>("slots", { date, mode })
-      .then((r) => {
-        if (cancelled) return;
-        setSlotsState({
-          loading: false,
-          open: !!r.open,
-          slots: Array.isArray(r.slots) ? r.slots : [],
-          error: null,
-        });
-      })
-      .catch((e: Error) => {
-        if (cancelled) return;
-        setSlotsState({ loading: false, open: null, slots: [], error: e.message });
-      });
-    return () => {
-      cancelled = true;
-      window.clearTimeout(kick);
-    };
-  }, [date, mode]);
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setErrorMsg("");
-    if (!name.trim() || !phone.trim() || !email.trim() || !topic || !date || !time) {
-      setErrorMsg("Please fill in every required field (and pick a time slot).");
+  function nextStep() {
+    const err = b.validateStep1();
+    if (err) {
+      b.setErrorMsg(err);
       return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setErrorMsg("Please enter a valid email address so I can send your booking link.");
-      return;
-    }
-    if (phone.replace(/\D/g, "").length < 7) {
-      setErrorMsg("Please enter a valid phone number for your WhatsApp confirmation.");
-      return;
-    }
-    if (!agree) {
-      setErrorMsg("Please agree to the privacy note so I can arrange your session.");
-      return;
-    }
-    setStage("submitting");
-    try {
-      const res = await api<BookResponse>("book", {
-        name,
-        phone,
-        email,
-        topic,
-        mode,
-        date,
-        time,
-        people,
-        total,
-        notes,
-        address: mode === "In person" ? address : "",
-        company, // honeypot, bots only
-      });
-      if (res.ok && res.token) {
-        setToken(res.token);
-        setStage("done");
-      } else {
-        setStage("form");
-        setErrorMsg(
-          REASON_TEXT[res.reason ?? ""] ??
-            "Something went wrong. Please try again or WhatsApp me."
-        );
-      }
-    } catch (err) {
-      setStage("form");
-      setErrorMsg((err as Error).message);
-    }
+    b.setErrorMsg("");
+    b.setStep(2);
   }
 
-  const formInput =
-    "h-12 rounded-xl border-input bg-white text-base shadow-sm transition-shadow focus-visible:shadow-md focus-visible:ring-2 focus-visible:ring-primary/40";
-  const selectInput =
-    "h-12 w-full appearance-none rounded-xl border border-input bg-white px-3.5 pr-10 text-base shadow-sm outline-none transition-shadow focus:border-primary focus:shadow-md focus:ring-2 focus:ring-primary/30";
-  const labelCls = "text-[15px] font-semibold text-foreground/90";
-
   return (
-    <section id="book" className="relative overflow-hidden py-16 sm:py-24" aria-label="Book a session">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-hero-mesh opacity-60" />
-      <div className="dots-pattern pointer-events-none absolute inset-0 -z-10 opacity-30" />
-      <div className="pointer-events-none absolute -top-24 right-[-10%] -z-10 h-96 w-96 rounded-full bg-gradient-to-br from-brand-royal/20 to-brand-cyan/10 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-[-20%] left-[-10%] -z-10 h-96 w-96 rounded-full bg-gradient-to-tr from-brand-coral/20 to-brand-royal/10 blur-3xl" />
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <SectionHeading
-          eyebrow="Start today"
-          title={
-            <>
-              Book your first <span className="text-gradient">session</span>
-            </>
-          }
-          sub="One evening can change how you work. Pick a time that suits you, I confirm on WhatsApp, and we get started."
-        />
-
-        <div className="mt-12 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          {/* Info panel */}
-          <Reveal>
-            <div className="flex h-full flex-col gap-4">
-              <div className="bg-brand-gradient rounded-3xl p-7 text-white shadow-brand">
-                <h3 className="font-display text-2xl font-extrabold leading-tight">
-                  Book in under 2 minutes
-                </h3>
-                <p className="mt-1.5 text-sm text-white/80">
-                  No experience needed. I start from wherever you are.
-                </p>
-                <ul className="mt-6 space-y-4 text-[15px]">
-                  {[
-                    {
-                      icon: Clock3,
-                      t: "60 minutes, all hands-on",
-                      s: "You practise, I guide, it sticks",
-                    },
-                    {
-                      icon: CalendarDays,
-                      t: "Evenings, 4pm – 10pm daily",
-                      s: "Fits around work and school",
-                    },
-                    {
-                      icon: Users,
-                      t: `${naira(5000)} solo · ${naira(10000)} group`,
-                      s: "Bring up to 5 friends and split it",
-                    },
-                    {
-                      icon: BadgeCheck,
-                      t: "Instant confirmation",
-                      s: "Plus a private link to manage it",
-                    },
-                  ].map((r) => (
-                    <li key={r.t} className="flex items-start gap-3">
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/15 backdrop-blur">
-                        <r.icon className="h-4.5 w-4.5" />
+    <Dialog open={b.open} onOpenChange={(v) => (v ? b.setOpen(true) : b.closeBooking())}>
+      <DialogContent className="max-h-[92dvh] overflow-hidden rounded-3xl p-0 sm:max-w-lg">
+        <div className="bg-brand-gradient pointer-events-none absolute inset-x-0 top-0 h-1.5" />
+        <DialogHeader className="space-y-0 border-b px-6 pb-4 pt-6 text-left">
+          <div className="flex items-center justify-between gap-3 pr-6">
+            <DialogTitle asChild>
+              <div>
+                <div className="font-display text-lg font-extrabold leading-tight">
+                  {b.stage === "done" ? (
+                    <span className="inline-flex items-center gap-2">
+                      <span className="bg-brand-gradient grid h-8 w-8 place-items-center rounded-xl text-white">
+                        <PartyPopper className="h-4 w-4" />
                       </span>
-                      <div>
-                        <div className="font-semibold">{r.t}</div>
-                        <div className="text-white/75">{r.s}</div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-                <div className="mt-6 flex items-center gap-3 rounded-2xl bg-white/10 px-4 py-3 backdrop-blur">
-                  <div className="flex text-amber-300">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-current" />
-                    ))}
+                      You&apos;re booked!
+                    </span>
+                  ) : (
+                    <>
+                      Book your session{" "}
+                      <span className="hidden text-muted-foreground sm:inline">
+                        · step {b.step} of 2
+                      </span>
+                    </>
+                  )}
+                </div>
+                <DialogDescription className="mt-1 text-xs">
+                  {b.stage === "done"
+                    ? "Confirmation is on its way to your email."
+                    : b.step === 1
+                      ? "Pick what, where and when — under a minute."
+                      : "Almost done — just your contact details."}
+                </DialogDescription>
+              </div>
+            </DialogTitle>
+            {b.stage !== "done" && (
+              <div className="flex items-center gap-1.5 pr-1">
+                <span
+                  className={`h-2 rounded-full transition-all ${
+                    b.step === 1 ? "w-6 bg-brand-gradient" : "w-2 bg-primary/25"
+                  }`}
+                />
+                <span
+                  className={`h-2 rounded-full transition-all ${
+                    b.step === 2 ? "w-6 bg-brand-gradient" : "w-2 bg-primary/25"
+                  }`}
+                />
+              </div>
+            )}
+          </div>
+        </DialogHeader>
+
+        <div className="max-h-[60dvh] overflow-y-auto px-6 py-5">
+          <AnimatePresence mode="wait">
+            {b.stage === "done" ? (
+              <motion.div
+                key="done"
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-center"
+              >
+                <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-brand-green to-brand-cyan text-white shadow-brand">
+                  <BadgeCheck className="h-7 w-7" />
+                </span>
+                <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">
+                  {f.topic || "Your session"} · {prettyDate(f.date)} at {f.time} ·{" "}
+                  {f.mode}. A confirmation email is on its way with payment details
+                  and your private manage link.
+                </p>
+                <div className="mx-auto mt-4 flex max-w-xs items-center justify-between gap-2 rounded-2xl border bg-muted/50 px-4 py-3">
+                  <div className="text-left">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Booking reference
+                    </div>
+                    <div className="font-mono text-sm font-bold">{b.token}</div>
                   </div>
-                  <p className="text-sm font-medium text-white/90">
-                    Loved by beginners &amp; hustlers in Sokoto
+                  <button
+                    onClick={b.copyToken}
+                    aria-label="Copy booking reference"
+                    className="grid h-9 w-9 place-items-center rounded-xl border bg-white transition hover:bg-primary/5"
+                  >
+                    {b.copied ? (
+                      <Check className="h-4 w-4 text-brand-green" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+                <p className="mx-auto mt-2 max-w-xs text-xs text-muted-foreground">
+                  Save this reference — you can also manage your session any time at{" "}
+                  <a
+                    href={manageUrl(b.token)}
+                    className="font-semibold text-primary underline-offset-2 hover:underline"
+                  >
+                    Manage booking
+                  </a>
+                  .
+                </p>
+              </motion.div>
+            ) : b.step === 1 ? (
+              <motion.div key="s1" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} className="space-y-4">
+                {/* honeypot, hidden from humans */}
+                <input
+                  type="text"
+                  value={f.company}
+                  onChange={(e) => b.setField("company", e.target.value)}
+                  tabIndex={-1}
+                  autoComplete="off"
+                  className="pointer-events-none absolute h-0 w-0 opacity-0"
+                  aria-hidden="true"
+                />
+
+                <div className="space-y-1.5">
+                  <Label className={labelCls}>What do you want to learn? *</Label>
+                  <div className="relative">
+                    <select
+                      aria-label="What do you want to learn?"
+                      className={selectInput}
+                      value={f.topic}
+                      onChange={(e) => b.setField("topic", e.target.value)}
+                    >
+                      <option value="">Choose a topic…</option>
+                      {TOPICS.map((t) => (
+                        <option key={t} value={t}>
+                          {t}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className={labelCls}>How would you like to meet? *</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(["Online", "In person"] as BookMode[]).map((m) => {
+                      const closed =
+                        (m === "Online" && !b.avail.online) ||
+                        (m === "In person" && !b.avail.inperson);
+                      return (
+                        <button
+                          key={m}
+                          type="button"
+                          disabled={closed}
+                          onClick={() => {
+                            if (closed) return;
+                            b.setField("mode", m);
+                            if (m === "In person") b.setField("people", 1);
+                          }}
+                          aria-pressed={f.mode === m}
+                          title={closed ? `${m} sessions are closed right now` : undefined}
+                          className={`rounded-xl border px-4 py-2.5 text-sm font-semibold shadow-sm transition-all ${
+                            closed
+                              ? "cursor-not-allowed border-dashed bg-muted/50 text-muted-foreground opacity-60"
+                              : f.mode === m
+                                ? "border-transparent bg-brand-gradient text-white shadow-soft"
+                                : "bg-white/80 hover:bg-primary/5"
+                          }`}
+                        >
+                          {m}
+                          {closed ? " · closed" : ""}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {f.mode === "In person" && (
+                    <Input
+                      className={`${formInput} mt-1`}
+                      placeholder="Your address (area / landmark, Sokoto)"
+                      value={f.address}
+                      onChange={(e) => b.setField("address", e.target.value)}
+                    />
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className={labelCls}>People</Label>
+                    <div className="relative">
+                      <select
+                        aria-label="Number of people"
+                        className={`${selectInput} disabled:opacity-60`}
+                        value={f.people}
+                        onChange={(e) => b.setField("people", Number(e.target.value))}
+                        disabled={f.mode === "In person"}
+                      >
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <option key={n} value={n}>
+                            {n === 1 ? "Just me (1)" : `${n} people`}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="bk-date" className={labelCls}>Date *</Label>
+                    <Input
+                      id="bk-date"
+                      type="date"
+                      min={b.minDate}
+                      className={formInput}
+                      value={f.date}
+                      onChange={(e) => b.setField("date", e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: "Today", days: 0 },
+                    { label: "Tomorrow", days: 1 },
+                    { label: "In 2 days", days: 2 },
+                    { label: "In 3 days", days: 3 },
+                  ].map((q) => (
+                    <button
+                      key={q.days}
+                      type="button"
+                      onClick={() => b.setField("date", isoPlusDays(q.days))}
+                      className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-all ${
+                        f.date === isoPlusDays(q.days)
+                          ? "border-transparent bg-brand-gradient text-white shadow-soft"
+                          : "bg-white/80 text-foreground/70 hover:border-primary/40 hover:bg-primary/5"
+                      }`}
+                    >
+                      {q.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className={labelCls}>Time slot *</Label>
+                  {!f.date ? (
+                    <p className="rounded-xl border border-dashed bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+                      Pick a date first, then I&apos;ll show the free times.
+                    </p>
+                  ) : b.slotsState.loading ? (
+                    <div className="flex items-center gap-2 rounded-xl border border-dashed bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Checking free times…
+                    </div>
+                  ) : b.slotsState.error ? (
+                    <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      {b.slotsState.error}
+                    </div>
+                  ) : b.slotsState.open === false || b.slotsState.slots.length === 0 ? (
+                    <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-700">
+                      {b.slotsState.open === false
+                        ? "Bookings are closed for this date (or fully booked). Try another day."
+                        : "No free times on this date, try another day."}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-3 gap-2">
+                      {SLOTS.map((s) => {
+                        const free = b.slotsState.slots.includes(s);
+                        return (
+                          <button
+                            key={s}
+                            type="button"
+                            disabled={!free}
+                            onClick={() => b.setField("time", s)}
+                            aria-pressed={f.time === s}
+                            className={`rounded-xl border px-2 py-2.5 text-sm font-semibold shadow-sm transition-all ${
+                              f.time === s
+                                ? "border-transparent bg-brand-gradient text-white shadow-soft"
+                                : free
+                                  ? "bg-white/80 hover:border-primary/40 hover:bg-primary/5"
+                                  : "cursor-not-allowed bg-muted/50 text-muted-foreground/50 line-through"
+                            }`}
+                          >
+                            {s.replace(":00", "")}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {b.errorMsg && (
+                  <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                    {b.errorMsg}
+                  </div>
+                )}
+              </motion.div>
+            ) : (
+              <motion.form
+                key="s2"
+                initial={{ opacity: 0, x: 24 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -24 }}
+                id="bk-form"
+                onSubmit={(e) => void b.submit(e)}
+                className="space-y-4"
+                noValidate
+              >
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="bk-name" className={labelCls}>Full name *</Label>
+                    <Input
+                      id="bk-name"
+                      className={formInput}
+                      placeholder="e.g. Aisha Bello"
+                      value={f.name}
+                      onChange={(e) => b.setField("name", e.target.value)}
+                      autoFocus
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="bk-phone" className={labelCls}>Phone / WhatsApp *</Label>
+                    <Input
+                      id="bk-phone"
+                      className={formInput}
+                      type="tel"
+                      inputMode="tel"
+                      placeholder="0801 234 5678"
+                      value={f.phone}
+                      onChange={(e) => b.setField("phone", e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="bk-email" className={labelCls}>Email *</Label>
+                  <Input
+                    id="bk-email"
+                    className={formInput}
+                    type="email"
+                    inputMode="email"
+                    placeholder="you@example.com"
+                    value={f.email}
+                    onChange={(e) => b.setField("email", e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Your confirmation &amp; private manage link arrive here. No email?{" "}
+                    <a
+                      href={waLink(
+                        "Hello Gobir Digital! I'd like to book a session but I don't use email — please confirm my booking here on WhatsApp."
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold text-primary underline-offset-2 hover:underline"
+                    >
+                      Book on WhatsApp instead
+                    </a>
+                    .
                   </p>
                 </div>
-              </div>
-              <div className="flex-1 rounded-3xl border bg-card p-6 shadow-soft">
-                <div className="flex items-center gap-2 text-sm font-semibold">
-                  <Lock className="h-4 w-4 text-brand-green" />
-                  Private &amp; secure
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="bk-notes" className={labelCls}>
+                    Anything I should know? <span className="font-normal text-muted-foreground">(optional)</span>
+                  </Label>
+                  <Textarea
+                    id="bk-notes"
+                    className="min-h-[64px] rounded-xl bg-white text-base shadow-sm transition-shadow focus-visible:shadow-md"
+                    placeholder="Your goal or current level…"
+                    value={f.notes}
+                    onChange={(e) => b.setField("notes", e.target.value)}
+                  />
                 </div>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  Your details are only used to arrange and deliver your session,
-                  never sold or shared. You&apos;ll get a private link to cancel or
-                  reschedule any time.
-                </p>
-                <a
-                  href={WHATSAPP_LINK}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-brand-green-deep hover:text-brand-green-deep"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                  Questions? WhatsApp me first
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              </div>
-            </div>
-          </Reveal>
 
-          {/* Form panel */}
-          <Reveal delay={0.1} className="relative">
-            <div className="bg-brand-gradient pointer-events-none absolute -inset-2 -z-10 rounded-[2.4rem] opacity-20 blur-2xl" />
-            <div className="relative overflow-hidden rounded-[2rem] border bg-card p-6 shadow-brand ring-1 ring-black/[0.04] sm:p-8">
-              <div className="bg-brand-gradient pointer-events-none absolute inset-x-0 top-0 h-1.5" />
-              <AnimatePresence mode="wait">
-                {stage === "done" ? (
-                  <motion.div
-                    key="done"
-                    initial={{ opacity: 0, scale: 0.96 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="py-6 text-center"
-                  >
-                    <span className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-brand-green to-brand-cyan text-white shadow-brand">
-                      <BadgeCheck className="h-8 w-8" />
+                <div className="flex items-start justify-between gap-3 rounded-2xl bg-brand-gradient-soft px-4 py-3">
+                  <div className="text-sm leading-snug">
+                    <span className="font-semibold">
+                      {f.topic || "Session"} · {prettyDate(f.date)} at {f.time}
                     </span>
-                    <h3 className="font-display mt-5 text-2xl font-bold">
-                      You&apos;re booked! 🎉
-                    </h3>
-                    <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
-                      {topic || "Your session"} · {prettyDate(date)} at {time} ·{" "}
-                      {mode}. A confirmation email is on its way with payment details
-                      and your private manage link.
-                    </p>
-                    <div className="mx-auto mt-5 flex max-w-xs items-center justify-between gap-2 rounded-2xl border bg-muted/50 px-4 py-3">
-                      <div className="text-left">
-                        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                          Booking reference
-                        </div>
-                        <div className="font-mono text-sm font-bold">{token}</div>
-                      </div>
-                      <button
-                        onClick={() => {
-                          navigator.clipboard?.writeText(token);
-                          setCopied(true);
-                          setTimeout(() => setCopied(false), 1600);
-                        }}
-                        aria-label="Copy booking reference"
-                        className="grid h-9 w-9 place-items-center rounded-xl border bg-white transition hover:bg-primary/5"
-                      >
-                        {copied ? (
-                          <Check className="h-4 w-4 text-brand-green" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-                      </button>
+                    <br />
+                    <span className="text-muted-foreground">
+                      {f.people === 1 ? "Solo session" : `Group of ${f.people}`} · {f.mode}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                      Total
                     </div>
-                    <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
-                      <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
-                        <Button className="rounded-full bg-gradient-to-br from-brand-green to-brand-wa px-6 font-semibold text-white">
-                          <MessageCircle className="mr-2 h-4 w-4" />
-                          Message me on WhatsApp
-                        </Button>
-                      </a>
-                      <Button
-                        variant="outline"
-                        className="rounded-full px-6 font-semibold"
-                        onClick={() => {
-                          setStage("form");
-                          setToken("");
-                          setName("");
-                          setPhone("");
-                          setEmail("");
-                          setTopic("");
-                          setDate("");
-                          setTime("");
-                          setNotes("");
-                          setAddress("");
-                          setAgree(false);
-                        }}
-                      >
-                        Book another session
-                      </Button>
+                    <div className="font-display text-gradient text-2xl font-extrabold">
+                      {naira(b.total)}
                     </div>
-                  </motion.div>
-                ) : (
-                  <motion.form
-                    key="form"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    onSubmit={submit}
-                    className="space-y-4"
-                    noValidate
-                  >
-                    <div className="mb-3 flex items-center gap-3">
-                      <span className="bg-brand-gradient grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-white shadow-soft">
-                        <CalendarDays className="h-5 w-5" />
-                      </span>
-                      <div>
-                        <h3 className="font-display text-xl font-bold leading-tight">
-                          Your details
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          Takes about 2 minutes · fields marked * are required.
-                        </p>
-                      </div>
-                    </div>
+                  </div>
+                </div>
 
-                    {/* honeypot, hidden from humans */}
-                    <input
-                      type="text"
-                      name="company"
-                      value={company}
-                      onChange={(e) => setCompany(e.target.value)}
-                      tabIndex={-1}
-                      autoComplete="off"
-                      className="pointer-events-none absolute h-0 w-0 opacity-0"
-                      aria-hidden="true"
-                    />
-
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="bk-name" className={labelCls}>Full name *</Label>
-                        <Input
-                          id="bk-name"
-                          className={formInput}
-                          placeholder="e.g. Aisha Bello"
-                          value={name}
-                          onChange={(e) => setName(e.target.value)}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="bk-phone" className={labelCls}>Phone / WhatsApp *</Label>
-                        <Input
-                          id="bk-phone"
-                          className={formInput}
-                          type="tel"
-                          placeholder="0801 234 5678"
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label htmlFor="bk-email" className={labelCls}>Email *</Label>
-                      <Input
-                        id="bk-email"
-                        className={formInput}
-                        type="email"
-                        placeholder="you@example.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label htmlFor="bk-topic" className={labelCls}>What do you want to learn? *</Label>
-                      <div className="relative">
-                        <select
-                          id="bk-topic"
-                          className={selectInput}
-                          value={topic}
-                          onChange={(e) => setTopic(e.target.value)}
-                          required
-                        >
-                          <option value="">Choose a topic…</option>
-                          {TOPICS.map((t) => (
-                            <option key={t} value={t}>
-                              {t}
-                            </option>
-                          ))}
-                        </select>
-                        <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label className={labelCls}>How would you like to meet? *</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {(["Online", "In person"] as BookMode[]).map((m) => {
-                          const closed =
-                            (m === "Online" && !avail.online) ||
-                            (m === "In person" && !avail.inperson);
-                          return (
-                            <button
-                              key={m}
-                              type="button"
-                              disabled={closed}
-                              onClick={() => {
-                                if (closed) return;
-                                setMode(m);
-                                // In-person sessions are exclusive → 1 person only
-                                if (m === "In person") setPeople(1);
-                              }}
-                              aria-pressed={mode === m}
-                              title={closed ? `${m} sessions are closed right now` : undefined}
-                              className={`rounded-xl border px-4 py-3 text-[15px] font-semibold shadow-sm transition-all ${
-                                closed
-                                  ? "cursor-not-allowed border-dashed bg-muted/50 text-muted-foreground opacity-60"
-                                  : mode === m
-                                    ? "border-transparent bg-brand-gradient text-white shadow-soft"
-                                    : "bg-white/80 hover:bg-primary/5"
-                              }`}
-                            >
-                              {m}
-                              {closed ? " · closed" : ""}
-                            </button>
-                          );
-                        })}
-                      </div>
-                      {mode === "In person" && (
-                        <p className="pt-1 text-sm text-muted-foreground">
-                          In-person sessions are exclusive, just you. Tell me where
-                          to meet:
-                        </p>
-                      )}
-                      {mode === "In person" && (
-                        <Input
-                          className={formInput}
-                          placeholder="Your address (area / landmark, Sokoto)"
-                          value={address}
-                          onChange={(e) => setAddress(e.target.value)}
-                        />
-                      )}
-                    </div>
-
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="bk-date" className={labelCls}>Preferred date *</Label>
-                        <Input
-                          id="bk-date"
-                          type="date"
-                          min={minDate}
-                          className={formInput}
-                          value={date}
-                          onChange={(e) => setDate(e.target.value)}
-                          required
-                        />
-                        <div className="flex flex-wrap gap-2 pt-1">
-                          {[
-                            { label: "Today", days: 0 },
-                            { label: "Tomorrow", days: 1 },
-                            { label: "In 2 days", days: 2 },
-                            { label: "In 3 days", days: 3 },
-                          ].map((q) => (
-                            <button
-                              key={q.days}
-                              type="button"
-                              onClick={() => setDate(isoPlusDays(q.days))}
-                              className={`rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-all ${
-                                date === isoPlusDays(q.days)
-                                  ? "border-transparent bg-brand-gradient text-white shadow-soft"
-                                  : "bg-white/80 text-foreground/70 hover:border-primary/40 hover:bg-primary/5"
-                              }`}
-                            >
-                              {q.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="bk-people" className={labelCls}>Number of people *</Label>
-                        <div className="relative">
-                          <select
-                            id="bk-people"
-                            className={`${selectInput} disabled:opacity-60`}
-                            value={people}
-                            onChange={(e) => setPeople(Number(e.target.value))}
-                            disabled={mode === "In person"}
-                          >
-                            {[1, 2, 3, 4, 5].map((n) => (
-                              <option key={n} value={n}>
-                                {n === 1 ? "Just me (1)" : `${n} people`}
-                              </option>
-                            ))}
-                          </select>
-                          <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* slots */}
-                    <div className="space-y-1.5">
-                      <Label className={labelCls}>Time slot *</Label>
-                      {!date ? (
-                        <p className="rounded-xl border border-dashed bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-                          Pick a date first, then I&apos;ll show the free times.
-                        </p>
-                      ) : slotsState.loading ? (
-                        <div className="flex items-center gap-2 rounded-xl border border-dashed bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Checking free times…
-                        </div>
-                      ) : slotsState.error ? (
-                        <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-                          <AlertCircle className="h-4 w-4" />
-                          {slotsState.error}
-                        </div>
-                      ) : slotsState.open === false || slotsState.slots.length === 0 ? (
-                        <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-700">
-                          {slotsState.open === false
-                            ? "Bookings are closed for this date (or fully booked). Try another day."
-                            : "No free times on this date, try another day."}
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-3 gap-2">
-                          {SLOTS.map((s) => {
-                            const free = slotsState.slots.includes(s);
-                            return (
-                              <button
-                                key={s}
-                                type="button"
-                                disabled={!free}
-                                onClick={() => setTime(s)}
-                                aria-pressed={time === s}
-                                className={`rounded-xl border px-2 py-3 text-sm font-semibold shadow-sm transition-all ${
-                                  time === s
-                                    ? "border-transparent bg-brand-gradient text-white shadow-soft"
-                                    : free
-                                      ? "bg-white/80 hover:border-primary/40 hover:bg-primary/5"
-                                      : "cursor-not-allowed bg-muted/50 text-muted-foreground/50 line-through"
-                                }`}
-                              >
-                                {s.replace(":00", "")}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label htmlFor="bk-notes" className={labelCls}>Anything I should know? (optional)</Label>
-                      <Textarea
-                        id="bk-notes"
-                        className="min-h-[88px] rounded-xl bg-white text-base shadow-sm transition-shadow focus-visible:shadow-md"
-                        placeholder="Your goal, current level, or anything to prepare…"
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between rounded-2xl bg-brand-gradient-soft px-4 py-3">
-                      <span className="text-sm font-semibold">Estimated total</span>
-                      <span className="font-display text-gradient text-2xl font-extrabold">
-                        {naira(total)}
-                      </span>
-                    </div>
-
-                    <label className="flex cursor-pointer items-start gap-3 text-[13px] leading-relaxed text-muted-foreground">
-                      <input
-                        type="checkbox"
-                        checked={agree}
-                        onChange={(e) => setAgree(e.target.checked)}
-                        className="mt-0.5 h-4 w-4 shrink-0 accent-[#2f9dff]"
-                      />
-                      <span>
-                        I agree that Gobir Digital may store and use my details{" "}
-                        <strong className="font-semibold text-foreground">only</strong>{" "}
-                        to arrange and deliver my session (see our{" "}
-                        <a
-                          href="/privacy/"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-semibold text-primary underline-offset-2 hover:underline"
-                        >
-                          privacy policy
-                        </a>
-                        ).
-                      </span>
-                    </label>
-
-                    {errorMsg && (
-                      <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-                        <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-                        {errorMsg}
-                      </div>
-                    )}
-
-                    <Button
-                      type="submit"
-                      disabled={stage === "submitting"}
-                      className="bg-brand-gradient shadow-brand h-12 w-full rounded-full text-base font-semibold text-white transition-transform hover:scale-[1.01] disabled:opacity-70"
+                <label className="flex cursor-pointer items-start gap-3 text-[13px] leading-relaxed text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={f.agree}
+                    onChange={(e) => b.setField("agree", e.target.checked)}
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-[#2f9dff]"
+                  />
+                  <span>
+                    I agree that Gobir Digital may store and use my details{" "}
+                    <strong className="font-semibold text-foreground">only</strong>{" "}
+                    to arrange and deliver my session (see our{" "}
+                    <a
+                      href="/privacy/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-semibold text-primary underline-offset-2 hover:underline"
                     >
-                      {stage === "submitting" ? (
-                        <>
-                          <Loader2 className="mr-2 h-4.5 w-4.5 animate-spin" />
-                          Confirming your booking…
-                        </>
-                      ) : (
-                        <>
-                          <CalendarDays className="mr-2 h-4.5 w-4.5" />
-                          Confirm booking · {naira(total)}
-                        </>
-                      )}
-                    </Button>
-                    <p className="text-center text-[11px] text-muted-foreground">
-                      Secure (HTTPS) · stored privately · never sold or shared
-                    </p>
-                  </motion.form>
+                      privacy policy
+                    </a>
+                    ).
+                  </span>
+                </label>
+
+                {b.errorMsg && (
+                  <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+                    <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                    {b.errorMsg}
+                  </div>
                 )}
-              </AnimatePresence>
-            </div>
-          </Reveal>
+              </motion.form>
+            )}
+          </AnimatePresence>
         </div>
-      </div>
-    </section>
+
+        {b.stage !== "done" && (
+          <div className="flex items-center justify-between gap-3 border-t bg-muted/30 px-6 py-4">
+            <div className="text-sm">
+              <span className="font-semibold">{naira(b.total)}</span>
+              <span className="text-muted-foreground">
+                {" "}· pay after booking
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {b.step === 2 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="rounded-full px-4 font-semibold"
+                  onClick={() => b.setStep(1)}
+                >
+                  <ChevronLeft className="mr-1 h-4 w-4" />
+                  Back
+                </Button>
+              )}
+              {b.step === 1 ? (
+                <Button
+                  type="button"
+                  onClick={nextStep}
+                  className="bg-brand-gradient shadow-brand rounded-full px-6 font-semibold text-white"
+                >
+                  Continue
+                  <CalendarDays className="ml-1.5 h-4 w-4" />
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={() => {
+                    const form = document.getElementById("bk-form") as HTMLFormElement | null;
+                    form?.requestSubmit();
+                  }}
+                  disabled={b.stage === "submitting"}
+                  className="bg-brand-gradient shadow-brand rounded-full px-6 font-semibold text-white disabled:opacity-70"
+                >
+                  {b.stage === "submitting" ? (
+                    <>
+                      <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                      Confirming…
+                    </>
+                  ) : (
+                    <>
+                      <CalendarDays className="mr-1.5 h-4 w-4" />
+                      Confirm · {naira(b.total)}
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {b.stage === "done" && (
+          <div className="flex flex-col gap-2 border-t bg-muted/30 px-6 py-4 sm:flex-row">
+            <a
+              href={waLink(
+                `Hello Gobir Digital! I just booked a session (reference: ${b.token}). Please confirm my payment details.`
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1"
+            >
+              <Button className="w-full rounded-full bg-gradient-to-br from-brand-green to-brand-wa font-semibold text-white">
+                <MessageCircle className="mr-2 h-4 w-4" />
+                WhatsApp me
+              </Button>
+            </a>
+            <Button
+              variant="outline"
+              className="flex-1 rounded-full font-semibold"
+              onClick={() => {
+                b.resetAll();
+                b.closeBooking();
+              }}
+            >
+              Done
+            </Button>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }

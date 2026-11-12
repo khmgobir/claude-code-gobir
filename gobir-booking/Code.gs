@@ -1,5 +1,5 @@
 /**
- * Gobir Digital — Booking API (Google Apps Script)
+ * Gobir Digital — Booking API (Google Apps Script) — v3 hardened
  * ------------------------------------------------------------------
  * Serves the website (via JSONP ?callback=) and stores bookings in
  * this spreadsheet. Features:
@@ -8,6 +8,10 @@
  *   • block times  — add rows to the "Blocked" sheet (date, or date+time)
  *   • cancel / reschedule — each booking gets a token (manage link)
  *   • Google Calendar event per booking with a 30-minute reminder
+ *   • v3 SECURITY: owner-PIN brute-force lock (5 fails → 10 min),
+ *     booking-reference lookup throttle (20 fails → 15 min), audit
+ *     "Logs" sheet, setpin action (change the owner PIN from the site),
+ *     pinIsDefault flag, 12-char unambiguous booking references.
  *
  * Deploy: Deploy → New deployment → Web app → Execute as: Me →
  *         Who has access: Anyone. Re-deploy a NEW VERSION after edits.
@@ -56,8 +60,92 @@ function route(p) {
     case "config":     return apiConfig(p);
     case "setconfig":  return apiSetConfig(p);
     case "stats":      return apiStats(p);
+    case "setpin":     return apiSetPin(p);
+    case "request":    return apiProgramRequest(p);
+    case "requeststatus": return apiRequestStatus(p);
     default:           return { ok:false, reason:"unknown_action" };
   }
+}
+
+/* ---------------- security: throttling + audit log (v3) ----------------
+ * Owner-PIN attempts:  5 wrong tries lock all PIN actions for 10 minutes.
+ * Reference lookups:  20 failed lookups lock booking/cancel/reschedule for
+ *                      15 minutes (stops guessing booking references).
+ * Every sensitive event is appended to a "Logs" sheet (trimmed to ~500 rows).
+ * Counters live in CacheService (script-wide, expires automatically). */
+var PIN_MAX_FAILS = 5, PIN_LOCK_SEC = 600;
+var LOOKUP_MAX_FAILS = 20, LOOKUP_LOCK_SEC = 900;
+var LOGS_MAX = 500;
+
+function secCache(){ return CacheService.getScriptCache(); }
+
+function addFail(key, ttlSec){
+  var n = failCount(key) + 1;
+  secCache().put(key, String(n), ttlSec);   // counter dies with the window
+  return n;
+}
+function failCount(key){
+  var v = secCache().get(key);
+  return v ? parseInt(v, 10) : 0;
+}
+function clearFails(key){ secCache().remove(key); }
+
+/** Gate for every PIN-protected action. Returns null to proceed, or an error object. */
+function pinGate(p){
+  if (secCache().get("lock:pin")) return { ok:false, reason:"pinlocked" };
+  if (String(p.pin) !== ownerPin()) {
+    var n = addFail("fails:pin", PIN_LOCK_SEC);
+    logEvent("pin_fail", "failed attempt " + n + " of " + PIN_MAX_FAILS);
+    if (n >= PIN_MAX_FAILS) {
+      secCache().put("lock:pin", "1", PIN_LOCK_SEC);
+      clearFails("fails:pin");
+      logEvent("pin_locked", "PIN actions locked for " + PIN_LOCK_SEC + "s");
+    }
+    return { ok:false, reason:"pin" };
+  }
+  clearFails("fails:pin");
+  return null;
+}
+
+/** Gate for booking-reference lookups. Returns null to proceed, or an error object. */
+function tokenGate(){
+  if (secCache().get("lock:lookup")) return { ok:false, reason:"ratelimit" };
+  return null;
+}
+function tokenFail(where){
+  if (secCache().get("lock:lookup")) return;
+  var n = addFail("fails:lookup", LOOKUP_LOCK_SEC);
+  logEvent("lookup_fail", where + " failed lookup " + n + " of " + LOOKUP_MAX_FAILS);
+  if (n >= LOOKUP_MAX_FAILS) {
+    secCache().put("lock:lookup", "1", LOOKUP_LOCK_SEC);
+    clearFails("fails:lookup");
+    logEvent("lookup_locked", "lookups locked for " + LOOKUP_LOCK_SEC + "s");
+  }
+}
+
+/** Append-only audit trail: Timestamp | Action | Detail, trimmed to LOGS_MAX rows. */
+function logEvent(action, detail){
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sh = ss.getSheetByName("Logs");
+    if (!sh) {
+      sh = ss.insertSheet("Logs");
+      sh.appendRow(["Timestamp", "Action", "Detail"]);
+      sh.setFrozenRows(1);
+    }
+    sh.appendRow([ new Date(), String(action).slice(0,40), String(detail||"").slice(0,200) ]);
+    var rows = sh.getLastRow();
+    if (rows > LOGS_MAX + 20) sh.deleteRows(2, rows - LOGS_MAX);
+  } catch (e) {}
+}
+
+/** New 12-char booking reference from an unambiguous alphabet (no 0/O, 1/I/L). */
+function newToken(){
+  var chars = "abcdefghjkmnpqrstuvwxyz23456789";
+  var pool = (Utilities.getUuid() + Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, "");
+  var out = "";
+  for (var i = 0; i < 12; i++) out += chars.charAt(parseInt(pool.substr(i * 2, 2), 16) % chars.length);
+  return out;
 }
 
 /* ---------------- API handlers ---------------- */
@@ -74,8 +162,14 @@ function apiSlots(p) {
 }
 
 function apiBooking(p) {
+  var g = tokenGate();
+  if (g) return g;
   var f = findByToken(p.token);
-  if (!f || String(f.row[idx("Status")]).toLowerCase() === "cancelled") return { ok:true, found:false };
+  if (!f) {
+    tokenFail("booking");
+    return { ok:true, found:false };
+  }
+  if (String(f.row[idx("Status")]).toLowerCase() === "cancelled") return { ok:true, found:false };
   return { ok:true, found:true, booking:{
     name:  f.row[idx("Name")], topic: f.row[idx("Topic")], mode: f.row[idx("Mode")],
     date:  f.row[idx("Date")], time:  f.row[idx("Time")], people: f.row[idx("People")]
@@ -94,7 +188,7 @@ function apiBook(p) {
 
     var sh = bookingsSheet();
     p.total = ((parseInt(p.people,10)||1) > 1 ? priceGroup() : priceSolo());
-    var token = Utilities.getUuid().replace(/-/g,"").slice(0,10);
+    var token = newToken();
     var eventId = createCalendarEvent(p);
     sh.appendRow([ new Date(), token, "Booked",
       safe(p.name), safe(p.phone), safe(p.email), safe(p.topic), safe(p.mode),
@@ -102,17 +196,21 @@ function apiBook(p) {
     notifyOwner(p);
     sendClientEmail(p, token);
     buildAnalytics();
+    logEvent("book", safe(p.name) + " · " + p.topic + " · " + p.date + " " + p.time + " · ref " + token);
     return { ok:true, token:token };
   } finally { lock.releaseLock(); }
 }
 
 function apiCancel(p) {
+  var g = tokenGate();
+  if (g) return g;
   var lock = LockService.getScriptLock(); lock.waitLock(20000);
   try {
     var f = findByToken(p.token);
-    if (!f) return { ok:false, reason:"notfound" };
+    if (!f) { tokenFail("cancel"); return { ok:false, reason:"notfound" }; }
     f.sheet.getRange(f.rowIndex, idx("Status")+1).setValue("Cancelled");
     deleteCalendarEvent(f.row[idx("EventId")]);
+    logEvent("cancel", "ref " + p.token + " cancelled by client link");
     return { ok:true };
   } finally { lock.releaseLock(); }
 }
@@ -120,7 +218,8 @@ function apiCancel(p) {
 function apiDeleteBooking(p) {
   // Owner-only: permanently remove a booking row (and its calendar event) by
   // reference, so test/cancelled rows stop counting toward revenue and stats.
-  if (String(p.pin) !== ownerPin()) return { ok:false, reason:"pin" };
+  var g = pinGate(p);
+  if (g) return g;
   var lock = LockService.getScriptLock(); lock.waitLock(20000);
   try {
     var f = findByToken(p.token);
@@ -129,15 +228,18 @@ function apiDeleteBooking(p) {
     deleteCalendarEvent(f.row[idx("EventId")]);
     f.sheet.deleteRow(f.rowIndex);
     buildAnalytics();
+    logEvent("delete", "owner deleted ref " + p.token + " (" + name + ")");
     return { ok:true, name:name };
   } finally { lock.releaseLock(); }
 }
 
 function apiReschedule(p) {
+  var g = tokenGate();
+  if (g) return g;
   var lock = LockService.getScriptLock(); lock.waitLock(20000);
   try {
     var f = findByToken(p.token);
-    if (!f) return { ok:false, reason:"notfound" };
+    if (!f) { tokenFail("reschedule"); return { ok:false, reason:"notfound" }; }
     if (!p.date || !p.time) return { ok:false, reason:"invalid" };
     var rmode = f.row[idx("Mode")] || "Online";
     if (!modeOpen(rmode)) return { ok:false, reason:"closed" };
@@ -157,6 +259,7 @@ function apiReschedule(p) {
     };
     var newId = createCalendarEvent(merged);
     f.sheet.getRange(f.rowIndex, idx("EventId")+1).setValue(newId || "");
+    logEvent("reschedule", "ref " + p.token + " moved to " + p.date + " " + p.time);
     return { ok:true };
   } finally { lock.releaseLock(); }
 }
@@ -213,11 +316,25 @@ function modeOpen(mode){
   return String(mode).toLowerCase().indexOf("person") >= 0 ? inPersonOpen() : onlineOpen();
 }
 function apiOwnerStatus(p){
-  if (String(p.pin) !== ownerPin()) return { ok:false, reason:"pin" };
-  return { ok:true, open:bookingOpen(), online:onlineOpen(), inperson:inPersonOpen() };
+  var g = pinGate(p);
+  if (g) return g;
+  return { ok:true, open:bookingOpen(), online:onlineOpen(), inperson:inPersonOpen(),
+           pinIsDefault: ownerPin() === "gobir2025" };
+}
+
+/** Owner changes the booking-console PIN from the website. */
+function apiSetPin(p){
+  var g = pinGate(p);
+  if (g) return g;
+  var np = String(p.newpin || "").trim();
+  if (np.length < 6 || np === "gobir2025") return { ok:false, reason:"weak" };
+  setSetting("OwnerPIN", np);
+  logEvent("setpin", "owner PIN changed from the console");
+  return { ok:true };
 }
 function apiBookingsList(p){
-  if (String(p.pin) !== ownerPin()) return { ok:false, reason:"pin" };
+  var g = pinGate(p);
+  if (g) return g;
   var sh = bookingsSheet(), v = sh.getDataRange().getValues();
   var today = Utilities.formatDate(new Date(), TZ, "yyyy-MM-dd");
   var out = [];
@@ -261,15 +378,81 @@ function apiConfig(p){
            online:modeOpen("Online"), inperson:modeOpen("In person") };
 }
 function apiSetConfig(p){
-  if (String(p.pin) !== ownerPin()) return { ok:false, reason:"pin" };
+  var g = pinGate(p);
+  if (g) return g;
   if (p.priceSolo !== undefined && p.priceSolo !== "")   setSetting("PriceSolo", parseFloat(p.priceSolo) || priceSolo());
   if (p.priceGroup !== undefined && p.priceGroup !== "") setSetting("PriceGroup", parseFloat(p.priceGroup) || priceGroup());
   if (p.duration !== undefined && p.duration !== "")     setSetting("Duration", parseInt(p.duration,10) || durationMin());
   return { ok:true, priceSolo:priceSolo(), priceGroup:priceGroup(), duration:durationMin() };
 }
 
+/* ---------------- program requests (Home Schooling / Research) ----------------
+ * The site's program dialogs POST a JSON body (no-cors, text/plain):
+ *   { action:"request", ref, type:"homeschool"|"research",
+ *     name, phone, email, details, company?, files:[{name,type,size,b64}] }
+ * and then poll ?action=requeststatus&ref=... via JSONP until found. */
+function apiProgramRequest(p) {
+  if (p.company) return { ok:true };                     // honeypot → ignore silently
+  if (!p.name || !p.phone || !p.email || !p.type || !p.ref) return { ok:false, reason:"invalid" };
+  var lock = LockService.getScriptLock(); lock.waitLock(20000);
+  try {
+    if (findByRef(p.ref)) return { ok:true, ref:p.ref, duplicate:true };
+    var fileNames = saveRequestFiles(p);
+    requestsSheet().appendRow([ new Date(), safe(p.ref), safe(p.type), safe(p.name),
+      safe(p.phone), safe(p.email), safe(p.details), fileNames ]);
+    notifyProgramOwner(p);
+    logEvent("request", p.type + " request from " + safe(p.name) + " (" + p.ref + ")");
+    return { ok:true, ref:p.ref };
+  } finally { lock.releaseLock(); }
+}
+function apiRequestStatus(p) {
+  return { ok:true, found: !!findByRef(p.ref) };
+}
+function findByRef(ref){
+  if (!ref) return null;
+  var sh = requestsSheet(), v = sh.getDataRange().getValues();
+  for (var i=1;i<v.length;i++){ if (String(v[i][1])===String(ref)) return { sheet:sh, rowIndex:i+1, row:v[i] }; }
+  return null;
+}
+function requestsSheet(){
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName("Requests");
+  if (!sh) { sh = ss.insertSheet("Requests"); }
+  if (sh.getLastRow() === 0) {
+    sh.appendRow(["Timestamp","Ref","Type","Name","Phone","Email","Details","Files"]);
+    sh.setFrozenRows(1);
+  }
+  return sh;
+}
+function saveRequestFiles(p){
+  try {
+    if (!p.files || !p.files.length) return "";
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var folders = ss.getFoldersByName("Program Requests");
+    var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder("Program Requests");
+    var names = [];
+    for (var i=0;i<p.files.length && i<5;i++){
+      var f = p.files[i];
+      if (!f || !f.b64 || !f.name) continue;
+      var blob = Utilities.newBlob(Utilities.base64Decode(f.b64), f.type || "application/octet-stream", p.ref + " - " + f.name);
+      folder.createFile(blob);
+      names.push(f.name);
+    }
+    return names.join(", ");
+  } catch (e) { return ""; }
+}
+function notifyProgramOwner(p){
+  try {
+    MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(),
+      subject: "New program request (" + p.type + "): " + (p.name||""),
+      body: ["New program request:","","Ref: "+p.ref,"Type: "+p.type,"Name: "+p.name,
+             "Phone: "+p.phone,"Email: "+p.email,"Details: "+(p.details||"-")].join("\n") });
+  } catch (e) {}
+}
+
 function apiStats(p){
-  if (String(p.pin) !== ownerPin()) return { ok:false, reason:"pin" };
+  var g = pinGate(p);
+  if (g) return g;
   var sh = bookingsSheet(), v = sh.getDataRange().getValues();
   var today = Utilities.formatDate(new Date(), TZ, "yyyy-MM-dd");
   var month = today.slice(0,7);
@@ -291,7 +474,8 @@ function apiStats(p){
   return { ok:true, active:active, upcoming:upcoming, people:people, revenueTotal:revTotal, revenueMonth:revMonth, week:wk };
 }
 function apiSetOpen(p){
-  if (String(p.pin) !== ownerPin()) return { ok:false, reason:"pin" };
+  var g = pinGate(p);
+  if (g) return g;
   var val = String(p.value).toLowerCase();
   var open = (val==="yes"||val==="open"||val==="true"||val==="1");
   var which = String(p.which||"all").toLowerCase();
@@ -338,7 +522,8 @@ function slotFree(usage, time, mode){
 
 /* ---------- owner: block / unblock specific days or slots ---------- */
 function apiSetBlock(p){
-  if (String(p.pin) !== ownerPin()) return { ok:false, reason:"pin" };
+  var g = pinGate(p);
+  if (g) return g;
   if (!p.date) return { ok:false, reason:"nodate" };
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName("Blocked");
@@ -347,7 +532,8 @@ function apiSetBlock(p){
   return { ok:true };
 }
 function apiUnsetBlock(p){
-  if (String(p.pin) !== ownerPin()) return { ok:false, reason:"pin" };
+  var g = pinGate(p);
+  if (g) return g;
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sh = ss.getSheetByName("Blocked");
   if (!sh) return { ok:true };
@@ -393,7 +579,7 @@ function sendClientEmail(p, token){
   try {
     if (!p.email || p.email.indexOf("@") < 0) return;
     var base = getSiteUrl().replace(/\/+$/,"");
-    var link = base ? (base + "/gobir-digital.html?manage=" + token) : "";
+    var link = base ? (base + "/?manage=" + token) : "";
     var body = [
       "Hi " + (p.name || "") + ",", "",
       "Your Gobir Digital session is booked ✅  Here are the details:", "",

@@ -3,6 +3,7 @@
 import { Check, Users, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Reveal, SectionHeading } from "./reveal";
+import { useBooking } from "./booking-context";
 
 const FEATURES = [
   "Any topic: AI, computer, ideas, kids or marketing",
@@ -14,6 +15,7 @@ const FEATURES = [
 ];
 
 export function Pricing() {
+  const { openBooking } = useBooking();
   return (
     <section id="pricing" className="py-16 sm:py-24" aria-label="Pricing">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -56,14 +58,13 @@ export function Pricing() {
                   </li>
                 ))}
               </ul>
-              <a href="#book" className="mt-8">
-                <Button
-                  variant="outline"
-                  className="w-full rounded-full border-2 border-primary/30 py-5 font-semibold hover:bg-primary/5"
-                >
-                  Book solo · ₦5,000
-                </Button>
-              </a>
+              <Button
+                variant="outline"
+                onClick={() => openBooking({ people: 1 })}
+                className="mt-8 w-full rounded-full border-2 border-primary/30 py-5 font-semibold hover:bg-primary/5"
+              >
+                Book solo · ₦5,000
+              </Button>
             </div>
           </Reveal>
 
@@ -103,11 +104,12 @@ export function Pricing() {
                   </li>
                 ))}
               </ul>
-              <a href="#book" className="mt-8">
-                <Button className="bg-brand-gradient shadow-brand w-full rounded-full py-5 font-semibold text-white transition-transform hover:scale-[1.02]">
-                  Book a group · ₦10,000
-                </Button>
-              </a>
+              <Button
+                onClick={() => openBooking({ people: 2 })}
+                className="bg-brand-gradient shadow-brand mt-8 w-full rounded-full py-5 font-semibold text-white transition-transform hover:scale-[1.02]"
+              >
+                Book a group · ₦10,000
+              </Button>
             </div>
           </Reveal>
         </div>

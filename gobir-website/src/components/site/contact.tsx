@@ -9,7 +9,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Reveal, SectionHeading } from "./reveal";
-import { WHATSAPP_LINK, WHATSAPP_DISPLAY } from "@/lib/booking";
+import { WHATSAPP_LINK, WHATSAPP_DISPLAY, type BookMode } from "@/lib/booking";
+import { useBooking } from "./booking-context";
 
 const CARDS = [
   {
@@ -29,6 +30,7 @@ const CARDS = [
     cta: "Book in person",
     href: "#book",
     grad: "from-brand-royal to-brand-coral",
+    act: { mode: "In person" as BookMode },
   },
   {
     icon: Globe2,
@@ -38,6 +40,7 @@ const CARDS = [
     cta: "Book online",
     href: "#book",
     grad: "from-brand-blue to-brand-cyan",
+    act: { mode: "Online" as BookMode },
   },
   {
     icon: Clock3,
@@ -47,10 +50,12 @@ const CARDS = [
     cta: "See slots",
     href: "#book",
     grad: "from-brand-coral to-brand-coral-deep",
+    act: {},
   },
 ];
 
 export function Contact() {
+  const { openBooking } = useBooking();
   return (
     <section id="contact" className="py-16 sm:py-24" aria-label="Contact and location">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -71,6 +76,12 @@ export function Contact() {
                 href={c.href}
                 target={c.href.startsWith("http") ? "_blank" : undefined}
                 rel={c.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                onClick={(e) => {
+                  if ("act" in c && c.href === "#book") {
+                    e.preventDefault();
+                    openBooking("act" in c ? c.act : undefined);
+                  }
+                }}
                 className="group flex h-full flex-col rounded-3xl border bg-card p-6 shadow-soft transition-all duration-300 hover:-translate-y-1.5 hover:shadow-brand"
               >
                 <span

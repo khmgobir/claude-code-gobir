@@ -1,7 +1,37 @@
 "use client";
 
+import { Component, type ReactNode } from "react";
+import type { ErrorInfo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import type { ReactNode } from "react";
+
+/**
+ * Error boundary around Reveal: on very old Android WebViews framer-motion's
+ * IntersectionObserver code can throw during mount. Without this boundary the
+ * whole page white-screens; with it the section simply renders statically.
+ */
+class RevealBoundary extends Component<
+  { children: ReactNode; className?: string },
+  { failed: boolean }
+> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch(_error: Error, _info: ErrorInfo) {
+    /* swallow — static fallback is acceptable */
+  }
+
+  render() {
+    if (this.state.failed) {
+      return (
+        <div className={this.props.className}>{this.props.children}</div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 export function Reveal({
   children,
@@ -15,16 +45,25 @@ export function Reveal({
   className?: string;
 }) {
   const reduce = useReducedMotion();
+
   return (
-    <motion.div
-      className={className}
-      initial={reduce ? false : { opacity: 0, y }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.65, delay, ease: [0.21, 0.6, 0.35, 1] }}
-    >
-      {children}
-    </motion.div>
+    <RevealBoundary className={className}>
+      {/* initial is UNCONDITIONAL so the server HTML matches the client's first
+          render (hydration-safe); reduced motion is honoured via zero-duration
+          transition instead of changing the rendered markup. */}
+      <motion.div
+        initial={{ opacity: 0, y }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-60px" }}
+        transition={{
+          duration: reduce ? 0 : 0.65,
+          delay: reduce ? 0 : delay,
+          ease: [0.21, 0.6, 0.35, 1],
+        }}
+      >
+        {children}
+      </motion.div>
+    </RevealBoundary>
   );
 }
 

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <LegalShell title="Terms &amp; Conditions" updated="19 October 2026">
+    <LegalShell title="Terms &amp; Conditions" updated="12 November 2026">
       <p>
         These terms cover booking and attending coaching sessions with Gobir
         Digital. By booking a session you agree to them. We&apos;ve kept them
@@ -59,6 +59,18 @@ export default function TermsPage() {
           For online sessions, please join on time with a working internet
           connection. For in-person sessions, please share an accurate meeting
           address. Treat your coach and other learners with respect.
+        </p>
+      </LegalSection>
+
+      <LegalSection heading="Sessions for children &amp; teens">
+        <p>
+          For anyone under 18, the booking must be made by a parent or guardian
+          using their own contact details, and they stay responsible for the
+          booking. For online sessions we ask that a parent or guardian is
+          nearby at home, and for in-person sessions an adult must be present
+          where the child is taught (in our meeting space, a parent or guardian
+          stays on site). Payment for kids&apos; sessions follows the same
+          pricing as above.
         </p>
       </LegalSection>
 

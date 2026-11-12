@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CalendarCheck } from "lucide-react";
+import { useBooking } from "./booking-context";
 
 /**
  * Sticky mobile call-to-action. Appears on small screens once the visitor has
@@ -11,15 +12,19 @@ import { CalendarCheck } from "lucide-react";
 export function StickyCta() {
   const [show, setShow] = useState(false);
   const [consentDone, setConsentDone] = useState(true);
+  const { openBooking } = useBooking();
 
   useEffect(() => {
     // Hold the CTA back while the cookie notice is still on screen so the two
-    // bottom bars never overlap on mobile.
-    try {
-      setConsentDone(!!localStorage.getItem("gobir-consent"));
-    } catch {
-      setConsentDone(true);
-    }
+    // bottom bars never overlap on mobile. Deferred via setTimeout to avoid
+    // synchronous setState inside the effect body.
+    const boot = window.setTimeout(() => {
+      try {
+        setConsentDone(!!localStorage.getItem("gobir-consent"));
+      } catch {
+        setConsentDone(true);
+      }
+    }, 0);
     const onConsent = () => setConsentDone(true);
     window.addEventListener("gobir-consent-set", onConsent);
 
@@ -34,10 +39,12 @@ export function StickyCta() {
       setShow(scrolledEnough && !bookingVisible);
     }
 
-    onScroll();
+    const first = window.setTimeout(onScroll, 0);
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
     return () => {
+      window.clearTimeout(boot);
+      window.clearTimeout(first);
       window.removeEventListener("gobir-consent-set", onConsent);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
@@ -53,13 +60,13 @@ export function StickyCta() {
       }`}
       style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
     >
-      <a
-        href="#book"
-        className="flex items-center justify-center gap-2 rounded-full bg-brand-gradient px-6 py-3.5 text-sm font-bold text-white shadow-soft"
+      <button
+        onClick={() => openBooking()}
+        className="bg-brand-gradient shadow-soft flex w-full items-center justify-center gap-2 rounded-full px-6 py-3.5 text-sm font-bold text-white"
       >
         <CalendarCheck className="h-4.5 w-4.5" />
         Book a session
-      </a>
+      </button>
     </div>
   );
 }

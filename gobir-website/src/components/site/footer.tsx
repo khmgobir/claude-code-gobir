@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { Download, MessageCircle } from "lucide-react";
 import { WHATSAPP_LINK } from "@/lib/booking";
+import { useBooking } from "./booking-context";
 
 export function Footer({ onManage, onOwner }: { onManage: () => void; onOwner: () => void }) {
+  const { openBooking } = useBooking();
   return (
     <footer className="relative mt-auto overflow-hidden border-t bg-foreground text-background">
       {/* Subtle brand-collage texture (kept faint and behind a dark wash so it
@@ -93,9 +95,13 @@ export function Footer({ onManage, onOwner }: { onManage: () => void; onOwner: (
                 </a>
               </li>
               <li>
-                <a href="#book" className="text-background/70 transition-colors hover:text-background">
+                <button
+                  type="button"
+                  onClick={() => openBooking()}
+                  className="text-left text-background/70 transition-colors hover:text-background"
+                >
                   Book a session
-                </a>
+                </button>
               </li>
               <li>
                 <button

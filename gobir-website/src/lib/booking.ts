@@ -12,6 +12,18 @@ export const WHATSAPP_NUMBER = "2347066637888";
 export const WHATSAPP_DISPLAY = "+234 706 663 7888";
 export const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}`;
 
+export const APP_URL = "https://gobir-digital.netlify.app";
+
+/** WhatsApp deep link with a pre-filled message. */
+export function waLink(text: string): string {
+  return `${WHATSAPP_LINK}?text=${encodeURIComponent(text)}`;
+}
+
+/** Private manage link for a booking reference (opens the manage dialog). */
+export function manageUrl(token: string): string {
+  return `${APP_URL}/?manage=${encodeURIComponent(token)}`;
+}
+
 export const SLOTS = [
   "4:00 PM",
   "5:00 PM",
@@ -27,6 +39,8 @@ export const TOPICS = [
   "Turn Your Idea Into Reality",
   "Promote Your Business Online",
   "Kids Digital Learning (personalised)",
+  "Home Schooling Program",
+  "Research & Data Analysis",
   "Not sure yet, help me choose",
 ] as const;
 
@@ -135,6 +149,7 @@ export interface BookingRecord {
 export interface BookingLookupResponse {
   ok: boolean;
   found: boolean;
+  reason?: string;
   booking?: BookingRecord;
 }
 
@@ -147,6 +162,9 @@ export interface BookResponse {
 export interface OwnerStatusResponse {
   ok: boolean;
   open?: boolean;
+  online?: boolean;
+  inperson?: boolean;
+  pinIsDefault?: boolean;
   reason?: string;
 }
 
@@ -178,6 +196,10 @@ export const REASON_TEXT: Record<string, string> = {
   taken: "Sorry, that slot was just taken. Please pick another time.",
   invalid: "Please fill in every required field.",
   pin: "Wrong PIN. Try again.",
+  pinlocked:
+    "Too many wrong PIN attempts. Please wait a few minutes and try again.",
+  ratelimit:
+    "Too many attempts. Please wait a few minutes and try again.",
   notfound: "We couldn't find that booking reference.",
   nodate: "Please pick a date first.",
 };

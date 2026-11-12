@@ -5,6 +5,7 @@ import {
   AlertCircle,
   CalendarDays,
   Clock3,
+  History,
   Loader2,
   Search,
   Trash2,
@@ -30,8 +31,13 @@ import {
   type BookMode,
   type SlotsResponse,
 } from "@/lib/booking";
+import { readLastBooking } from "./booking-context";
 
 type View = "lookup" | "details";
+
+/* Progressive lockout after wrong references (pairs with the server-side throttle). */
+const FAIL_DELAYS = [0, 1, 2, 4, 8, 15, 30, 60]; // seconds of wait before the next try
+const MAX_LOCK_SECONDS = 60;
 
 export function ManageDialog({
   open,
@@ -56,10 +62,25 @@ export function ManageDialog({
   const [reschedTime, setReschedTime] = useState("");
   const [doneMsg, setDoneMsg] = useState("");
 
+  const [lastBooking, setLastBooking] = useState<{ token: string; topic: string } | null>(null);
+  const [fails, setFails] = useState(0);
+  const [cooldownLeft, setCooldownLeft] = useState(0);
+  const locked = cooldownLeft > 0;
+
+  // live countdown for the lockout
+  useEffect(() => {
+    if (!locked) return;
+    const id = window.setInterval(() => {
+      setCooldownLeft((s) => (s <= 1 ? 0 : s - 1));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [locked]);
+
   useEffect(() => {
     if (open) {
       setError("");
       setDoneMsg("");
+      setLastBooking(readLastBooking());
       if (initialToken) {
         setToken(initialToken);
         void load(initialToken);
@@ -72,6 +93,7 @@ export function ManageDialog({
   }, [open, initialToken]);
 
   async function load(t: string) {
+    if (locked) return;
     setError("");
     setDoneMsg("");
     if (!t.trim()) {
@@ -84,8 +106,22 @@ export function ManageDialog({
       if (r.ok && r.found && r.booking) {
         setBooking(r.booking);
         setView("details");
+        setFails(0);
+        setCooldownLeft(0);
+      } else if (r.reason === "ratelimit") {
+        setFails((n) => n + 1);
+        setCooldownLeft(MAX_LOCK_SECONDS);
+        setError("Too many attempts. Please wait a minute and try again.");
       } else {
-        setError("We couldn't find a booking with that reference. Check the email we sent you.");
+        const n = fails + 1;
+        setFails(n);
+        const wait = FAIL_DELAYS[Math.min(n - 1, FAIL_DELAYS.length - 1)];
+        setCooldownLeft(wait > 0 ? wait : 0);
+        setError(
+          wait >= FAIL_DELAYS[FAIL_DELAYS.length - 1]
+            ? "We couldn't find a booking with that reference. Check the email we sent you — a few more tries will need a short wait."
+            : "We couldn't find a booking with that reference. Check the email we sent you."
+        );
       }
     } catch (e) {
       setError((e as Error).message);
@@ -189,19 +225,44 @@ export function ManageDialog({
                 id="mg-token"
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && !locked && load(token)}
                 placeholder="e.g. 8f3a92c1de"
                 className="h-11 rounded-xl font-mono uppercase"
               />
             </div>
+            {lastBooking && view === "lookup" && !token && (
+              <button
+                type="button"
+                onClick={() => {
+                  setToken(lastBooking.token);
+                  void load(lastBooking.token);
+                }}
+                disabled={locked || busy}
+                className="flex w-full items-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5 text-left text-sm font-semibold text-primary transition hover:bg-primary/10 disabled:opacity-50"
+              >
+                <History className="h-4 w-4 shrink-0" />
+                Use my last booking
+                {lastBooking.topic ? (
+                  <span className="truncate font-normal text-muted-foreground">
+                    · {lastBooking.topic}
+                  </span>
+                ) : null}
+              </button>
+            )}
             {error && (
               <div className="flex items-start gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                 {error}
               </div>
             )}
+            {locked && (
+              <p className="text-center text-xs font-semibold text-muted-foreground">
+                Please wait {cooldownLeft}s before trying again.
+              </p>
+            )}
             <Button
               onClick={() => load(token)}
-              disabled={busy}
+              disabled={busy || locked}
               className="bg-brand-gradient h-11 w-full rounded-full font-semibold text-white"
             >
               {busy ? (

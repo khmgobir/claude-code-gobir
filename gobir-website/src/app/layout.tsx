@@ -4,6 +4,8 @@ import Script from "next/script";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { CookieConsent } from "@/components/site/cookie-consent";
+import { FAQS } from "@/lib/faq-data";
+import { APP_URL } from "@/lib/booking";
 
 const GA_ID = "G-B99P54VLV3";
 
@@ -13,17 +15,16 @@ const inter = Inter({
   display: "swap",
 });
 
+// Sora is a variable font (wght 100–800): dropping the static weight list
+// loads one variable file instead of five, every weight still works.
 const sora = Sora({
   variable: "--font-sora",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
   display: "swap",
 });
 
-const APP_URL = "https://gobir-digital.netlify.app";
-
 export const metadata: Metadata = {
-  metadataBase: new URL("https://gobir-digital.netlify.app"),
+  metadataBase: new URL(APP_URL),
   title: "Gobir Digital: Learn Smarter. Master AI & Digital Skills",
   description:
     "Practical, beginner-friendly coaching in AI, computer basics, app ideas and online business growth. Online or in person in Sokoto, Nigeria. Evening sessions, ₦5,000 solo or ₦10,000 for a group of 2–5.",
@@ -89,6 +90,17 @@ const jsonLd = {
   },
 };
 
+// FAQ structured data — mirrors the visible accordion (src/lib/faq-data.ts)
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQS.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: { "@type": "Answer", text: f.a },
+  })),
+};
+
 export const viewport: Viewport = {
   themeColor: "#2f9dff",
   width: "device-width",
@@ -106,6 +118,10 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
         />
         {/* Google Consent Mode v2 — default denied until the visitor accepts */}
         <Script id="ga-consent-default" strategy="beforeInteractive">

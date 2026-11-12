@@ -12,6 +12,7 @@ import {
   Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useBooking } from "./booking-context";
 
 const CHIPS = [
   { icon: Clock3, label: "60 min", sub: "per session" },
@@ -26,6 +27,7 @@ const fadeUp = {
 };
 
 export function Hero() {
+  const { openBooking } = useBooking();
   return (
     <section id="top" className="bg-hero-mesh relative overflow-hidden pt-28 pb-16 sm:pt-36 sm:pb-20">
       <div className="dots-pattern pointer-events-none absolute inset-0 opacity-40" />
@@ -86,15 +88,14 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.24 }}
             className="mt-8 flex flex-col items-center gap-3 sm:flex-row lg:justify-start sm:justify-center"
           >
-            <a href="#book" className="w-full sm:w-auto">
-              <Button
-                size="lg"
-                className="bg-brand-gradient shadow-brand w-full rounded-full px-8 py-6 text-base font-semibold text-white transition-transform hover:scale-[1.03]"
-              >
-                Book your session
-                <ArrowRight className="ml-2 h-4.5 w-4.5" />
-              </Button>
-            </a>
+            <Button
+              size="lg"
+              onClick={() => openBooking()}
+              className="bg-brand-gradient shadow-brand w-full rounded-full px-8 py-6 text-base font-semibold text-white transition-transform hover:scale-[1.03]"
+            >
+              Book your session
+              <ArrowRight className="ml-2 h-4.5 w-4.5" />
+            </Button>
             <a href="#courses" className="w-full sm:w-auto">
               <Button
                 size="lg"
@@ -138,8 +139,10 @@ export function Hero() {
           <div className="bg-brand-gradient absolute -inset-3 rounded-[2.2rem] opacity-25 blur-2xl" />
           <div className="border-gradient relative overflow-hidden rounded-[2rem] shadow-brand">
             <img
-              src="/img/hero-site.png"
+              src="/img/hero-site.webp"
               alt="A smiling student learning AI skills on a laptop with Gobir Digital"
+              fetchPriority="high"
+              decoding="async"
               className="aspect-[4/3.4] w-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-brand-navy/35 via-transparent to-transparent" />

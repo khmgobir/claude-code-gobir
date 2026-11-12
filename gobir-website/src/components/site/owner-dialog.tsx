@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   AlertCircle,
   CalendarClock,
   CalendarOff,
+  KeyRound,
   Loader2,
   Lock,
   Power,
+  ShieldAlert,
   Trash2,
   TrendingUp,
   Unlock,
@@ -28,9 +30,14 @@ import {
   SLOTS,
   naira,
   prettyDateSafe,
+  REASON_TEXT,
   type OwnerStatusResponse,
   type StatsResponse,
 } from "@/lib/booking";
+
+/* Lock the console for 5 minutes after 5 wrong PINs (pairs with the server throttle). */
+const PIN_MAX_FAILS = 5;
+const PIN_LOCK_SECONDS = 300;
 
 export function OwnerDialog({
   open,
@@ -47,6 +54,24 @@ export function OwnerDialog({
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
+
+  const [pinFails, setPinFails] = useState(0);
+  const [pinLockLeft, setPinLockLeft] = useState(0);
+  const pinLocked = pinLockLeft > 0;
+  const [pinIsDefault, setPinIsDefault] = useState(false);
+
+  const [showPinChange, setShowPinChange] = useState(false);
+  const [newPin, setNewPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+
+  // live countdown for the PIN lockout
+  useEffect(() => {
+    if (!pinLocked) return;
+    const id = window.setInterval(() => {
+      setPinLockLeft((s) => (s <= 1 ? 0 : s - 1));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [pinLocked]);
 
   const [blockDate, setBlockDate] = useState("");
   const [blockTime, setBlockTime] = useState("");
@@ -65,6 +90,7 @@ export function OwnerDialog({
   }
 
   async function login() {
+    if (pinLocked) return;
     setBusy(true);
     setError("");
     try {
@@ -72,11 +98,59 @@ export function OwnerDialog({
       if (r.ok) {
         setAuthed(true);
         setIsOpen(!!r.open);
-        setOnline(!!(r as any).online);
-        setInperson(!!(r as any).inperson);
+        setOnline(!!r.online);
+        setInperson(!!r.inperson);
+        setPinIsDefault(!!r.pinIsDefault);
+        setPinFails(0);
+        setPinLockLeft(0);
         loadStats();
+      } else if (r.reason === "pinlocked" || r.reason === "ratelimit") {
+        setPinLockLeft(PIN_LOCK_SECONDS);
+        setError(REASON_TEXT[r.reason] ?? "Too many attempts. Please wait.");
       } else {
-        setError("Wrong PIN. Try again.");
+        const n = pinFails + 1;
+        setPinFails(n);
+        if (n >= PIN_MAX_FAILS) {
+          setPinLockLeft(PIN_LOCK_SECONDS);
+          setError("Too many wrong PINs. Locked for 5 minutes.");
+        } else {
+          setError(`Wrong PIN. ${PIN_MAX_FAILS - n} attempt${PIN_MAX_FAILS - n === 1 ? "" : "s"} left before a 5-minute lock.`);
+        }
+      }
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function changePin() {
+    if (newPin.length < 6) {
+      setError("New PIN must be at least 6 characters.");
+      return;
+    }
+    if (newPin !== confirmPin) {
+      setError("The two new PINs don't match.");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    try {
+      const r = await api<{ ok: boolean; reason?: string }>("setpin", {
+        pin,
+        newpin: newPin,
+      });
+      if (r.ok) {
+        setMsg("PIN changed. Use the new PIN next time you open this console.");
+        setPinIsDefault(false);
+        setShowPinChange(false);
+        setNewPin("");
+        setConfirmPin("");
+      } else if (r.reason === "pinlocked" || r.reason === "ratelimit") {
+        setPinLockLeft(PIN_LOCK_SECONDS);
+        setError(REASON_TEXT[r.reason] ?? "Too many attempts. Please wait.");
+      } else {
+        setError("Couldn't change the PIN, check your current PIN and try again.");
       }
     } catch (e) {
       setError((e as Error).message);
@@ -211,11 +285,17 @@ export function OwnerDialog({
                 type="password"
                 value={pin}
                 onChange={(e) => setPin(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && login()}
+                onKeyDown={(e) => e.key === "Enter" && !pinLocked && login()}
                 placeholder="Your PIN"
                 className="h-11 rounded-xl"
               />
             </div>
+            {pinLocked && (
+              <p className="text-center text-xs font-semibold text-muted-foreground">
+                Locked — try again in {Math.floor(pinLockLeft / 60)}:
+                {String(pinLockLeft % 60).padStart(2, "0")}.
+              </p>
+            )}
             {error && (
               <div className="flex items-center gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
                 <AlertCircle className="h-4 w-4" /> {error}
@@ -223,7 +303,7 @@ export function OwnerDialog({
             )}
             <Button
               onClick={login}
-              disabled={busy}
+              disabled={busy || pinLocked}
               className="bg-brand-gradient h-11 w-full rounded-full font-semibold text-white"
             >
               {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
@@ -232,6 +312,15 @@ export function OwnerDialog({
           </div>
         ) : (
           <div className="space-y-5">
+            {pinIsDefault && (
+              <div className="flex items-start gap-2 rounded-xl border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-700">
+                <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
+                <span>
+                  You&apos;re still using the default PIN. Change it below to keep
+                  your console secure.
+                </span>
+              </div>
+            )}
             {msg && (
               <div className="rounded-xl border border-brand-green/30 bg-brand-green/5 px-4 py-3 text-sm text-brand-green-deep">
                 {msg}
@@ -420,6 +509,53 @@ export function OwnerDialog({
                   Delete
                 </Button>
               </div>
+            </div>
+
+            <div className="rounded-2xl border p-4">
+              <button
+                type="button"
+                onClick={() => setShowPinChange((v) => !v)}
+                className="flex w-full items-center gap-2 text-left text-sm font-bold"
+                aria-expanded={showPinChange}
+              >
+                <KeyRound className="h-4 w-4 text-primary" />
+                Change owner PIN
+                <span className="ml-auto text-xs font-semibold text-primary">
+                  {showPinChange ? "Hide" : "Show"}
+                </span>
+              </button>
+              {showPinChange && (
+                <div className="mt-3 space-y-2.5">
+                  <p className="text-xs text-muted-foreground">
+                    At least 6 characters. Write it down — if you forget it, it
+                    can only be reset in the spreadsheet Settings sheet.
+                  </p>
+                  <Input
+                    type="password"
+                    value={newPin}
+                    onChange={(e) => setNewPin(e.target.value)}
+                    placeholder="New PIN (6+ characters)"
+                    className="h-10 rounded-xl"
+                  />
+                  <Input
+                    type="password"
+                    value={confirmPin}
+                    onChange={(e) => setConfirmPin(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && changePin()}
+                    placeholder="Repeat new PIN"
+                    className="h-10 rounded-xl"
+                  />
+                  <Button
+                    size="sm"
+                    onClick={changePin}
+                    disabled={busy || !newPin || !confirmPin}
+                    className="bg-brand-gradient h-9 w-full rounded-full text-white"
+                  >
+                    {busy ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
+                    Save new PIN
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}

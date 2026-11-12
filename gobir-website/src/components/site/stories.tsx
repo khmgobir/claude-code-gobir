@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { X, Play } from "lucide-react";
+import { useBooking } from "./booking-context";
 
 type Story = { src: string; label: string; alt: string };
 
@@ -100,6 +101,15 @@ function StoryViewer({
   const [idx, setIdx] = useState(start);
   const [progress, setProgress] = useState(0);
   const paused = useRef(false);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const { openBooking } = useBooking();
+
+  // Focus the dialog on open (keyboard users) and restore focus on close.
+  useEffect(() => {
+    const prevFocus = document.activeElement as HTMLElement | null;
+    dialogRef.current?.focus();
+    return () => prevFocus?.focus?.();
+  }, []);
 
   const next = useCallback(() => {
     setIdx((i) => {
@@ -160,7 +170,9 @@ function StoryViewer({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-3 backdrop-blur-sm"
+      ref={dialogRef}
+      tabIndex={-1}
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-3 backdrop-blur-sm focus:outline-none"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -224,13 +236,16 @@ function StoryViewer({
           />
         </div>
 
-        <a
-          href="#book"
-          onClick={onClose}
-          className="bg-brand-gradient shadow-brand mt-3 flex items-center justify-center rounded-full px-6 py-3 text-base font-semibold text-white"
+        <button
+          type="button"
+          onClick={() => {
+            onClose();
+            openBooking();
+          }}
+          className="bg-brand-gradient shadow-brand mt-3 flex w-full items-center justify-center rounded-full px-6 py-3 text-base font-semibold text-white"
         >
           Book this session
-        </a>
+        </button>
       </div>
     </div>
   );

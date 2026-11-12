@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { SectionHeading } from "./reveal";
+import { useBooking } from "./booking-context";
 
 type Slide = { src: string; alt: string };
 
@@ -22,6 +23,7 @@ const SLIDES: Slide[] = [
 const AUTOPLAY_MS = 4500;
 
 export function Gallery() {
+  const { openBooking } = useBooking();
   const trackRef = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [index, setIndex] = useState(0);
@@ -169,12 +171,13 @@ export function Gallery() {
           </div>
 
           <div className="mt-8 text-center">
-            <a
-              href="#book"
+            <button
+              type="button"
+              onClick={() => openBooking()}
               className="bg-brand-gradient shadow-brand inline-flex items-center rounded-full px-7 py-3 text-base font-semibold text-white transition-transform hover:scale-[1.03]"
             >
               Book your session
-            </a>
+            </button>
           </div>
         </div>
       </div>

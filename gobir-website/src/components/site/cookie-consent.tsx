@@ -20,17 +20,20 @@ export function CookieConsent() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    let stored: string | null = null;
-    try {
-      stored = localStorage.getItem(KEY);
-    } catch {
-      /* private mode, etc. */
-    }
-    if (stored === "granted") {
-      window.gtag?.("consent", "update", { analytics_storage: "granted" });
-    } else if (!stored) {
-      setShow(true);
-    }
+    const id = window.setTimeout(() => {
+      let stored: string | null = null;
+      try {
+        stored = localStorage.getItem(KEY);
+      } catch {
+        /* private mode, etc. */
+      }
+      if (stored === "granted") {
+        window.gtag?.("consent", "update", { analytics_storage: "granted" });
+      } else if (!stored) {
+        setShow(true);
+      }
+    }, 0);
+    return () => window.clearTimeout(id);
   }, []);
 
   function decide(granted: boolean) {
