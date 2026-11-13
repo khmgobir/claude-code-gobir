@@ -555,7 +555,7 @@ function createCalendarEvent(p){
   try {
     var start = parseStart(p.date, p.time); if (!start) return "";
     var end = new Date(start.getTime() + durationMin()*60*1000);
-    var title = "Gobir class: " + (p.topic||"Session") + " — " + (p.name||"");
+    var title = "Gobir class: " + (p.topic||"Session") + " with " + (p.name||"");
     var desc = ["Student: "+p.name,"Phone: "+p.phone,"Email: "+p.email,"Topic: "+p.topic,
                 "Mode: "+p.mode,"People: "+p.people,"Total: NGN "+p.total,"Notes: "+(p.notes||"-")].join("\n");
     var ev = CalendarApp.getDefaultCalendar().createEvent(title, start, end, { description:desc });
@@ -596,7 +596,7 @@ function sendClientEmail(p, token){
       "",
       "Questions? WhatsApp us: https://wa.me/" + WHATSAPP, "",
       "See you soon!",
-      "Gobir Digital — Learn Digital · Build Smart · Grow"
+      "Gobir Digital. Learn Digital · Build Smart · Grow"
     ].join("\n");
     MailApp.sendEmail({ to: p.email, subject: "Your Gobir Digital session is booked ✅", body: body });
   } catch (e) {}
@@ -604,7 +604,7 @@ function sendClientEmail(p, token){
 function notifyOwner(p){
   try {
     MailApp.sendEmail({ to: Session.getEffectiveUser().getEmail(),
-      subject: "New booking: " + (p.name||"") + " — " + (p.topic||""),
+      subject: "New booking: " + (p.name||"") + ", " + (p.topic||""),
       body: ["New session booking:","","Name: "+p.name,"Phone: "+p.phone,"Email: "+p.email,
              "Topic: "+p.topic,"Mode: "+p.mode,"Address: "+(p.address||"-"),"Date: "+p.date,"Time: "+p.time,
              "People: "+p.people,"Total: NGN "+p.total,"Notes: "+(p.notes||"-")].join("\n") });
@@ -652,7 +652,7 @@ function buildAnalytics(){
     var upcoming = act.filter(function(r){ return fmtDate(r[idx("Date")]) >= today; }).length;
     var byTopic = {}, byMode = { online:0, inperson:0 }, byDay = {};
     act.forEach(function(r){
-      var tp = String(r[idx("Topic")]||"—"); if(!byTopic[tp]) byTopic[tp]={n:0,rev:0};
+      var tp = String(r[idx("Topic")]||""); if(!byTopic[tp]) byTopic[tp]={n:0,rev:0};
       byTopic[tp].n++; byTopic[tp].rev += (parseFloat(r[idx("Total")])||0);
       (String(r[idx("Mode")]).toLowerCase().indexOf("person")>=0 ? byMode.inperson++ : byMode.online++);
       var d = fmtDate(r[idx("Date")]); byDay[d] = (byDay[d]||0) + 1;

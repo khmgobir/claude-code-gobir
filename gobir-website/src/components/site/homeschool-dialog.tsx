@@ -14,7 +14,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -87,7 +86,7 @@ export function HomeschoolDialog({
     }
     setStage("submitting");
     const planName = HS_PLANS.find((p) => p.id === plan)?.name ?? plan;
-    const summary = `Home Schooling — ${planName} plan, ${children} child${children > 1 ? "ren" : ""}${
+    const summary = `Home Schooling, ${planName} plan, ${children} child${children > 1 ? "ren" : ""}${
       ages ? ` (ages ${ages})` : ""
     }, ${mode}, ${time}${subjects.length ? `, subjects: ${subjects.join(", ")}` : ""}${
       start ? `, start ${start}` : ""
@@ -109,7 +108,7 @@ export function HomeschoolDialog({
       setStage("done");
     } else {
       setStage("form");
-      setErrorMsg(res.error ?? "Something went wrong — please try again or WhatsApp me.");
+      setErrorMsg(res.error ?? "Something went wrong. Please try again, or just WhatsApp me.");
     }
   }
 
@@ -156,10 +155,10 @@ export function HomeschoolDialog({
               </span>
               <div>
                 <span className="font-display text-lg font-extrabold leading-tight">
-                  Home Schooling — request a place
+                  Home Schooling: request a place
                 </span>
                 <DialogDescription className="mt-0.5 text-xs">
-                  Tell me about your child(ren) — I confirm the schedule on WhatsApp within 24h.
+                  Tell me about your child(ren) and I'll confirm the schedule on WhatsApp within 24 hours.
                 </DialogDescription>
               </div>
             </div>
@@ -176,7 +175,7 @@ export function HomeschoolDialog({
               <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
                 {confirmed
                   ? "Your request is saved and I've been notified."
-                  : "Your request has been sent — if you don't hear from me within 24 hours, tap WhatsApp below."}{" "}
+                  : "Your request has been sent. If you don't hear from me within 24 hours, tap WhatsApp below."}{" "}
                 I&apos;ll confirm your child&apos;s timetable and the start date on WhatsApp.
               </p>
               <div className="mx-auto mt-4 w-fit rounded-2xl border bg-muted/50 px-4 py-2">
@@ -253,7 +252,7 @@ export function HomeschoolDialog({
                 </div>
                 {children > 1 && (
                   <p className="text-xs font-medium text-brand-green-deep">
-                    25% sibling discount applied on children 2–4.
+                    25% sibling discount applied on children 2-4.
                   </p>
                 )}
               </div>
@@ -332,7 +331,7 @@ export function HomeschoolDialog({
                 </span>
               </div>
               <p className="text-center text-xs text-muted-foreground">
-                One-off assessment session: {naira(5000)} — credited to your first month if you continue.
+                One-off assessment session: {naira(5000)}, credited to your first month if you continue.
               </p>
 
               {errorMsg && (
@@ -372,7 +371,7 @@ export function HomeschoolDialog({
           </div>
         ) : (
           <div className="border-t bg-muted/30 px-6 py-4">
-            <a href={waProgramLink(ref, `Home Schooling request — I'll send my child's details here.`)} target="_blank" rel="noopener noreferrer" className="block">
+            <a href={waProgramLink(ref, `Home Schooling request. My child's details: `)} target="_blank" rel="noopener noreferrer" className="block">
               <Button className="w-full rounded-full bg-gradient-to-br from-brand-green to-brand-wa font-semibold text-white">
                 <MessageCircle className="mr-2 h-4 w-4" />
                 Continue on WhatsApp

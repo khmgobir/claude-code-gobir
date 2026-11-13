@@ -20,7 +20,7 @@ class RevealBoundary extends Component<
   }
 
   componentDidCatch(_error: Error, _info: ErrorInfo) {
-    /* swallow — static fallback is acceptable */
+    /* swallow, static fallback is acceptable */
   }
 
   render() {

@@ -16,9 +16,9 @@ import { useBooking } from "./booking-context";
 
 const CHIPS = [
   { icon: Clock3, label: "60 min", sub: "per session" },
-  { icon: Wallet, label: "₦5k–10k", sub: "solo / group" },
-  { icon: Users, label: "1–5", sub: "people" },
-  { icon: CalendarClock, label: "4–10pm", sub: "daily (WAT)" },
+  { icon: Wallet, label: "₦5k-10k", sub: "solo / group" },
+  { icon: Users, label: "1-5", sub: "people" },
+  { icon: CalendarClock, label: "4-10pm", sub: "daily (WAT)" },
 ];
 
 const fadeUp = {
@@ -139,8 +139,8 @@ export function Hero() {
           <div className="bg-brand-gradient absolute -inset-3 rounded-[2.2rem] opacity-25 blur-2xl" />
           <div className="border-gradient relative overflow-hidden rounded-[2rem] shadow-brand">
             <img
-              src="/img/hero-site.webp"
-              alt="A smiling student learning AI skills on a laptop with Gobir Digital"
+              src="/img/hero-airpods-c.webp"
+              alt="Gobir, your coach in Sokoto, wearing his kaftan, cap and white AirPods, smiling at his desk in his office"
               fetchPriority="high"
               decoding="async"
               className="aspect-[4/3.4] w-full object-cover"

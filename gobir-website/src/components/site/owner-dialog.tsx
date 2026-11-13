@@ -292,7 +292,7 @@ export function OwnerDialog({
             </div>
             {pinLocked && (
               <p className="text-center text-xs font-semibold text-muted-foreground">
-                Locked — try again in {Math.floor(pinLockLeft / 60)}:
+                Locked. Try again in {Math.floor(pinLockLeft / 60)}:
                 {String(pinLockLeft % 60).padStart(2, "0")}.
               </p>
             )}
@@ -485,7 +485,7 @@ export function OwnerDialog({
                 Remove a booking
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
-                Deletes the row and its calendar event for good — use it to clear
+                Deletes the row and its calendar event for good. Use it to clear
                 test or duplicate bookings.
               </p>
               <div className="mt-3 flex gap-2">
@@ -527,7 +527,7 @@ export function OwnerDialog({
               {showPinChange && (
                 <div className="mt-3 space-y-2.5">
                   <p className="text-xs text-muted-foreground">
-                    At least 6 characters. Write it down — if you forget it, it
+                    At least 6 characters. Write it down: if you forget it, it
                     can only be reset in the spreadsheet Settings sheet.
                   </p>
                   <Input

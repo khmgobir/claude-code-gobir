@@ -69,7 +69,7 @@ function saveLastBooking(token: string, topic: string) {
       JSON.stringify({ token, topic, at: Date.now() })
     );
   } catch {
-    /* private mode / storage full — not critical */
+    /* private mode / storage full, not critical */
   }
 }
 
@@ -111,7 +111,7 @@ export function BookingProvider({ children }: { children: ReactNode }) {
   const [copied, setCopied] = useState(false);
   const [fields, setFields] = useState<typeof BLANK & { company: string }>({
     ...BLANK,
-    company: "", // honeypot — bots only
+    company: "", // honeypot, bots only
   });
 
   const [slotsState, setSlotsState] = useState<SlotsState>({

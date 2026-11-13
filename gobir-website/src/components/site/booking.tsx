@@ -102,8 +102,8 @@ export function BookingDialog() {
                   {b.stage === "done"
                     ? "Confirmation is on its way to your email."
                     : b.step === 1
-                      ? "Pick what, where and when — under a minute."
-                      : "Almost done — just your contact details."}
+                      ? "Pick what, where and when. It takes under a minute."
+                      : "Almost done, just your contact details."}
                 </DialogDescription>
               </div>
             </DialogTitle>
@@ -161,7 +161,7 @@ export function BookingDialog() {
                   </button>
                 </div>
                 <p className="mx-auto mt-2 max-w-xs text-xs text-muted-foreground">
-                  Save this reference — you can also manage your session any time at{" "}
+                  Save this reference. You can also manage your session any time at{" "}
                   <a
                     href={manageUrl(b.token)}
                     className="font-semibold text-primary underline-offset-2 hover:underline"
@@ -410,7 +410,7 @@ export function BookingDialog() {
                     Your confirmation &amp; private manage link arrive here. No email?{" "}
                     <a
                       href={waLink(
-                        "Hello Gobir Digital! I'd like to book a session but I don't use email — please confirm my booking here on WhatsApp."
+                        "Hello Gobir Digital! I'd like to book a session but I don't use email, so please confirm my booking here on WhatsApp."
                       )}
                       target="_blank"
                       rel="noopener noreferrer"

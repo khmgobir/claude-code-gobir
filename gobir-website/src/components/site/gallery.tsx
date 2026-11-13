@@ -8,16 +8,16 @@ import { useBooking } from "./booking-context";
 type Slide = { src: string; alt: string };
 
 const SLIDES: Slide[] = [
-  { src: "/img/gallery/slide-01.webp", alt: "Gobir Digital — master AI and digital skills in 60 minutes, from ₦5,000" },
-  { src: "/img/gallery/slide-02.webp", alt: "How to Use AI — get your work done in minutes with ChatGPT, Claude and Gemini" },
-  { src: "/img/gallery/slide-03.webp", alt: "Computer Basics — go from nervous to confident on any computer" },
-  { src: "/img/gallery/slide-04.webp", alt: "Turn your idea into reality — leave with a clear, do-able plan" },
-  { src: "/img/gallery/slide-05.webp", alt: "Promote your business online — get real customers from social media" },
-  { src: "/img/gallery/slide-06.webp", alt: "Kids Digital Learning — a fun, safe start with tech and AI, ages 6 to 15" },
-  { src: "/img/gallery/slide-07.webp", alt: "Learn online — join on Google Meet or Zoom from anywhere" },
-  { src: "/img/gallery/slide-08.webp", alt: "Group sessions — bring up to 5 friends and split the flat ₦10,000 price" },
-  { src: "/img/gallery/slide-09.webp", alt: "Real results — practical skills you can use the same day" },
-  { src: "/img/gallery/slide-10.webp", alt: "Book your session — evenings 4 to 10pm, online or in person in Sokoto" },
+  { src: "/img/gallery/slide-01.webp", alt: "Gobir Digital: master AI and digital skills in 60 minutes, from ₦5,000" },
+  { src: "/img/gallery/slide-02.webp", alt: "How to Use AI: get your work done in minutes with ChatGPT, Claude and Gemini" },
+  { src: "/img/gallery/slide-03.webp", alt: "Computer Basics: go from nervous to confident on any computer" },
+  { src: "/img/gallery/slide-04.webp", alt: "Turn your idea into reality: leave with a clear, do-able plan" },
+  { src: "/img/gallery/slide-05.webp", alt: "Promote your business online: get real customers from social media" },
+  { src: "/img/gallery/slide-06.webp", alt: "Kids Digital Learning: a fun, safe start with tech and AI, ages 6 to 15" },
+  { src: "/img/gallery/slide-07.webp", alt: "Learn online: join on Google Meet or Zoom from anywhere" },
+  { src: "/img/gallery/slide-08.webp", alt: "Group sessions: bring up to 5 friends and split the flat ₦10,000 price" },
+  { src: "/img/gallery/slide-09.webp", alt: "Real results: practical skills you can use the same day" },
+  { src: "/img/gallery/slide-10.webp", alt: "Book your session: evenings 4 to 10pm, online or in person in Sokoto" },
 ];
 
 const AUTOPLAY_MS = 4500;

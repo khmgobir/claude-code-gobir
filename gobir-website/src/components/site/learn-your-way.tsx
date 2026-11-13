@@ -19,9 +19,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Reveal, SectionHeading } from "./reveal";
 import { naira, WHATSAPP_LINK } from "@/lib/booking";
 import { HS_PLANS, RS_SERVICES } from "@/lib/programs";
+import { Reveal, SectionHeading } from "./reveal";
 import { HomeschoolDialog } from "./homeschool-dialog";
 import { ResearchDialog } from "./research-dialog";
 
@@ -54,9 +54,9 @@ const PROGRAMS: Program[] = [
     grad: "from-brand-royal to-brand-cyan",
     tagline: "A real school routine at home, built around your child.",
     bullets: [
-      "Personalised timetable for ages 5–15",
+      "Personalised timetable for ages 5-15",
       "Reading, maths, computer & AI skills",
-      "2–4 sessions a week, at home or online",
+      "2-4 sessions a week, at home or online",
       "Monthly progress report for parents",
     ],
     detail: {
@@ -65,15 +65,15 @@ const PROGRAMS: Program[] = [
       includes: [
         "Free meet-and-greet session with you and your child",
         "A weekly plan mixing school subjects with computer & AI skills",
-        "Qualified, patient coaching — Hausa & English",
+        "Qualified, patient coaching in Hausa & English",
         "Monthly progress summary with next steps for parents",
         "Safe, child-friendly content only (parent approved)",
       ],
-      forWho: "Parents of children aged 5–15 (including homeschooling families and anyone wanting extra support after school).",
+      forWho: "Parents of children aged 5-15 (including homeschooling families and anyone wanting extra support after school).",
       how: [
-        "Book a first session — we assess your child's level",
+        "Book a first session and we'll assess your child's level",
         "We agree a weekly timetable that fits your family",
-        "Sessions run 2–4 times a week, 60 minutes each",
+        "Sessions run 2-4 times a week, 60 minutes each",
         "You get a progress report every month",
       ],
     },
@@ -105,7 +105,7 @@ const PROGRAMS: Program[] = [
       ],
       forWho: "Undergraduate & postgraduate students, lecturers, NGOs and small businesses that need reliable numbers and clear reporting.",
       how: [
-        "Book a first session — we review your topic or data",
+        "Book a first session and we'll review your topic or data",
         "We agree the analysis plan and tools (Excel, SPSS, Power BI)",
         "We work through the analysis together, hands-on",
         "You leave with clean tables, charts and a written interpretation",
@@ -133,7 +133,7 @@ export function LearnYourWay() {
           eyebrow="New programs"
           title={
             <>
-              Learn <span className="text-gradient">your way</span> — at home or in the data
+              Learn <span className="text-gradient">your way</span>, at home or in the data
             </>
           }
           sub="Two focused programs beyond one-off sessions: a full home-schooling routine for your child, and research & data-analysis support that gets results."

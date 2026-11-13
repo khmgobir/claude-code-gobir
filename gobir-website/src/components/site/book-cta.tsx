@@ -2,12 +2,12 @@
 
 import { ArrowRight, Clock3, MessageCircle, Sparkles, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Reveal } from "./reveal";
 import { naira, SOLO_PRICE, GROUP_PRICE, WHATSAPP_LINK } from "@/lib/booking";
+import { Reveal } from "./reveal";
 import { useBooking } from "./booking-context";
 
 /**
- * Compact booking CTA band — replaces the old full-page booking section.
+ * Compact booking CTA band (replaces the old full-page booking section).
  * The whole form now lives in a 2-step popup wizard (see booking.tsx).
  */
 export function BookCta() {
@@ -49,7 +49,7 @@ export function BookCta() {
                 </h2>
                 <p className="mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-white/85">
                   <span className="inline-flex items-center gap-1.5">
-                    <Clock3 className="h-4 w-4" /> Evenings, 4–10pm daily (WAT)
+                    <Clock3 className="h-4 w-4" /> Evenings, 4-10pm daily (WAT)
                   </span>
                   <span className="inline-flex items-center gap-1.5">
                     <Users className="h-4 w-4" /> {naira(SOLO_PRICE)} solo · {naira(GROUP_PRICE)} group

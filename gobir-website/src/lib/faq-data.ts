@@ -1,5 +1,5 @@
 /**
- * FAQ content — single source of truth.
+ * FAQ content (single source of truth).
  * Used by the visible FAQ accordion AND the FAQPage JSON-LD in layout.tsx,
  * so Google always sees the same questions/answers as visitors do.
  */
@@ -18,7 +18,7 @@ export const FAQS = [
   },
   {
     q: "Can I bring friends or my team?",
-    a: "Yes, up to 5 people. It's ₦5,000 for 1 person, or a flat ₦10,000 for a group of 2–5, so bringing friends is great value (as low as ₦2,000 each). Everyone learns together in the same session.",
+    a: "Yes, up to 5 people. It's ₦5,000 for 1 person, or a flat ₦10,000 for a group of 2-5, so bringing friends is great value (as low as ₦2,000 each). Everyone learns together in the same session.",
   },
   {
     q: "What if I need to reschedule?",

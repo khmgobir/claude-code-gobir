@@ -1,5 +1,5 @@
 /**
- * Program request models — Home Schooling & Research/Data Analysis.
+ * Program request models: Home Schooling & Research/Data Analysis.
  * Designed by the two specialist panels:
  *   • Program/pricing specialists → plan & service menus with their own prices
  *   • UX specialist → single-screen intake with live totals, no account needed
@@ -27,21 +27,21 @@ export const HS_PLANS: {
     name: "Essential",
     perWeek: 2,
     perChild: 20000,
-    blurb: "2 sessions a week — steady school support",
+    blurb: "2 sessions a week, steady school support",
   },
   {
     id: "standard",
     name: "Standard",
     perWeek: 3,
     perChild: 28000,
-    blurb: "3 sessions a week — the sweet spot",
+    blurb: "3 sessions a week, the sweet spot",
   },
   {
     id: "intensive",
     name: "Intensive",
     perWeek: 4,
     perChild: 36000,
-    blurb: "4 sessions a week — catch up fast",
+    blurb: "4 sessions a week to catch up fast",
   },
 ];
 
@@ -55,7 +55,7 @@ export const HS_SUBJECTS = [
 ] as const;
 
 export const HS_TIMES = [
-  "After school (4–6pm)",
+  "After school (4-6pm)",
   "Mornings",
   "Weekends",
   "Flexible",
@@ -117,9 +117,9 @@ export const RS_ROLES = [
 ] as const;
 
 export const RS_DATA_STATUS = [
-  "Ready — I'll upload now",
-  "Ready — I'll send on WhatsApp",
-  "Not yet — help me collect it",
+  "Ready, I'll upload now",
+  "Ready, I'll send on WhatsApp",
+  "Not yet, help me collect it",
 ] as const;
 
 export function rsFromTotal(selected: RsServiceId[]): number {
@@ -214,7 +214,7 @@ export async function submitProgramRequest(
       ok: false,
       ref,
       confirmed: false,
-      error: "No internet connection — please try again or send it on WhatsApp.",
+      error: "No internet connection. Please try again, or send it on WhatsApp.",
     };
   }
 

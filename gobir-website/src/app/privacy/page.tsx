@@ -41,10 +41,10 @@ export default function PrivacyPage() {
 
       <LegalSection heading="Why we may use your data (lawful basis)">
         <p>
-          Under the NDPA we rely on: <strong>consent</strong> — you tick the
-          privacy box when booking and choose whether to allow analytics;
-          <strong> contract</strong> — the details are needed to arrange and run
-          the session you booked; and <strong>legitimate interest</strong> —
+          Under the NDPA we rely on three lawful bases. <strong>Consent</strong>:
+          you tick the privacy box when booking and choose whether to allow
+          analytics. <strong>Contract</strong>: the details are needed to arrange
+          and run the session you booked. <strong>Legitimate interest</strong>:
           keeping basic business records of bookings and payments.
         </p>
       </LegalSection>
@@ -83,8 +83,8 @@ export default function PrivacyPage() {
           24 months after your last session, so we can honour reschedules,
           handle disputes and keep sensible business accounts. Analytics data is
           kept by Google for the standard period set in your consent settings.
-          You can ask us to delete your records sooner at any time — see
-          &quot;Your choices&quot; below.
+          You can ask us to delete your records sooner at any time (see
+          &quot;Your choices&quot; below).
         </p>
       </LegalSection>
 
@@ -106,7 +106,7 @@ export default function PrivacyPage() {
           using the manage link we email you. Under the NDPA you may also
           request a copy of your data, withdraw consent, or ask us to stop a
           particular use of it. To exercise any right, message or email us (see
-          below) — we respond as quickly as we can, usually within 7 days. If
+          below). We respond as quickly as we can, usually within 7 days. If
           you are not satisfied with how we handle your data, you may complain
           to the Nigeria Data Protection Commission (NDPC).
         </p>

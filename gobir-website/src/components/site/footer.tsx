@@ -116,7 +116,7 @@ export function Footer({ onManage, onOwner }: { onManage: () => void; onOwner: (
         </div>
 
         <div className="mt-10 flex flex-col items-center justify-between gap-3 border-t border-background/10 pt-6 text-xs text-background/50 sm:flex-row">
-          <p>© 2026 Gobir Digital · Open daily 4:00pm – 10:00pm (WAT)</p>
+          <p>© 2026 Gobir Digital · Open daily 4:00pm to 10:00pm (WAT)</p>
           <div className="flex items-center gap-4">
             <Link href="/privacy/" className="text-background/70 transition-colors hover:text-background">
               Privacy

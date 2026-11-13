@@ -14,7 +14,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -112,7 +111,7 @@ export function ResearchDialog({
     const serviceNames = services
       .map((id) => RS_SERVICES.find((s) => s.id === id)?.name ?? id)
       .join(", ");
-    const summary = `Research & Data Analysis — ${role}. Services: ${serviceNames}. Data: ${dataStatus}${
+    const summary = `Research & Data Analysis, ${role}. Services: ${serviceNames}. Data: ${dataStatus}${
       deadline ? `. Deadline: ${deadline}` : ""
     }${notes ? `. Notes: ${notes}` : ""}`;
     const res = await submitProgramRequest(
@@ -132,7 +131,7 @@ export function ResearchDialog({
       setStage("done");
     } else {
       setStage("form");
-      setErrorMsg(res.error ?? "Something went wrong — please try again or WhatsApp me.");
+      setErrorMsg(res.error ?? "Something went wrong. Please try again, or just WhatsApp me.");
     }
   }
 
@@ -168,10 +167,10 @@ export function ResearchDialog({
               </span>
               <div>
                 <span className="font-display text-lg font-extrabold leading-tight">
-                  Research &amp; Data Analysis — get a quote
+                  Research &amp; Data Analysis: get a quote
                 </span>
                 <DialogDescription className="mt-0.5 text-xs">
-                  Attach your data or documents — you get a firm quote on WhatsApp before any payment.
+                  Attach your data or documents and you'll get a firm quote on WhatsApp before any payment.
                 </DialogDescription>
               </div>
             </div>
@@ -187,9 +186,9 @@ export function ResearchDialog({
               <h3 className="font-display mt-3 text-xl font-bold">Request received!</h3>
               <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
                 {confirmed
-                  ? "Your files and details are saved — I've been notified."
+                  ? "Your files and details are saved, and I've been notified."
                   : "Your request has been sent. If you don't hear from me within 24 hours, tap WhatsApp below."}{" "}
-                You&apos;ll get a firm quote before any payment — no surprises.
+                You&apos;ll get a firm quote before any payment, so there are no surprises.
               </p>
               <div className="mx-auto mt-4 w-fit rounded-2xl border bg-muted/50 px-4 py-2">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -338,7 +337,7 @@ export function ResearchDialog({
                   {services.length ? "Estimated from" : "Pick services to see pricing"}
                 </span>
                 <span className="font-display text-gradient text-xl font-extrabold">
-                  {services.length ? naira(fromTotal) : "—"}
+                  {services.length ? naira(fromTotal) : "Let's talk"}
                   {services.length > 0 && (
                     <span className="block text-[10px] font-semibold text-muted-foreground">
                       final quote before any payment
@@ -383,7 +382,7 @@ export function ResearchDialog({
           </div>
         ) : (
           <div className="border-t bg-muted/30 px-6 py-4">
-            <a href={waProgramLink(ref, "Research & Data Analysis quote request — I'll send my project details here.")} target="_blank" rel="noopener noreferrer" className="block">
+            <a href={waProgramLink(ref, "Research & Data Analysis quote request. My project details: ")} target="_blank" rel="noopener noreferrer" className="block">
               <Button className="w-full rounded-full bg-gradient-to-br from-brand-green to-brand-wa font-semibold text-white">
                 <MessageCircle className="mr-2 h-4 w-4" />
                 Continue on WhatsApp

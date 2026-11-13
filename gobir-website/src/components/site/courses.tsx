@@ -22,8 +22,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Reveal, SectionHeading } from "./reveal";
 import { naira, SOLO_PRICE, WHATSAPP_LINK } from "@/lib/booking";
+import { Reveal, SectionHeading } from "./reveal";
 import { useBooking } from "./booking-context";
 
 const COURSES = [
@@ -37,10 +37,10 @@ const COURSES = [
     grad: "from-brand-royal to-brand-coral",
     soft: "bg-brand-royal/10 text-brand-royal",
     topic: "How to Use AI",
-    forWho: "Students, teachers, writers, office workers — anyone who wants AI to do the heavy lifting.",
+    forWho: "Students, teachers, writers, office workers: anyone who wants AI to do the heavy lifting.",
     learn: [
       "Write, plan and research 10× faster with ChatGPT, Claude & Gemini",
-      "Prompt like a pro — get useful answers the first time",
+      "Prompt like a pro and get useful answers the first time",
       "Summarise long documents and study notes instantly",
       "Create images, slides and simple documents with AI",
       "Use AI safely: what to share, what to double-check",
@@ -75,7 +75,7 @@ const COURSES = [
     grad: "from-brand-navy to-brand-royal",
     soft: "bg-brand-sky/10 text-brand-royal",
     topic: "Turn Your Idea Into Reality",
-    forWho: "Anyone with an idea sitting in a notebook — side hustles, apps, services, school projects.",
+    forWho: "Anyone with an idea sitting in a notebook: side hustles, apps, services, school projects.",
     learn: [
       "Shape a fuzzy idea into a clear, testable plan",
       "Check there are real customers before you build",
@@ -94,18 +94,18 @@ const COURSES = [
     grad: "from-brand-coral to-brand-coral-deep",
     soft: "bg-brand-coral/10 text-brand-coral-deep",
     topic: "Promote Your Business Online",
-    forWho: "Shop owners, artisans, food vendors, freelancers — anyone selling something in Sokoto or online.",
+    forWho: "Shop owners, artisans, food vendors, freelancers: anyone selling something in Sokoto or online.",
     learn: [
       "Set up or fix your WhatsApp Business & catalogue",
       "Make scroll-stopping posts with free AI design tools",
       "A simple weekly content calendar you can keep",
       "Turn comments and DMs into paying customers",
-      "Track what works — one page, no jargon",
+      "Track what works, one simple page with no jargon",
     ],
   },
   {
     icon: Baby,
-    badge: "Ages 6–15 · personalised",
+    badge: "Ages 6-15 · personalised",
     badgeClass: "bg-brand-blue/15 text-brand-royal",
     title: "Kids Digital Learning",
     body: "Fun, safe, personalised lessons that give your child a real head start with computers and AI.",
@@ -113,7 +113,7 @@ const COURSES = [
     grad: "from-brand-blue to-brand-royal",
     soft: "bg-brand-blue/10 text-brand-royal",
     topic: "Kids Digital Learning (personalised)",
-    forWho: "Parents of children aged 6–15 — for after-school, weekends or holidays.",
+    forWho: "Parents of children aged 6-15, for after-school, weekends or holidays.",
     learn: [
       "Safe, supervised first steps on the computer",
       "Typing games that actually build speed",
@@ -241,7 +241,7 @@ export function Courses() {
 
                 <div className="flex items-center justify-between rounded-2xl bg-brand-gradient-soft px-4 py-3">
                   <span className="text-sm font-semibold text-foreground/90">
-                    {naira(SOLO_PRICE)} solo · {naira(10000)} group of 2–5
+                    {naira(SOLO_PRICE)} solo · {naira(10000)} group of 2-5
                   </span>
                   <span className="text-xs text-muted-foreground">60 min · pay after booking</span>
                 </div>

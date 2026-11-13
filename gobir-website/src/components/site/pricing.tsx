@@ -74,7 +74,7 @@ export function Pricing() {
                 BEST VALUE
               </div>
               <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-brand-coral/10 px-3 py-1 text-xs font-bold text-brand-coral-deep">
-                <Users className="h-3.5 w-3.5" /> Group · 2–5 people
+                <Users className="h-3.5 w-3.5" /> Group · 2-5 people
               </span>
               <div className="font-display mt-5 flex items-end gap-2">
                 <span className="text-gradient text-5xl font-extrabold tracking-tight">
@@ -85,7 +85,7 @@ export function Pricing() {
                 </span>
               </div>
               <p className="mt-2 text-sm text-muted-foreground">
-                Flat for the whole group of 2–5, that&apos;s as low as ₦2,000 each.
+                Flat for the whole group of 2-5, that&apos;s as low as ₦2,000 each.
               </p>
               <ul className="mt-6 flex-1 space-y-3">
                 {[

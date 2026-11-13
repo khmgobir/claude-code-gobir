@@ -28,7 +28,6 @@ import {
   REASON_TEXT,
   SLOTS,
   type BookingLookupResponse,
-  type BookMode,
   type SlotsResponse,
 } from "@/lib/booking";
 import { readLastBooking } from "./booking-context";
@@ -119,7 +118,7 @@ export function ManageDialog({
         setCooldownLeft(wait > 0 ? wait : 0);
         setError(
           wait >= FAIL_DELAYS[FAIL_DELAYS.length - 1]
-            ? "We couldn't find a booking with that reference. Check the email we sent you — a few more tries will need a short wait."
+            ? "We couldn't find a booking with that reference. Check the email we sent you. A few more tries will need a short wait."
             : "We couldn't find a booking with that reference. Check the email we sent you."
         );
       }

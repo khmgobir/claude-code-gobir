@@ -8,8 +8,8 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Reveal, SectionHeading } from "./reveal";
 import { WHATSAPP_LINK, WHATSAPP_DISPLAY, type BookMode } from "@/lib/booking";
+import { Reveal, SectionHeading } from "./reveal";
 import { useBooking } from "./booking-context";
 
 const CARDS = [
@@ -45,7 +45,7 @@ const CARDS = [
   {
     icon: Clock3,
     title: "Open hours",
-    main: "4:00pm – 10:00pm",
+    main: "4:00pm to 10:00pm",
     sub: "Daily · Nigeria time (WAT)",
     cta: "See slots",
     href: "#book",

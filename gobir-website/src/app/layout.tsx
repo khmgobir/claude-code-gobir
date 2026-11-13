@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Sora } from "next/font/google";
 import Script from "next/script";
-import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { CookieConsent } from "@/components/site/cookie-consent";
 import { FAQS } from "@/lib/faq-data";
 import { APP_URL } from "@/lib/booking";
+import "./globals.css";
 
 const GA_ID = "G-B99P54VLV3";
 
@@ -15,7 +15,7 @@ const inter = Inter({
   display: "swap",
 });
 
-// Sora is a variable font (wght 100–800): dropping the static weight list
+// Sora is a variable font (wght 100-800): dropping the static weight list
 // loads one variable file instead of five, every weight still works.
 const sora = Sora({
   variable: "--font-sora",
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: "Gobir Digital: Learn Smarter. Master AI & Digital Skills",
   description:
-    "Practical, beginner-friendly coaching in AI, computer basics, app ideas and online business growth. Online or in person in Sokoto, Nigeria. Evening sessions, ₦5,000 solo or ₦10,000 for a group of 2–5.",
+    "Practical, beginner-friendly coaching in AI, computer basics, app ideas and online business growth. Online or in person in Sokoto, Nigeria. Evening sessions, ₦5,000 solo or ₦10,000 for a group of 2-5.",
   keywords: [
     "Gobir Digital",
     "AI coaching Nigeria",
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Gobir Digital: Learn Digital. Build Smart. Grow Business.",
     description:
-      "Friendly, practical coaching in AI and digital skills, online or in person (Sokoto, Nigeria). Sessions daily 4pm–10pm WAT.",
+      "Friendly, practical coaching in AI and digital skills, online or in person (Sokoto, Nigeria). Sessions daily 4pm to 10pm WAT.",
     url: APP_URL,
     siteName: "Gobir Digital",
     images: [{ url: "/gobir-og.png", width: 2400, height: 1260 }],
@@ -90,7 +90,7 @@ const jsonLd = {
   },
 };
 
-// FAQ structured data — mirrors the visible accordion (src/lib/faq-data.ts)
+// FAQ structured data, mirrors the visible accordion (src/lib/faq-data.ts)
 const faqJsonLd = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -123,7 +123,7 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
         />
-        {/* Google Consent Mode v2 — default denied until the visitor accepts */}
+        {/* Google Consent Mode v2: default denied until the visitor accepts */}
         <Script id="ga-consent-default" strategy="beforeInteractive">
           {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
 gtag('consent','default',{'analytics_storage':'denied','ad_storage':'denied','ad_user_data':'denied','ad_personalization':'denied'});`}
@@ -132,6 +132,7 @@ gtag('consent','default',{'analytics_storage':'denied','ad_storage':'denied','ad
       <body
         className={`${inter.variable} ${sora.variable} font-sans antialiased bg-background text-foreground`}
       >
+        {/* Skip link lives in page.tsx (inside BookingProvider), jumping to #main */}
         {children}
         <Toaster />
         <CookieConsent />

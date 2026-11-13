@@ -22,14 +22,14 @@ export default function TermsPage() {
           Gobir Digital offers coaching in AI, computer basics, turning ideas into
           reality, promoting your business online, and kids&apos; digital
           learning. Sessions run online or in person in Sokoto, Nigeria, usually
-          in the evenings (4:00pm–10:00pm WAT).
+          in the evenings (4:00pm to 10:00pm WAT).
         </p>
       </LegalSection>
 
       <LegalSection heading="Booking &amp; pricing">
         <ul className="list-disc space-y-1 pl-5">
           <li>A solo session is ₦5,000.</li>
-          <li>A group session for 2–5 people is a flat ₦10,000.</li>
+          <li>A group session for 2-5 people is a flat ₦10,000.</li>
           <li>In-person sessions are one-to-one for the booked time slot.</li>
         </ul>
         <p>
